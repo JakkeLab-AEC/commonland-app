@@ -220,3 +220,12 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,node,windows,macos
+
+# tsc folder
+/dist
+
+# vite build folder
+/.vite
+
+# electron-forge build folder
+/out
