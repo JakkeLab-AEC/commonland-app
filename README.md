@@ -9,6 +9,9 @@ Tool for create topography, manage land based on borehole report.
 - Borehole data editor
 - Visualize Borehole and create topography
 
+#### Main tech stacks
+- Electorn, React, SQLite, Threejs, Zustand
+
 ---
 
 ### Comming soon
