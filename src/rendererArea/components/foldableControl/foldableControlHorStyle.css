@@ -1,0 +1,10 @@
+.button-toggle {
+    border-radius: 100%;
+    transition: 0.2s;
+}
+
+.button-toggle:hover {
+    border-radius: 50%;
+    background-color: rgb(171, 207, 255);
+    transition: 0.2s;
+}

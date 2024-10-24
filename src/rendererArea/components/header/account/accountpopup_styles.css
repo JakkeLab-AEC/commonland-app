@@ -1,0 +1,9 @@
+.style-component {
+    width: 240px;
+    height: 120px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0px 0px 4px grey;
+    padding: 8px;
+    color:black
+}

@@ -1,0 +1,13 @@
+.sidebar-area::-webkit-scrollbar {
+    width: 8px;
+}
+
+.sidebar-area::-webkit-scrollbar-track {
+    background: none;
+}
+
+.sidebar-area::-webkit-scrollbar-thumb {
+    background-color: darkgray;
+    border-radius: 10px;
+    border: 2px solid white;
+}

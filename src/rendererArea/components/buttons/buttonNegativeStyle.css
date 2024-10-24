@@ -1,0 +1,27 @@
+.btn-negative-enabled {
+    background-color: #dadada;
+    height: 48;
+    color: black;
+    align-self: center;
+    font-weight: 600;
+    font-size: 16;
+    border-radius: 4;
+    transition: 0.2s;
+}
+
+.btn-negative-enabled:hover {
+    background-color: #dbbaba;
+    transition: 0.2s;
+}
+
+.btn-negative-disabled {
+    background-color: #cccccc;
+    height: 48px;
+    color: rgb(121, 121, 121);
+    align-self: center;
+    font-weight: 600;
+    font-size: 16px;
+    border-radius: 4px;
+    user-select: none;
+    cursor: default;
+}

@@ -1,3 +1,26 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
+      Arial, sans-serif;
+    
+  }
+  
+  /* background-color: hsl(98, 100%, 78%); */
+  
+  .key-color-main {
+    /* Background : Blue */
+    background-color: #0045FB;
+    /* Text : White */
+    color: 'white'
+  }
+  
+  .main-header{
+    -webkit-app-region: drag;
+  }
+  
+  .drag-disable {
+    -webkit-user-select:none
+  }

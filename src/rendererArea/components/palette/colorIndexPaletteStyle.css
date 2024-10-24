@@ -1,0 +1,17 @@
+.palette-color-tooltip {
+    visibility: hidden;
+    background-color: white;
+    position: absolute;
+    z-index: 1;
+    filter: drop-shadow(0px 0px 4px silver);
+    padding: 4px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    top: 20px; /* Adjust this to position the tooltip appropriately */
+    left: 0;   /* Adjust positioning to your needs */
+}
+
+.color-square:hover .palette-color-tooltip {
+    visibility: visible;
+}

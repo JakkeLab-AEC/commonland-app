@@ -1,0 +1,52 @@
+#view-label {
+    border-top-width: 1px;
+    border-color: silver;
+}
+
+#view-label-edit {
+    width: 64px;
+    border-bottom: 1px solid silver;
+}
+
+#view-label-edit:focus {
+    border-bottom: 1px solid silver;
+    outline: none;
+}
+
+#view-label-editable {
+    transition: 0.2s;
+}
+
+#view-label-editable:hover {
+    transition: 0.2s;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    background-color: #c3deff;
+    border-radius: 4px;
+    cursor:text
+}
+
+.view-thumb {
+    background-color: aquamarine;
+}
+
+#view-box {
+    border-width: 1px;
+    border-color: silver;
+}
+
+#editmode-icon {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: black;
+    stroke-width: 2;
+    border-radius: 50%;
+    transition: 0.2s;
+}
+
+#editmode-icon:hover {
+    background-color: #B3D6FF;
+    border-radius: 50%;
+    transition: 0.2s;
+}

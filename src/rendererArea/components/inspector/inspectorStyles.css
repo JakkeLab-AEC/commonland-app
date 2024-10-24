@@ -1,0 +1,28 @@
+.icon-close {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: black;
+    stroke-width: 2;
+    border-radius: 50%;
+    transition: 0.2s;
+}
+
+.icon-close:hover {
+    background-color: #B3D6FF;
+    border-radius: 50%;
+    transition: 0.2s;
+}
+
+.icon-close-disabled {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: silver;
+    stroke-width: 2;
+    border-radius: 50%;
+}
+
+.inspector-body {
+    filter: drop-shadow(0px 0px 4px #a2a2a2);
+}

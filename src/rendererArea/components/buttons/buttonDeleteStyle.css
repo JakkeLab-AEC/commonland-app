@@ -1,0 +1,17 @@
+.button-delete {
+    border-radius: 50%;
+    transition: 0.2s;
+}
+
+.button-delete:hover {
+    background-color: #B3D6FF;
+    transition: 0.2s;
+}
+
+.button-delete-svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: black;
+    stroke-width: 2px;
+}

@@ -1,18 +1,21 @@
 {
-    "compilerOptions": {
-      "jsx": "react-jsx",
-      "target": "ES6",
-      "module": "commonjs",
-      "strict": true,
-      "noImplicitAny": false,
-      "outDir": "./dist",
-      "baseUrl": "./src",
-      "paths": {
-        "@/*": ["src/*"],
-        "mainArea/*": ["src/mainArea/*"]
-      },
-      "esModuleInterop": true,
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "target": "ES6",
+    "module": "commonjs",
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noImplicitAny": false,
+    "outDir": "./dist",
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["src/*"],
+      "mainArea/*": ["src/mainArea/*"]
     },
-    "include": ["src/**/*.ts", "src/main.ts", "src/renderer.ts"],
-    "exclude": ["node_modules"]
-  }
+    "esModuleInterop": true,
+    "strictNullChecks": false
+  },
+  "include": ["src/**/*.ts", "src/main.ts", "src/renderer.ts"],
+  "exclude": ["node_modules"]
+}

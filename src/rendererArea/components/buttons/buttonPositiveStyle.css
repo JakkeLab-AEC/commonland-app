@@ -1,0 +1,27 @@
+.btn-positive-enabled {
+    background-color: #64ABFF;
+    height: 48px;
+    color: rgb(255, 255, 255);
+    align-self: center;
+    font-weight: 600;
+    font-size: 16px;
+    border-radius: 4px;
+    transition: 0.2s;
+}
+
+.btn-positive-enabled:hover {
+    background-color: #0045BB;
+    transition: 0.2s;
+}
+
+.btn-positive-disabled {
+    background-color: #cccccc;
+    height: 48px;
+    color: rgb(121, 121, 121);
+    align-self: center;
+    font-weight: 600;
+    font-size: 16px;
+    border-radius: 4px;
+    user-select: none;
+    cursor: default;
+}

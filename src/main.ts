@@ -1,18 +1,26 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
-import { setIPCElectronTestHandler } from './mainArea/ipcHandler/ipcElectronTestHandler';
+import { AppController } from './mainArea/appController/appController';
 import path from 'path';
+import { setIpcWindowControl } from './mainArea/ipcHandlers/ipcWindowControl';
+import { setIpcBoringRepository } from './mainArea/ipcHandlers/ipcBoringRepository';
+import { setIpcProjectIOHandler } from './mainArea/ipcHandlers/ipcProjectFile';
 
 if (require('electron-squirrel-startup')) app.quit();
 
 let mainWindow: BrowserWindow | null;
 
-const createWindow = () => {
+const createMainWindow = () => {
   console.log(path.join(__dirname, 'preload.js'));
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1280,
+    height: 800,
+    minWidth: 1280,
+    minHeight: 800,
+    titleBarStyle: 'hiddenInset',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),  // preload 스크립트 설정
+      contextIsolation: true,
+      nodeIntegration: true,
     },
   });
   
@@ -28,9 +36,17 @@ const createWindow = () => {
 };
 
 app.on('ready', () => {
-  createWindow();
+  createMainWindow();
 
-  setIPCElectronTestHandler(ipcMain);
+  AppController.InitiateAppController();
+
+  setIpcWindowControl(ipcMain);
+
+  setIpcBoringRepository(ipcMain);
+
+  setIpcProjectIOHandler(ipcMain);
+
+
 });
 
 app.on('window-all-closed', () => {
@@ -40,7 +56,9 @@ app.on('window-all-closed', () => {
 });
 
 app.on('activate', () => {
-  if (mainWindow === null) {
-    createWindow();
+  // On OS X it's common to re-create a window in the app when the
+  // dock icon is clicked and there are no other windows open.
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createMainWindow();
   }
 });

@@ -1,0 +1,14 @@
+#btn-neutral {
+    background-color: #b9b9b9;
+    height: 24;
+    color: rgb(255, 255, 255);
+    align-self: center;
+    font-weight: 600;
+    font-size: 16;
+    transition: 0.2s;
+}
+
+#btn-neutral:hover {
+    background-color: #989898;
+    transition: 0.2s;
+}

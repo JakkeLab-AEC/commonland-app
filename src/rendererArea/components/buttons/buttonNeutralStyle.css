@@ -1,0 +1,20 @@
+.btn-neutral {
+    background-color: #90afe5;
+    height: 24;
+    color: rgb(255, 255, 255);
+    align-self: center;
+    font-weight: 600;
+    font-size: 16;
+    transition: 0.2s;
+}
+
+.btn-neutral:hover {
+    background-color: #627dc0;
+    transition: 0.2s;
+}
+
+.btn-neutral:disabled {
+    background-color: #b7bfcd;
+    cursor: default;
+    pointer-events: none;
+}

@@ -1,29 +1,27 @@
-import React, { useEffect, useState } from "react"
+import Sidebar from "./sidebar/sidebar";
+import './homeStyle.css'
+import Header from "./components/header/header";
+import { appInfo } from "../appConfig";
+import { ThreeViewPort } from "./components/threeViewport/threeViewport";
+import { InspectorWrapper } from "./components/inspector/inspectorWrapper";
 
-export const HomeScreen = () => {
-    const [receivedMessage, setMessage] = useState<string>('');
-    const ipcTest = async () => {
-        const message = await window.electronIPCElectronTest.sendMessage();
-        if(message) {
-            setMessage(message);
-        }
-    }
-
+export default function HomeScreen() {    
     return (
-        <div className="p-2 flex flex-col gap-2">
-            <div>
-                Hello, this is jakke's electron boilerplate.
+        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+            <div style={{position: 'absolute', width:'100%'}}>
+                <Header appName={appInfo.ApplicationName} />
             </div>
-            <hr/>
-            <div>
-                <button className="border" onClick={ipcTest}>IPC Test</button>
+            <div id="main-sidebar" style={{position:'absolute', justifyContent: 'center', top: 64, bottom: 16}}>
+                <Sidebar />
+            </div>
+            <div style={{position:'absolute', justifyContent: 'center'}}>
+                <InspectorWrapper />
             </div>
             <div>
-                If ipc handler works well, the message will appear below.
+                <ThreeViewPort />
             </div>
-            <hr/>
-            <div>
-                {receivedMessage}
+            <div style={{position: 'absolute', right: 16, bottom: 16}}>
+                {/* <VisibilityOptions/> */}
             </div>
         </div>
     )
