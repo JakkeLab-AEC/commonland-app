@@ -8,10 +8,10 @@
     "strict": true,
     "noImplicitAny": false,
     "outDir": "./dist",
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "mainArea/*": ["src/mainArea/*"]
+      "mainArea/*": ["src/mainArea/*"],
     },
     "esModuleInterop": true,
     "strictNullChecks": false
