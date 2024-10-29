@@ -6,7 +6,8 @@ import { useLanguageStore } from "../language/languageStore";
 import { BoringBatcher } from "./pages/batchBorings/boringBatchers";
 import { useSidebarStore } from "./sidebarStore";
 import { useEffect, useState } from 'react';
-import { useHomeStore } from '../homeStatus/homeStatusModel';
+import { useHomeStore } from '../commonStatus/homeStatusModel';
+import { TopographyManage } from './pages/topography/topographyManage';
 
 export default function Sidebar() {
     const {
@@ -39,11 +40,16 @@ export default function Sidebar() {
             displayHeader: '시추공 배치',
             menuClickHandler: navigateMenu
         }, {
+            menuName: "Topo",
+            menuPage: (<TopographyManage />),
+            displayHeader: '지형 관리',
+            menuClickHandler: navigateMenu
+        }, {
             menuName: "TEST", 
             menuPage: (<TestPage />), 
             displayHeader: 'Test',
             menuClickHandler: navigateMenu
-        },
+        }
     ];
 
     useEffect(() => {

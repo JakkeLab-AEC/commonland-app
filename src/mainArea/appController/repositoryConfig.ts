@@ -115,6 +115,7 @@ async function initializeDB(db: Database) {
             location_y NUMERIC NOT NULL,
             topo_top NUMERIC NOT NULL,
             is_batched INTEGER NOT NULL CHECK (is_batched IN (0, 1)),
+            three_id TEXT,
             underground_water NUMERIC NOT NULL
         );
 
@@ -141,6 +142,23 @@ async function initializeDB(db: Database) {
         CREATE TABLE ${DB_TABLENAMES.LAYER_COLORS} (
             name TEXT NOT NULL UNIQUE,
             color_index NUMERIC NOT NULL
+        );
+
+        CREATE TABLE ${DB_TABLENAMES.TOPOS} (
+            topo_id TEXT PRIMARY KEY,
+            topo_name TEXT NOT NULL UNIQUE,
+            color_index NUMERIC NOT NULL,
+            three_id TEXT,
+            is_batched INTEGER NOT NULL CHECK (is_batched IN (0, 1))
+        );
+
+        CREATE TABLE ${DB_TABLENAMES.TOPO_POINTS} (
+            topo_id TEXT NOT NULL,
+            coord_x NUMERIC NOT NULL,
+            coord_y NUMERIC NOT NULL,
+            coord_z NUMERIC NOT NULL,
+            FOREIGN KEY (topo_id) REFERENCES ${DB_TABLENAMES.TOPOS} ON DELETE CASCADE
+            UNIQUE (topo_id, coord_x, coord_y, coord_z)
         );
     `);
 

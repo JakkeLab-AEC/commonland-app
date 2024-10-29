@@ -82,6 +82,7 @@ export const useEditorPageStore = create<EditorPageStore>((set, get) => ({
     removeBoring: async (ids: string[]) => {
         const removeJob = await window.electronBoringDataAPI.removeBoring(ids);
         get().fetchAllBorings();
+        
         return removeJob.result;
     },
     selectBoring: (id: string) => {

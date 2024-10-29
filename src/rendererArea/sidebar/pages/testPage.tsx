@@ -9,44 +9,6 @@ import { ColorIndexPalette } from "../../../rendererArea/components/palette/colo
 import { TestAPI } from "../../../rendererArea/api/test/testAPI"
 
 export const TestPage = () => {
-    const testAddPost = async () => {
-        const layers:{name: string, thickness:number, color: number}[] = [
-            {name: '레이어1', thickness: 5, color: 0x4287f5},
-            {name: '레이어2', thickness: 0.5, color: 0x84fab9},
-            {name: '레이어3', thickness: 2, color: 0xffab4a},
-        ];
-
-        const sptValues:{depth: number, hitCount: number, distance: number;}[] = [
-            {depth: 1, hitCount: 5, distance: 30},
-            {depth: 2, hitCount: 3, distance: 30},
-            {depth: 3, hitCount: 5, distance: 25},
-            {depth: 4, hitCount: 4, distance: 40},
-        ];
-
-        const topoTop = 24;
-        const postSet = await ThreeBoringPost.createPost('BH-01', topoTop, layers, sptValues);
-
-        const threeObjs: THREE.Object3D[] = []
-        postSet.postSegments.forEach(set => {
-            threeObjs.push(set.leaderLine);
-            threeObjs.push(set.postMesh);
-            threeObjs.push(set.textMesh);
-        });
-
-        postSet.sptObjects.forEach(set => {
-            threeObjs.push(set.textSPTResultObject);
-            threeObjs.push(set.textDepthObject);
-            threeObjs.push(set.leaderLine);
-        });
-
-        threeObjs.push(postSet.postNameLeader.leaderLine);
-        threeObjs.push(postSet.postNameLeader.textMesh);
-
-        threeObjs.push(postSet.boringEndLeader.leaderLine);
-        threeObjs.push(postSet.boringEndLeader.textMesh);
-
-        SceneController.getInstance().addObjects(threeObjs);
-    }
 
     const testPosts = async () => {
         const testApi = new TestAPI();

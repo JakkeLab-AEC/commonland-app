@@ -2,7 +2,7 @@ import ServiceLogo from "./logo/servicelogo";
 import { ButtonPositive } from "../buttons/buttonPositive";
 import { useState } from "react";
 import { ContextMenu, ContextMenuProp } from "../contextmenu/contextMenu";
-import { useHomeStore } from "../../../rendererArea/homeStatus/homeStatusModel";
+import { useHomeStore } from "../../commonStatus/homeStatusModel";
 import { useSidebarStore } from "../../../rendererArea/sidebar/sidebarStore";
 
 

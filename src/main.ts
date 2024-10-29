@@ -4,6 +4,7 @@ import path from 'path';
 import { setIpcWindowControl } from './mainArea/ipcHandlers/ipcWindowControl';
 import { setIpcBoringRepository } from './mainArea/ipcHandlers/ipcBoringRepository';
 import { setIpcProjectIOHandler } from './mainArea/ipcHandlers/ipcProjectFile';
+import { setIpcTopoRepository } from './mainArea/ipcHandlers/ipcTopoRepository';
 
 if (require('electron-squirrel-startup')) app.quit();
 
@@ -14,7 +15,7 @@ const createMainWindow = () => {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
-    minWidth: 1280,
+    minWidth: 600,
     minHeight: 800,
     titleBarStyle: 'hiddenInset',
     webPreferences: {
@@ -46,6 +47,7 @@ app.on('ready', () => {
 
   setIpcProjectIOHandler(ipcMain);
 
+  setIpcTopoRepository(ipcMain);
 
 });
 

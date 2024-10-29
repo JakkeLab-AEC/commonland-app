@@ -176,7 +176,6 @@ export const useBoringBatcherStore = create<BoringBatcherStore>((set, get) => ({
     }, 
     updateLayerColor: async (name: string, colorIndex: number) => {
         const updateJob = await window.electronBoringDataAPI.updateLayerColor(name, colorIndex);
-        console.log(updateJob);
         if(!updateJob.result) return;
 
         const fetchJob = await window.electronBoringDataAPI.getAllLayerColors();

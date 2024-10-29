@@ -10,7 +10,7 @@ export class ProjectWrite {
 
     private async writeBoringDatas() {
         this.borings = [];
-        const fetchAllBoringJob = await AppController.getInstance().getRepository('Boring').fetchAllBorings();
+        const fetchAllBoringJob = await AppController.getInstance().getBoringRepository().fetchAllBorings();
         if(fetchAllBoringJob.result) {
             this.borings.push(...fetchAllBoringJob.fetchedBorings);
         }
@@ -18,7 +18,7 @@ export class ProjectWrite {
 
     private async writeLayerConfig() {
         this.layerColors = [];
-        const fetchLayerConfigJob = await AppController.getInstance().getRepository('Boring').getAllLayerColors();
+        const fetchLayerConfigJob = await AppController.getInstance().getBoringRepository().getAllLayerColors();
         if(fetchLayerConfigJob.result) {
             fetchLayerConfigJob.layerColors.forEach(ly => {
                 this.layerColors.push({
@@ -104,12 +104,12 @@ export class ProjectRead {
         try {
             for(const boring of this.borings) {
                 console.log(`Push ${boring.name}`);
-                await AppController.getInstance().getRepository('Boring').insertBoring(boring);
+                await AppController.getInstance().getBoringRepository().insertBoring(boring);
             }
             
             for(const layer of this.layerColors) {
                 console.log(`Push ${layer.layerName} - ${layer.colorIndex}`);
-                await AppController.getInstance().getRepository('Boring').updateLayerColor(layer.layerName, layer.colorIndex);
+                await AppController.getInstance().getBoringRepository().updateLayerColor(layer.layerName, layer.colorIndex);
             }
 
             console.log('Pushed all datas');

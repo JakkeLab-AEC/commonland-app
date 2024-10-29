@@ -18,6 +18,7 @@ interface homeStatusProps {
     setInspectorContent: (content: ReactNode) => void,
     setInspectorPosition: (top?: number, left?: number) => void;
     registerInspectorClosingListner: (listener: () => void) => void,
+    resetInspector: () => void,
 }
 
 export const useHomeStore = create<homeStatusProps>((set, get) => ({
@@ -86,4 +87,13 @@ export const useHomeStore = create<homeStatusProps>((set, get) => ({
     updateHomeId:() => {
         set(() => {return {currentHomeId: uuidv4()}});
     },
+    resetInspector:() => {
+        set(() => {
+            return {
+                inspectorPositonTop: 64,
+                inspectorPositonLeft: 340,
+                inspectorSize: {width: 360, height: 420},
+            }
+        })
+    }
 }));
