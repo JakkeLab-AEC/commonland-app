@@ -12,9 +12,17 @@ body {
   
   .key-color-main {
     /* Background : Blue */
-    background-color: #0045FB;
+    background-color: #92FF9C;
     /* Text : White */
     color: 'white'
+  }
+
+  .key-color-depth1 {
+    background-color: #5ccf68;
+  }
+
+  .key-color-depth2 {
+    background-color: #8edc96;
   }
   
   .main-header{

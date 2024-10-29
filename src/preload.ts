@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { BoringDTO } from "./dto/serviceModel/BoringDTO";
+import { TopoDTO } from "./dto/serviceModel/topoDto";
 
 contextBridge.exposeInMainWorld('electronWindowControlAPI', {
     createNewWindow: () => ipcRenderer.invoke('window-control-new-window'),
@@ -21,3 +22,10 @@ contextBridge.exposeInMainWorld('electronProjectIOAPI', {
     saveProject: () => ipcRenderer.invoke('project-file-save'),
     openProject: () => ipcRenderer.invoke('project-file-read'),
 })
+
+contextBridge.exposeInMainWorld('electronTopoLayerAPI', {
+    insertTopo: (topoDto: TopoDTO) => ipcRenderer.invoke('topolayer-insert', topoDto),
+    fetchAllTopos: () => ipcRenderer.invoke('topolayer-fetch-all'),
+    updateTopoColor: (id:string, index: number) => ipcRenderer.invoke('topolayer-update-color', id, index),
+    removeTopos: (ids: string[]) => ipcRenderer.invoke('topolayer-remove', ids),
+});

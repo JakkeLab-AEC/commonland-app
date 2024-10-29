@@ -4,6 +4,8 @@ import Header from "./components/header/header";
 import { appInfo } from "../appConfig";
 import { ThreeViewPort } from "./components/threeViewport/threeViewport";
 import { InspectorWrapper } from "./components/inspector/inspectorWrapper";
+import { VisibilityOptions } from "./homescreenitems/visibilityOptions"
+import { ModalOverlay } from './homescreenitems/modalOverlay'
 
 export default function HomeScreen() {    
     return (
@@ -21,8 +23,9 @@ export default function HomeScreen() {
                 <ThreeViewPort />
             </div>
             <div style={{position: 'absolute', right: 16, bottom: 16}}>
-                {/* <VisibilityOptions/> */}
+                <VisibilityOptions />
             </div>
+            <ModalOverlay />
         </div>
     )
 }

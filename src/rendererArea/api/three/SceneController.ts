@@ -325,7 +325,7 @@ export class SceneController {
         const targetCamera = camera ? camera : new THREE.OrthographicCamera(
             -frustumSize * aspect / 2, frustumSize * aspect / 2,
             frustumSize / 2, -frustumSize / 2,
-            0.1, 1000
+            0.1, 10000
         );
         
         targetCamera.position.set(50, 50, 50);

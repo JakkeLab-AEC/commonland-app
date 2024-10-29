@@ -11,7 +11,6 @@ export class ServiceModel implements IModelBase {
         } else {
             this.elementId = new ElementId();
         }
-
         this.modelType = ModelType.Service;
     }
 }

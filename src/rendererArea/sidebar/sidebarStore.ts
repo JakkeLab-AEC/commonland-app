@@ -6,7 +6,7 @@ interface SidebarStoreProps {
 }
 
 export const useSidebarStore = create<SidebarStoreProps>((set, get) => ({
-    navigationIndex: 0,
+    navigationIndex: 2,
     setNaviationIndex: (index: number) => {
         set(() => {return {navigationIndex: index}});
     },

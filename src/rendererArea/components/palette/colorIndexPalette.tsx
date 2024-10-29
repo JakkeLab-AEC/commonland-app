@@ -31,7 +31,7 @@ export const ColorSquare: React.FC<ColorSquareProp> = ({ index, tooltipEnabled =
 
 interface ColorIndexPaletteProps {
     width: number|'full',
-    height: number,
+    height: number|'full',
     headerName?: string,
     onClickHandler: (index: number) => void,
 }

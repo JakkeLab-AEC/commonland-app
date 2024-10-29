@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import './viewlist.css'
 import ViewListItem from "./viewitem";
-import { SceneController } from "@/rendererArea/api/three/SceneController";
+import { SceneController } from "../../../../rendererArea/api/three/SceneController";
 
 export default function ViewList() {
     const [isDeleteMode, setDeleteMode] = useState<boolean>(false);

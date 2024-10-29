@@ -8,14 +8,14 @@
     "strict": true,
     "noImplicitAny": false,
     "outDir": "./dist",
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "mainArea/*": ["src/mainArea/*"]
+      "mainArea/*": ["src/mainArea/*"],
     },
     "esModuleInterop": true,
     "strictNullChecks": false
   },
-  "include": ["src/**/*.ts", "src/main.ts", "src/renderer.ts"],
+  "include": ["src/**/*.ts", "src/main.ts", "src/renderer.ts", "src/rendererArea/components/status/statusLabel.tsx"],
   "exclude": ["node_modules"]
 }

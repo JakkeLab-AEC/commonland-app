@@ -7,7 +7,7 @@ import React from "react";
 import { LayerSet } from "./detailItems/layers";
 import { SPTSheet } from "./detailItems/sptSheet";
 import { Boring } from "../../../../../mainArea/models/serviceModels/boring/boring";
-import { useHomeStore } from "../../../../homeStatus/homeStatusModel";
+import { useHomeStore } from "../../../../commonStatus/homeStatusModel";
 import { Layer } from "../../../../../mainArea/models/serviceModels/boring/layer";
 import { SPTResult, SPTResultSet } from "../../../../../mainArea/models/serviceModels/boring/sptResult";
 import { useEditorPageStore } from "../EditorPageStore";
