@@ -4,6 +4,7 @@ import path from 'path';
 import { setIpcWindowControl } from './mainArea/ipcHandlers/ipcWindowControl';
 import { setIpcBoringRepository } from './mainArea/ipcHandlers/ipcBoringRepository';
 import { setIpcProjectIOHandler } from './mainArea/ipcHandlers/ipcProjectFile';
+import { setIpcTopoRepository } from './mainArea/ipcHandlers/ipcTopoRepository';
 
 if (require('electron-squirrel-startup')) app.quit();
 
@@ -46,6 +47,7 @@ app.on('ready', () => {
 
   setIpcProjectIOHandler(ipcMain);
 
+  setIpcTopoRepository(ipcMain);
 
 });
 

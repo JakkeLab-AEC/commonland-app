@@ -7,7 +7,7 @@ import { DB_ERRORCODE, DBError } from "../../public/databaseErrors";
 
 interface BoringCRUDMethods {
     insertBoring(boringDto: BoringDTO): Promise<{ result: boolean, message?: string }>;
-    fetchAllBorings(): Promise<{ result: boolean, message?: string, boringDatas?: BoringDTO }>;
+    fetchAllBorings(): Promise<{ result: boolean, message?: string, boringDatas?: BoringDTO[] }>;
     updateBoring(boringDto: BoringDTO): Promise<{ result: boolean, message?: string}>;
     removeBoring(ids: string[]): Promise<{result: boolean, message?: string}>;
     updateBoringBatch(idAndOptions: {id: string, option: boolean}[]): Promise<{result: boolean, message?: string}>

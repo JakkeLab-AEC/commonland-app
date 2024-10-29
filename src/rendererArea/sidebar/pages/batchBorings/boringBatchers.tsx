@@ -5,7 +5,7 @@ import { ButtonPositive } from "../../../../rendererArea/components/buttons/butt
 import { ButtonNegative } from "../../../../rendererArea/components/buttons/buttonNegative";
 import { FoldableControl } from "../../../../rendererArea/components/foldableControl/foldableControl";
 import { ListInputBox } from "../../../../rendererArea/components/listbox/listInputBox";
-import { useHomeStore } from "../../../../rendererArea/homeStatus/homeStatusModel";
+import { useHomeStore } from "../../../commonStatus/homeStatusModel";
 import { ColorIndexPalette } from "../../../../rendererArea/components/palette/colorIndexPalette";
 import { ThreeBoringPost } from "../../../../rendererArea/api/three/predefinedCreations/boringPost";
 import { SceneController } from "../../../../rendererArea/api/three/SceneController";
@@ -38,6 +38,7 @@ export const BoringBatcher = () => {
         setInspectorVisiblity,
         setInspectorContent,
         setInspectorTitle,
+        resetInspector
     } = useHomeStore();
 
     const {
@@ -76,7 +77,6 @@ export const BoringBatcher = () => {
             setCheckedBatchedItems(newSet);
             updateBatchedBoringDisplayItem(id, checked);
         }
-        console.log(checkedBatchedItems);
     }
 
     const onCheckedItemFromUnbatchedHandler = (id: string, checked: boolean, all?: boolean) => {
@@ -129,8 +129,8 @@ export const BoringBatcher = () => {
     const onClickCreatePosts = async () => {
         const threeObjs: THREE.Object3D[] = [];
         for(const boring of batchedBorings.values()) {
-            const objs = await ThreeBoringPost.createPostFromModel(boring, layerColorConfig);
-            threeObjs.push(...objs);
+            const obj = await ThreeBoringPost.createPostFromModel(boring, layerColorConfig);
+            threeObjs.push(obj);
         }
 
         SceneController.getInstance().addObjects(threeObjs);
@@ -143,6 +143,7 @@ export const BoringBatcher = () => {
         return () => {
             setInspectorContent(null);
             setInspectorVisiblity(false);
+            resetInspector();
         }
     }, []);
 

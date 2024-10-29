@@ -1,4 +1,4 @@
-import { useHomeStore } from "../../../../rendererArea/homeStatus/homeStatusModel";
+import { useHomeStore } from "../../../commonStatus/homeStatusModel";
 import { ListBox } from "../../../../rendererArea/components/listbox/listBox"
 import { ListBoxItem } from "../../../../rendererArea/components/listbox/listBoxItem"
 import React, { ChangeEvent, useEffect, useRef, useState } from "react"
@@ -34,7 +34,8 @@ export const BoringManager = () => {
         setInspectorTitle,
         setInspectorContent,
         setInspectorSize,
-        registerInspectorClosingListner
+        registerInspectorClosingListner,
+        resetInspector
     } = useHomeStore();
 
     const {
@@ -152,7 +153,6 @@ export const BoringManager = () => {
     }
 
     const onCheckedItemHandler = (id: string, checked: boolean, all?: boolean) => {
-
         if(all != null) {
             if(all) {
                 const ids = new Set(borings.keys());
@@ -181,6 +181,7 @@ export const BoringManager = () => {
         return () => {
             setInspectorContent(null);
             setInspectorVisiblity(false);
+            resetInspector();
         }
     }, []);
     

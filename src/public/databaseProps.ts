@@ -4,6 +4,8 @@ export const DB_TABLENAMES = {
     LAYERS: 'layers',
     SPT_RESULTS: 'spt_results',
     LAYER_COLORS: 'layer_colors',
+    TOPOS: 'topos',
+    TOPO_POINTS: 'topo_points'
 } as const;
 
 /**

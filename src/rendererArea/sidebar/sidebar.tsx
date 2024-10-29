@@ -6,7 +6,7 @@ import { useLanguageStore } from "../language/languageStore";
 import { BoringBatcher } from "./pages/batchBorings/boringBatchers";
 import { useSidebarStore } from "./sidebarStore";
 import { useEffect, useState } from 'react';
-import { useHomeStore } from '../homeStatus/homeStatusModel';
+import { useHomeStore } from '../commonStatus/homeStatusModel';
 import { TopographyManage } from './pages/topography/topographyManage';
 
 export default function Sidebar() {
