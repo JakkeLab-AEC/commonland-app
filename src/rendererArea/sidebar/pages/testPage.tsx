@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { DXFWriter, Layer, Text, Line, Block, BlockInsert } from "../../../rendererArea/api/dxfwriter/dxfwriter"
 import { ColorIndexPalette } from "../../../rendererArea/components/palette/colorIndexPalette"
 import { TestAPI } from "../../../rendererArea/api/test/testAPI"
+import {MultilineTextbox} from '../../components/multilineTextbox/multilineTextBox';
 
 export const TestPage = () => {
 
@@ -35,6 +36,10 @@ export const TestPage = () => {
     const testOnSelectColor = (index: number) => {
         console.log(index);
     }
+
+    const onChangeListener = (textLines: string[]) => {
+        console.log(textLines);
+    }
     
     return (
         <div>
@@ -44,6 +49,7 @@ export const TestPage = () => {
             <ButtonPositive text={"Test DXF Export Text"} isEnabled={true} onClickHandler={testDXFWriterWithEntity}/> */}
             <ButtonPositive text={"Create Test Borings"} isEnabled={true} onClickHandler={testPosts}/>
             <ColorIndexPalette width={'full'} height={120} onClickHandler={testOnSelectColor} headerName="Colors" />
+            <MultilineTextbox height={240} width={160} maxCharsPerLine={8} />
         </div>
     )
 }
