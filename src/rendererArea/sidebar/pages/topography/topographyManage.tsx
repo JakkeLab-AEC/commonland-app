@@ -10,6 +10,9 @@ import { useTopoMakerStore } from "./inspector/inspectorTopoMakerStore";
 import { useViewportStore } from "@/rendererArea/commonStatus/viewPortStore";
 import { ThreeTopoSurface } from "@/rendererArea/api/three/predefinedCreations/topoSurface";
 import { SceneController } from "@/rendererArea/api/three/SceneController";
+import { createDelaunatedMesh } from "@/rendererArea/api/three/geometricUtils/delaunayUtils";
+import * as THREE from 'three';
+import Delaunator from "delaunator";
 
 export const TopographyManage = () => {
     const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
@@ -47,9 +50,11 @@ export const TopographyManage = () => {
     }
 
     const refreshTopoOnView = () => {
-        const topoMeshes = Array.from(fetchedTopos.values()).map(topo => ThreeTopoSurface.createTopoSurface(topo));
-        console.log(topoMeshes);
-        SceneController.getInstance().addObjects(topoMeshes);
+        const meshes = Array.from(fetchedTopos.values()).map(topo => {
+            return createDelaunatedMesh(topo);
+        })
+        
+        SceneController.getInstance().addObjects(meshes);
     }
 
     const onCheckedHandler = async (id: string, checked: boolean, all?: boolean | null) => {

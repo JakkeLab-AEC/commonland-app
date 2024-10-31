@@ -126,6 +126,10 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring}) => {
         boring.setName(e.target.value);
     }
 
+    const onSubmitSPTMultipleLines = (e: Map<number, {hitCount: number; distance: number}>) => {
+        boring.getSPTResultSet().buildByMultipleValues(e);
+    }
+
     return (
         <div className="flex flex-col w-full h-full">
             <div className="flex flex-row flex-grow" style={{overflowY: 'hidden', borderBottomWidth: 1}}>
@@ -201,7 +205,11 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring}) => {
                     </div>
                 </div>
                 <div className="flex flex-grow">
-                    <SPTSheet onClickSetDepth={onClickSetSPTDepth} onChangeValueSetListner={onChangeSPTValueHandler} SPTResultSet={currentSPTResult}/>
+                    <SPTSheet 
+                        onClickSetDepth={onClickSetSPTDepth}
+                        onChangeValueSetListner={onChangeSPTValueHandler}
+                        onClickSetMultipleValues={onSubmitSPTMultipleLines}
+                        SPTResultSet={currentSPTResult}/>
                 </div>
             </div>
 
