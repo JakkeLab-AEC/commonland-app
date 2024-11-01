@@ -126,6 +126,10 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring}) => {
         boring.setName(e.target.value);
     }
 
+    const updateLayers = (layers: Layer[]) => {
+        boring.updateLayersByArray(layers);
+    }
+
     const onSubmitSPTMultipleLines = (e: Map<number, {hitCount: number; distance: number}>) => {
         boring.getSPTResultSet().buildByMultipleValues(e);
     }
@@ -201,7 +205,8 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring}) => {
                             layers={currentLayers} 
                             onDelete={onDeleteLayer} 
                             onCreate={onCreateLayer}
-                            onChangeValueListner={onChangeLayerValueHandler}/>
+                            onChangeValueListner={onChangeLayerValueHandler}
+                            updateLayers={updateLayers}/>
                     </div>
                 </div>
                 <div className="flex flex-grow">

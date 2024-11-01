@@ -44,6 +44,10 @@ export class Boring extends ServiceModel {
         }
     }
 
+    updateLayersByArray(layers: Layer[]) {
+        this.layers = layers;
+    }
+
     serialize():BoringDTO {
         const data: BoringDTO = {
             name: this.name,
