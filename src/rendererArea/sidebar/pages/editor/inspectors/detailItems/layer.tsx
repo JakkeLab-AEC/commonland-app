@@ -3,17 +3,20 @@ import { HamburgerIcon } from "../../../../../assets/icons/hamburterIcon";
 import { ButtonDelete } from "../../../../../components/buttons/buttonDelete";
 
 export interface LayerProps {
+    index: number,
     layerId: string;
     layerName?: string;
     thickness?: number;
     onDelete: (id: string) => void;
     onChangeValueListener: (id: string, name: string, thickness: number) => void;
+    onMouseDown: (e:React.MouseEvent<HTMLDivElement>) => void;
+    listenStartIndex: (index: number) => void;
 }
 
-export const LayerComponent: React.FC<LayerProps> = ({ layerId, layerName, thickness=0.01, onDelete, onChangeValueListener }) => {
+export const LayerComponent: React.FC<LayerProps> = ({ index, layerId, layerName, thickness=0.01, onDelete, onChangeValueListener, onMouseDown, listenStartIndex}) => {
   const tbLayerNameRef = useRef<HTMLInputElement>(null);
   const tbThicknessRef = useRef<HTMLInputElement>(null);
-
+  
   const onChangeValue = () => {
     onChangeValueListener(layerId, tbLayerNameRef.current.value, parseFloat(tbThicknessRef.current.value));
   }
@@ -22,9 +25,15 @@ export const LayerComponent: React.FC<LayerProps> = ({ layerId, layerName, thick
     onDelete(id.toString())
   }
 
+  const onMouseDownWrapper = (e: React.MouseEvent<HTMLDivElement>) => {
+    onMouseDown(e);
+    listenStartIndex(index);
+  }
+
+
   return (
     <div className="flex flex-row space-x-2 h-[32px] items-center">
-      <div className="flex w-[32px]">
+      <div className="flex w-[32px]" onMouseDown={onMouseDownWrapper}>
         <HamburgerIcon />
       </div>
       <div className="flex w-[120px]">
@@ -50,4 +59,4 @@ export const LayerComponent: React.FC<LayerProps> = ({ layerId, layerName, thick
       </div>
     </div>
   );
-  };
+};
