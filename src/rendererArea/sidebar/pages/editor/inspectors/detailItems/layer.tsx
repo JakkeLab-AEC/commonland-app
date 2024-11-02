@@ -1,5 +1,5 @@
 import React, { useRef } from "react"
-import { HamburgerIcon } from "../../../../../assets/icons/hamburterIcon";
+import { HamburgerIcon } from "../../../../../assets/icons/hamburgerIcon";
 import { ButtonDelete } from "../../../../../components/buttons/buttonDelete";
 
 export interface LayerProps {
