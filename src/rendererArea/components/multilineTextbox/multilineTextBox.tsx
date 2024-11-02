@@ -5,6 +5,7 @@ interface MultilineTextboxProp {
     width: number|string;
     maxCharsPerLine: number;
     content?: string;
+    values?: string[]
 }
 
 // 사용자 정의 ref 타입 정의
@@ -12,7 +13,8 @@ export interface MultilineTextboxHandle {
     submitContent: () => string[];
 }
 
-export const MultilineTextbox = forwardRef<MultilineTextboxHandle, MultilineTextboxProp>(({ height, width, maxCharsPerLine }, ref) => {
+export const MultilineTextbox = forwardRef<MultilineTextboxHandle, MultilineTextboxProp>(({ height, width, maxCharsPerLine, values }, ref) => {
+    const [isInitialOpen, setInitialOpen] = useState<boolean>(true);
     const [textLines, setTextLines] = useState<string[]>([]);
     const [loc, setLoc] = useState<number>(1);
     const locRef = useRef<HTMLTextAreaElement>(null);
@@ -49,6 +51,12 @@ export const MultilineTextbox = forwardRef<MultilineTextboxHandle, MultilineText
     };
 
     useEffect(() => {
+        if(values && isInitialOpen) {
+            inputAreaRef.current.defaultValue = values.join('\n');
+            setLoc(values.length);
+            setInitialOpen(false);
+        }
+        
         const setLocText = () => {
             const locStrings: string[] = [];
             for (let i = 0; i < loc; i++) {
@@ -58,7 +66,9 @@ export const MultilineTextbox = forwardRef<MultilineTextboxHandle, MultilineText
             if (locRef.current) locRef.current.value = locNumbering;
         };
 
-        setLocText();
+
+
+        setLocText();        
     }, [loc]);
 
     useImperativeHandle(ref, () => ({
@@ -81,6 +91,7 @@ export const MultilineTextbox = forwardRef<MultilineTextboxHandle, MultilineText
             {/* Textarea */}
             <div className="flex-grow border">
                 <textarea
+                    key={'sptMultiLine'}
                     className="w-full h-full"
                     ref={inputAreaRef}
                     style={{ resize: "none", whiteSpace: "pre-wrap" }}

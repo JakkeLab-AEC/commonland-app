@@ -140,13 +140,21 @@ export const SPTSheet:React.FC<SPTSheetProps> = ({SPTResultSet, onClickSetDepth,
     //#endregion
 
     //#region SPTMultiline
-    const SPTMultiLineInputWindow = () => {
+    interface SPTMultiLineWindowProp {
+        values?: SPTResultSet
+    }
+
+    const SPTMultiLineInputWindow:React.FC<SPTMultiLineWindowProp> = ({values}) => {
+        const convertedValues = values.getAllResults()
+            .sort((a, b) => a.depth - b.depth)
+            .map(spt => `${spt.hitCount}/${spt.distance}`);
+        
         return (
             <div style={{position: 'absolute', left: 452}}>
                 <Inspector title={"SPT 다중입력"} width={200} height={360} onClickCloseHandler={closeSPTMultilineWindow}>
                     <div className="flex flex-col h-full gap-1 p-2">
                         <div className="flex h-full">
-                            <MultilineTextbox height={'100%'} width={'100%'} maxCharsPerLine={8} ref={multilineTextboxRef}/>
+                            <MultilineTextbox height={'100%'} width={'100%'} maxCharsPerLine={8} ref={multilineTextboxRef} values={convertedValues}/>
                         </div>
                         <div className="flex flex-row self-end gap-1">
                             <ButtonPositive text={"저장"} isEnabled={true} width={40} onClickHandler={onSubmitSPTMultipleLines}/>
@@ -156,7 +164,7 @@ export const SPTSheet:React.FC<SPTSheetProps> = ({SPTResultSet, onClickSetDepth,
                 </Inspector>
             </div>
         )
-    }    
+    }
 
     const onSubmitSPTMultipleLines = () => {
         const contents = multilineTextboxRef.current.submitContent();
@@ -236,7 +244,7 @@ export const SPTSheet:React.FC<SPTSheetProps> = ({SPTResultSet, onClickSetDepth,
                 <ContextMenu menuItemProps={contextMenuItemProps} width={120} onClose={closeContextMenu}/>
             </div>}
             {sptDepthVisibility && <SPTRangeWindow />}
-            {sptMultilineVisibility && <SPTMultiLineInputWindow />}
+            {sptMultilineVisibility && <SPTMultiLineInputWindow values={SPTResultSet} />}
         </div>
     );
 }
