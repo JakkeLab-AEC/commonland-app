@@ -27,5 +27,6 @@ contextBridge.exposeInMainWorld('electronTopoLayerAPI', {
     insertTopo: (topoDto: TopoDTO) => ipcRenderer.invoke('topolayer-insert', topoDto),
     fetchAllTopos: () => ipcRenderer.invoke('topolayer-fetch-all'),
     updateTopoColor: (id:string, index: number) => ipcRenderer.invoke('topolayer-update-color', id, index),
+    updateTopoThreeObjId: (ids: {id: string, threeObjId: string}[]) => ipcRenderer.invoke('topolayer-update-threeobjid', ids),
     removeTopos: (ids: string[]) => ipcRenderer.invoke('topolayer-remove', ids),
 });

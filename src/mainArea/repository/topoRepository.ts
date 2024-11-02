@@ -15,7 +15,8 @@ interface TopoProp {
     topo_id: string,
     topo_name: string,
     color_index: number,
-    is_batched: 0 | 1
+    is_batched: 0 | 1,
+    three_id: string,
 }
 
 interface TopoPoint {
@@ -33,12 +34,12 @@ export class TopoRepository implements TopoCRUDMethods {
     }
     
     async insertTopo(topoDto: TopoDTO): Promise<{ result: boolean; message?: string; }> {
-        const headerQuery = RepositryQueryBuilder.buildInsertQuery(DB_TABLENAMES.TOPOS, ['topo_id', 'topo_name', 'color_index', 'is_batched']);
+        const headerQuery = RepositryQueryBuilder.buildInsertQuery(DB_TABLENAMES.TOPOS, ['topo_id', 'topo_name', 'color_index', 'is_batched', 'three_id']);
         try {
             await this.db.exec('BEGIN TRANSACTION');
 
             // Insert topo header
-            await this.db.all(headerQuery, [topoDto.id, topoDto.name, topoDto.colorIndex, topoDto.isBatched]);
+            await this.db.all(headerQuery, [topoDto.id, topoDto.name, topoDto.colorIndex, topoDto.isBatched, topoDto.threeObjId]);
             
             // Insert topo points
             const ptQuery = RepositryQueryBuilder.buildInsertQuery(DB_TABLENAMES.TOPO_POINTS, ['topo_id', 'coord_x', 'coord_y', 'coord_z']);
@@ -58,7 +59,7 @@ export class TopoRepository implements TopoCRUDMethods {
     async fetchAllTopos(): Promise<{ result: boolean; message?: string; topoDatas?: TopoDTO[]; }> {
         const topoQuery = `
         SELECT
-            topo_id, topo_name, color_index, is_batched
+            topo_id, topo_name, color_index, is_batched, three_id
         FROM
             ${DB_TABLENAMES.TOPOS}
         `;
@@ -80,6 +81,7 @@ export class TopoRepository implements TopoCRUDMethods {
                     name: topo.topo_name,
                     colorIndex: topo.color_index,
                     isBatched: topo.is_batched,
+                    threeObjId: topo.three_id,
                     points: []
                 }
                 topoMap.set(topo.topo_id, dto);
@@ -134,6 +136,31 @@ export class TopoRepository implements TopoCRUDMethods {
                 await this.db.all(query, id);
             }
             
+            await this.db.exec('COMMIT');
+
+            return {result: true}
+        } catch (error) {
+            console.log(error);
+            await this.db.exec('ROLLBACK');
+            return {result: false, message: error ? error.toString() : null }
+        }
+    }
+
+    async updateThreeObjId(ids: {id: string, threeObjId: string}[]): Promise<{result: boolean, message?: string}> {
+        const query = RepositryQueryBuilder.buildUpdateQuery(
+            DB_TABLENAMES.TOPOS,
+            ['three_id'],
+            'topo_id'
+        )
+
+        try {
+            await this.db.exec('BEGIN TRANSACTION');
+
+            const promises = ids.map(async (id) => {
+                await this.db.all(query, [id.threeObjId, id.id]);
+            });
+            await Promise.all(promises);
+
             await this.db.exec('COMMIT');
 
             return {result: true}

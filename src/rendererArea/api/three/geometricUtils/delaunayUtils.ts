@@ -1,9 +1,13 @@
 import * as THREE from 'three';
 import Delaunator from 'delaunator';
 import { Topo } from '@/mainArea/models/serviceModels/topo/Topo';
+import { colorPaletteValues } from '@/public/colorPalette';
+import { ModelType } from '@/mainArea/models/modelType';
+import { useVisibilityOptionStore } from '@/rendererArea/homescreenitems/visibilityOptionsStore';
 
-type Point2d = { x: number; y: number; index: number };
 type Point3d = { x: number; y: number; z: number; index: number };
+
+
 
 export function createDelaunatedMesh(topo: Topo) {
     // Extract topo's points
@@ -43,13 +47,24 @@ export function createDelaunatedMesh(topo: Topo) {
     geometry.setIndex(indices);
     geometry.computeVertexNormals(); // 표면 노멀 계산
     
+    const colorCode = colorPaletteValues[topo.getColorIndex()];
+    const colorHex = parseInt(`0x${colorCode.slice(1)}`, 16);
+
     const material = new THREE.MeshPhongMaterial({
-        color: 0xffd45e,
-        wireframe: false,
+        color: colorHex,
         transparent: true,
-        opacity: 0.5
-    })
+        opacity: useVisibilityOptionStore.getState().currentTopoOpacity/100,
+        side: THREE.DoubleSide,
+
+        polygonOffset: true,
+        polygonOffsetFactor: 1,
+        polygonOffsetUnits: 1
+    });
+
     const mesh = new THREE.Mesh(geometry, material);
+    mesh.userData = {
+        type : ModelType.Topo
+    }
 
     // Add edges
     const edgesGeometry = new THREE.EdgesGeometry(geometry);
