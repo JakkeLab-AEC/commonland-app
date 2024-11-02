@@ -5,13 +5,13 @@ import { SPTResult } from "../../../mainArea/models/serviceModels/boring/sptResu
 export class TestAPI {
     private values = [15, 20, 25, 30, 35, 40, 12, 24, 36, 48];
     async createTestBorings() {
-        for(let i = 1; i < 11; i++) {
+        for(let i = 1; i < 30; i++) {
             const boringName = `BH-${i}`;
             const boring = new Boring(
                 boringName,
                 Math.random()*100,
                 Math.random()*100,
-                this.values[Math.trunc(Math.random()*10)],
+                Math.round((20 + Math.random()*10)*100)/100,
                 this.values[Math.trunc(Math.random()*10)],
             );
 
