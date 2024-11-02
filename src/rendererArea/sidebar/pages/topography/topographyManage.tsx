@@ -7,12 +7,7 @@ import { InspectorTopoMaker } from './inspector/inspectorTopoMaker';
 import { Topo } from "@/mainArea/models/serviceModels/topo/Topo";
 import {ListBoxColorPicker} from "@/rendererArea/components/listbox/listBoxColorPicker"
 import { useTopoMakerStore } from "./inspector/inspectorTopoMakerStore";
-import { useViewportStore } from "@/rendererArea/commonStatus/viewPortStore";
-import { ThreeTopoSurface } from "@/rendererArea/api/three/predefinedCreations/topoSurface";
 import { SceneController } from "@/rendererArea/api/three/SceneController";
-import { createDelaunatedMesh } from "@/rendererArea/api/three/geometricUtils/delaunayUtils";
-import * as THREE from 'three';
-import Delaunator from "delaunator";
 
 export const TopographyManage = () => {
     const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
@@ -33,13 +28,9 @@ export const TopographyManage = () => {
         removeTopos
     } = useTopoMakerStore();
 
-    const {
-        renderTopos
-    } = useViewportStore();
-
     const onSubmitTopo = async (topo: Topo) => {
         await insertTopo(topo);
-
+        
         await fetchAllTopos();
     }
 
@@ -47,14 +38,6 @@ export const TopographyManage = () => {
         toggleMode(false);
 
         await fetchAllTopos();
-    }
-
-    const refreshTopoOnView = () => {
-        const meshes = Array.from(fetchedTopos.values()).map(topo => {
-            return createDelaunatedMesh(topo);
-        })
-        
-        SceneController.getInstance().addObjects(meshes);
     }
 
     const onCheckedHandler = async (id: string, checked: boolean, all?: boolean | null) => {
@@ -81,7 +64,17 @@ export const TopographyManage = () => {
     }
 
     const onChangeUpdateColor = async (id: string, index: number) => {
-        updateDisplayItemColor(id, index);
+        const updateJob = await updateDisplayItemColor(id, index);
+        if(updateJob && updateJob.result) {
+            const updatedTopo = updateJob.updatedTopo;
+
+            SceneController.getInstance()
+                .getViewportControl()
+                .updateTopoColor([{
+                    threeObjId: updatedTopo.getThreeObjId(),
+                    colorIndex: index,
+            }]);
+        }
     }
 
     const TopographyEditor:React.FC<{}> = () => {
@@ -101,8 +94,11 @@ export const TopographyManage = () => {
         const newSet = new Set(checkedItems);
         const deleteJobResult = await removeTopos(Array.from(newSet.values()));
 
-        if(deleteJobResult) {
+        if(deleteJobResult.result) {
             setCheckedItems(new Set());
+            console.log(deleteJobResult.deletedTopos);
+            const targetThreeIds = deleteJobResult.deletedTopos.map(topo => topo.getThreeObjId());
+            SceneController.getInstance().removeObjectByUUIDs(targetThreeIds);
         }
     }
 
@@ -133,7 +129,7 @@ export const TopographyManage = () => {
             </div>
             <hr/>
             <div>
-                <ButtonPositive text={"지형면 새로고침"} isEnabled={true} width={'100%'} onClickHandler={refreshTopoOnView}/>
+                {/* <ButtonPositive text={"지형면 새로고침"} isEnabled={true} width={'100%'} onClickHandler={refreshTopoOnView}/> */}
             </div>
         </div>
     )

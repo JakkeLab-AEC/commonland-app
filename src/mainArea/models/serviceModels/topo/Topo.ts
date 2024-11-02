@@ -64,6 +64,7 @@ export class Topo extends ServiceModel {
             points: this.getAllPoints(),
             colorIndex: this.colorIndex,
             isBatched: this.isBatched ? 1 : 0,
+            threeObjId: this.getThreeObjId(),
         }
 
         return dto;
@@ -71,6 +72,8 @@ export class Topo extends ServiceModel {
 
     static deserialize(data: TopoDTO):Topo {
         const topo = new Topo(data.isBatched == 1, data.name, data.id);
+        topo.setThreeObjId(data.threeObjId);
+        
         topo.colorIndex = data.colorIndex;
         data.points.forEach(pt => {
             topo.registerPoint({x: pt.x, y: pt.y, z: pt.z}, pt.id);

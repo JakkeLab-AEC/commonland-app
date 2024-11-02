@@ -18,13 +18,6 @@ export const LayerSelector:React.FC<LayerSelectorProp> = ({boringName, boringId,
     
     const onCheckItem = (e: ChangeEvent<HTMLInputElement>) => {
         if(e.target.checked) {
-            const targetLayer = layerValues.find(layer => layer.layerId == e.target.value);
-            const layer = {
-                boringId: boringId,
-                layerId: e.target.value, 
-                layerName: targetLayer?.layerName,
-                layerDepth: targetLayer?.layerDepth
-            }
             selectValue(boringId, e.target.value);
         }
     }
@@ -61,10 +54,10 @@ export const LayerSelector:React.FC<LayerSelectorProp> = ({boringName, boringId,
                             ref={handleAddRef(layer.layerId)} 
                             checked={selectedValues.get(boringId) == layer.layerId}/> 
                         <div className="flex-grow max-w-[84px]">
-                            {layer.layerName} 
+                            {layer.layerName.length} 
                         </div>
                         <div>
-                            ({layer.layerDepth})
+                            ({layer.layerDepth.toFixed(2)})
                         </div>
                     </label>
                     )

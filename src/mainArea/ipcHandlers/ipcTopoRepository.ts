@@ -22,4 +22,10 @@ export const setIpcTopoRepository = (ipcMain: IpcMain) => {
         const insertJob = await AppController.getInstance().getTopoRepository().removeTopos(ids);
         return insertJob;
     });
+
+    ipcMain.handle('topolayer-update-threeobjid', async (_, ids: {id: string, threeObjId: string}[]) => {
+        const updateJob = await AppController.getInstance().getTopoRepository().updateThreeObjId(ids);
+        return updateJob;
+    });
+    
 }
