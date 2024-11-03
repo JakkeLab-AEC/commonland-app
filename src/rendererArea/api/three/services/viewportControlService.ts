@@ -40,6 +40,7 @@ export class ViewportControlService {
                         transparent: true,
                         opacity: useVisibilityOptionStore.getState().currentTopoOpacity/100,
                         side: THREE.DoubleSide,
+                        depthTest: false,
 
                         polygonOffset: true,
                         polygonOffsetFactor: 1,
@@ -68,11 +69,34 @@ export class ViewportControlService {
                 transparent: true,
                 opacity: opacity,
                 side: THREE.DoubleSide,
+                depthTest: false,
 
                 polygonOffset: true,
                 polygonOffsetFactor: 1,
                 polygonOffsetUnits: 1
             });
+        });
+
+        this.sceneController.render();
+    }
+
+    updateLayerColor = (updateArgs:{layerName: string, colorIndex: number}[]) => {
+        updateArgs.forEach(arg => {
+            this.sceneController.getScene().traverse((obj) => {
+                if(obj.userData['type'] == ModelType.PostSegment && obj.userData['layerName'] == arg.layerName) {
+                    (obj as THREE.Mesh).material = new THREE.MeshPhongMaterial({
+                        color: parseInt(colorPaletteValues[arg.colorIndex].slice(1), 16),
+                        transparent: true,
+                        opacity: useVisibilityOptionStore.getState().currentPostOpacity/100,
+                        side: THREE.DoubleSide,
+                        depthTest: false,
+
+                        polygonOffset: true,
+                        polygonOffsetFactor: 1,
+                        polygonOffsetUnits: 1
+                    })
+                }
+            })
         });
 
         this.sceneController.render();

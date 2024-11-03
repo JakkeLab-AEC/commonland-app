@@ -11,21 +11,38 @@ import { useHomeStore } from "../../../../commonStatus/homeStatusModel";
 import { Layer } from "../../../../../mainArea/models/serviceModels/boring/layer";
 import { SPTResult, SPTResultSet } from "../../../../../mainArea/models/serviceModels/boring/sptResult";
 import { useEditorPageStore } from "../EditorPageStore";
+import { ThreeBoringPost } from "@/rendererArea/api/three/predefinedCreations/boringPost";
+import { SceneController } from "@/rendererArea/api/three/SceneController";
 
 interface BoringEditorProps {
     boring: Boring
+    isNewCreated: boolean;
 }
 
-export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring}) => {
+const compareDistance = (target: Boring, compareTo: Boring, tolerance: number = 0.5):boolean => {
+    const toleranceCheck = Math.sqrt(
+        Math.pow(compareTo.getLocationX() - target.getLocationX(), 2) + 
+        Math.pow(compareTo.getLocationY() - target.getLocationY(), 2)
+    ) > tolerance;
+
+    return toleranceCheck;
+}
+
+export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring, isNewCreated}) => {
     const { findValue } = useLanguageStore();
     const {
         setInspectorVisiblity,
         setInspectorTitle,
     } = useHomeStore();
     const {
+        insertBoring,
         updateBoring,
         registerUpdateEventListner,
-        boringDisplayItems,
+        searchBoringName,
+        fetchAllBorings,
+        fetchAllLayerColors,
+        borings,
+        layerColorConfig
     } = useEditorPageStore();
 
     const [currentLayers, setLayers] = useState<Layer[]>(boring.getLayers());
@@ -37,10 +54,30 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring}) => {
     }
 
     const onClickSave = async () => {
+        // Layer check
         if(boring.getLayers().length == 0) {
             alert('레이어는 1개이상 배치해야 합니다.');
             return;
         }
+
+        // Name Check
+        const newName = boring.getName();
+        if(newName.length == 0 || newName.trim().length == 0) {
+            alert('이름은 공란이나 여백으로 만들 수 없습니다.')
+            return;
+        }
+        
+        const searchNameJob = await searchBoringName(boring.getName(), boring.getId().getValue());
+        if(searchNameJob == 'found') {
+            alert('이미 사용중인 시추공 이름입니다.');
+            return;
+        }
+
+        if(searchNameJob == 'internalError') {
+            alert('시스템 내부 오류.');
+            return;
+        }
+            
 
         let isAllLayerNameIsNotBlank = true;
         const invalidLayerNames: string[] = [];
@@ -75,12 +112,42 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring}) => {
             return;
         }
 
-        const newInspectorWindowTitle = `${findValue('BoringEditor', 'editorHeader')} : ${boring.getName().length > 16 ? boring.getName().substring(0, 15)+'...' : boring.getName()}`;
+        // Check distances
+        let toleranceCheckResult = true;
+        const compareTargets = Array.from(borings.values()).filter(targets => targets.getId().getValue() != boring.getId().getValue());
+        for(const createdBoring of compareTargets) {
+            if(!compareDistance(boring, createdBoring)) {
+                toleranceCheckResult = false;
+                break;
+            }
+        }
+
+        if(!toleranceCheckResult) {
+            alert('인접한 시추공과 0.5m 이상 떨어져있어야 합니다.');
+            return;
+        }
+
+        // Create and insert
+        const newInspectorWindowTitle = `${findValue('BoringEditor', 'editorHeaderEdit')} : ${boring.getName().length > 16 ? boring.getName().substring(0, 15)+'...' : boring.getName()}`;
         const updateInspectorTitle = () => {
             setInspectorTitle(newInspectorWindowTitle)
         }
         registerUpdateEventListner(updateInspectorTitle);
-        const updateJob = updateBoring(boring);
+
+        if(isNewCreated) {
+            const insertJob = await insertBoring(boring);
+            if(!insertJob) return;
+
+            await fetchAllBorings();
+            setInspectorVisiblity(false);
+        } else {
+            const updateJob = await updateBoring(boring);
+            if(!updateJob) {
+                return;
+            }
+
+            await fetchAllBorings();
+        }
     }
 
     const onDeleteLayer = (id: string) => {
@@ -133,6 +200,10 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring}) => {
     const onSubmitSPTMultipleLines = (e: Map<number, {hitCount: number; distance: number}>) => {
         boring.getSPTResultSet().buildByMultipleValues(e);
     }
+
+    useEffect(() => {
+        console.log(boring.serialize());
+    }, [])
 
     return (
         <div className="flex flex-col w-full h-full">

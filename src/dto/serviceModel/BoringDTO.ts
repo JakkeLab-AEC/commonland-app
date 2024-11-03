@@ -18,4 +18,5 @@ export interface BoringDTO extends DTOBase {
         distance: number,
     }[],
     isBatched: 0 | 1,
+    threeObjId: string,
 }

@@ -65,6 +65,7 @@ export class Boring extends ServiceModel {
             id: this.elementId.getValue(),
             modelType: this.modelType,
             isBatched: this.isBatched ? 1 : 0,
+            threeObjId: this.getThreeObjId()
         }
 
         return data;
@@ -152,6 +153,8 @@ export class Boring extends ServiceModel {
             boring.sptResultSet.registerResult(spt.depth, new SPTResult(spt.depth, spt.hitCount, spt.distance, spt.id));
         })
 
+        boring.setThreeObjId(dto.threeObjId);
+
         return boring;
     }
 
@@ -179,6 +182,9 @@ export class Boring extends ServiceModel {
 
         // Copy batch state
         clonedBoring.setBatched(this.isBatched);
+
+        // Copy three object id
+        clonedBoring.setThreeObjId(this.getThreeObjId());
 
         return clonedBoring;
     }

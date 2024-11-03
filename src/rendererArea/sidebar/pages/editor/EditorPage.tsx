@@ -9,13 +9,35 @@ import {ButtonNegative} from "../../../../rendererArea/components/buttons/button
 import { useEditorPageStore } from "./EditorPageStore";
 import { Boring } from "../../../../mainArea/models/serviceModels/boring/boring";
 import { Layer } from "../../../../mainArea/models/serviceModels/boring/layer";
+import { FoldableControl } from "@/rendererArea/components/foldableControl/foldableControl";
+import { ListInputBox } from "@/rendererArea/components/listbox/listInputBox";
+import { ColorIndexPalette } from "@/rendererArea/components/palette/colorIndexPalette";
+import { SceneController } from "@/rendererArea/api/three/SceneController";
 
 interface InspectorContent {
-    boring: Boring
+    boring: Boring,
+    isNewCreated: boolean,
 }
 
-const InspectorContent:React.FC<InspectorContent> = ({boring}) => {
-    return (<InspectorBoringEdit boring={boring.clone()}/>)
+const InspectorContent:React.FC<InspectorContent> = ({boring, isNewCreated}) => {
+    return (<InspectorBoringEdit boring={boring.clone()} isNewCreated={isNewCreated}/>)
+}
+
+interface ColorPickerProps {
+    targetId: string,
+    onClickHandler: (index: number, targetId: string) => void;
+}
+
+const ColorPicker:React.FC<ColorPickerProps> = ({targetId, onClickHandler}) => {
+    const onClickWrapper = (index: number) => {
+        onClickHandler(index, targetId);
+    }
+
+    return (
+        <div className="p-2">
+            <ColorIndexPalette width={'full'} height={120} onClickHandler={onClickWrapper} />
+        </div>
+    )
 }
 
 export const BoringManager = () => {
@@ -34,34 +56,39 @@ export const BoringManager = () => {
         setInspectorTitle,
         setInspectorContent,
         setInspectorSize,
+        setInspectorPosition,
         registerInspectorClosingListner,
-        resetInspector
+        resetInspector,
     } = useHomeStore();
 
     const {
         fetchAllBorings,
-        insertBoring,
         selectBoring,
         searchBoringName,
         searchBoringNamePattern,
         removeBoring,
         unselectBoring,
+        updateLayerColor,
+        updateBoringDisplayItem,
         borings,
         boringDisplayItems,
         selectedBoringId,
-        updateBoringDisplayItem
+        layerColorConfig,
+        fetchAllLayerColors,
     } = useEditorPageStore();
 
     
     const onClickHandler = (id: string) => {
         const selectedBoring = selectBoring(id);
-        setInspectorContent(<InspectorContent key={selectedBoring.getId().getValue()} boring={selectedBoring}/>)
+        console.log(selectedBoring.serialize());
+        resetInspector();
+        setInspectorContent(<InspectorContent key={selectedBoring.getId().getValue()} boring={selectedBoring} isNewCreated={false}/>)
 
         const boringName = selectedBoring.getName();
-        setInspectorTitle(`${findValue('BoringEditor', 'editorHeader')} : ${boringName.length > 16 ? boringName.substring(0, 15)+'...' : boringName}`);
-        setInspectorSize({width: 440, height: 600})
+        setInspectorTitle(`${findValue('BoringEditor', 'editorHeaderEdit')} : ${boringName.length > 16 ? boringName.substring(0, 15)+'...' : boringName}`);
+        setInspectorSize({width: 440, height: 600});
 
-        registerInspectorClosingListner(unselectBoring)
+        registerInspectorClosingListner(unselectBoring);
         setInspectorVisiblity(true);
     }
 
@@ -116,11 +143,13 @@ export const BoringManager = () => {
         const newBoring = new Boring(boringName, 0, 0, 0, 0);
         newBoring.addLayer(new Layer('레이어', 1));
 
-        // Insert new boring
-        await insertBoring(newBoring);
-      
-        // Fetch updated borings
-        await fetchAllBorings();
+        resetInspector();
+        setInspectorContent(<InspectorContent key={newBoring.getId().getValue()} boring={newBoring} isNewCreated={true}/>);
+        setInspectorTitle(`${findValue('BoringEditor', 'editorHeaderNew')} : ${newBoring.getName().length > 16 ? newBoring.getName().substring(0, 15)+'...' : newBoring.getName()}`);
+        setInspectorSize({width: 440, height: 600});
+
+        registerInspectorClosingListner(unselectBoring);
+        setInspectorVisiblity(true);
     };
 
     const onClickRemoveBoring = async () => {
@@ -128,11 +157,15 @@ export const BoringManager = () => {
         if(newSet.has(selectedBoringId)) {
             setInspectorVisiblity(false);
         }
+        const targetBoringThreeIds: string[] = [];
+
         const result = await removeBoring(Array.from(newSet.values()));
 
         if(result) {
             setCheckedItems(new Set());
         }
+
+        await fetchAllLayerColors();
     }
 
     const allowedCharactersOnPrefix = /^[a-zA-Z]*$/;
@@ -175,8 +208,30 @@ export const BoringManager = () => {
         }
     }
 
+    const onPickColor = async (index: number, targetId: string) => {
+        updateLayerColor(targetId, index);
+        setInspectorVisiblity(false);
+    }
+
+    const onClickLayerColor = (id: string, index: number) => {
+        setInspectorContent(<ColorPicker targetId={id} onClickHandler={onPickColor}/>);
+        setInspectorTitle(`색상 선택 : ${id}`)
+        setInspectorSize({width: 244, height: 180});
+        setInspectorPosition(672, 340);
+        setInspectorVisiblity(true);
+    }
+
+    const onChangeNamingMode =(e:ChangeEvent<HTMLInputElement>) => {
+        if(e.target.value == 'manual') {
+            setNamingMode('manual')
+        } else if(e.target.value == 'autoincrement') {
+            setNamingMode('autoincrement');
+        }
+    }
+
     useEffect(() => {
         fetchAllBorings();
+        fetchAllLayerColors();
 
         return () => {
             setInspectorContent(null);
@@ -185,13 +240,7 @@ export const BoringManager = () => {
         }
     }, []);
     
-    const onChangeNamingMode =(e:ChangeEvent<HTMLInputElement>) => {
-        if(e.target.value == 'manual') {
-            setNamingMode('manual')
-        } else if(e.target.value == 'autoincrement') {
-            setNamingMode('autoincrement');
-        }
-    }
+    
 
     return (
         <div className="flex flex-col gap-2">
@@ -268,6 +317,11 @@ export const BoringManager = () => {
             <div className="flex flex-row gap-2 self-end">
                 <ButtonPositive text={"추가"} width={40} isEnabled={true} onClickHandler={onClickAddBoring}/>
                 <ButtonNegative text={"삭제"} width={40} isEnabled={true} onClickHandler={onClickRemoveBoring}/>
+            </div>
+            <div className="flex flex-row flex-grow gap-1">
+                <FoldableControl title={"색상"}>
+                    <ListInputBox items={layerColorConfig.getAllLayerColors()} width={'full'} height={180} onClickHandler={onClickLayerColor} />
+                </FoldableControl>
             </div>
         </div>
     )

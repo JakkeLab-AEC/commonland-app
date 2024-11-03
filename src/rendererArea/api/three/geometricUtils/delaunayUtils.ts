@@ -55,6 +55,7 @@ export function createDelaunatedMesh(topo: Topo) {
         transparent: true,
         opacity: useVisibilityOptionStore.getState().currentTopoOpacity/100,
         side: THREE.DoubleSide,
+        depthTest: false,
 
         polygonOffset: true,
         polygonOffsetFactor: 1,

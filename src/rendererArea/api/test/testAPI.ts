@@ -1,17 +1,18 @@
 import { Layer } from "../../../mainArea/models/serviceModels/boring/layer";
 import { Boring } from "../../../mainArea/models/serviceModels/boring/boring";
 import { SPTResult } from "../../../mainArea/models/serviceModels/boring/sptResult";
+import { useEditorPageStore } from "@/rendererArea/sidebar/pages/editor/EditorPageStore";
 
 export class TestAPI {
     private values = [15, 20, 25, 30, 35, 40, 12, 24, 36, 48];
     async createTestBorings() {
-        for(let i = 1; i < 30; i++) {
+        for(let i = 1; i < 10; i++) {
             const boringName = `BH-${i}`;
             const boring = new Boring(
                 boringName,
                 Math.random()*100,
                 Math.random()*100,
-                Math.round((20 + Math.random()*10)*100)/100,
+                Number((20 + Math.random()*10).toFixed(2)),
                 this.values[Math.trunc(Math.random()*10)],
             );
 
@@ -23,7 +24,7 @@ export class TestAPI {
             }
 
             for(let k = 1; k < layerCount + 1; k++) {
-                boring.addLayer(new Layer(`레이어${k}`, Math.trunc(Math.random()*10) + 1));
+                boring.addLayer(new Layer(`레이어${k}`, Number((Math.random()*10).toFixed(2) + 1)));
             }
 
             let sptCount: number = Math.trunc(Math.random());
@@ -35,7 +36,7 @@ export class TestAPI {
                 boring.getSPTResultSet().registerResult(k, new SPTResult(k, Math.trunc(Math.random()*10), Math.trunc(Math.random()*100)));
             }
 
-            await window.electronBoringDataAPI.insertBoring(boring.serialize());
+            await useEditorPageStore.getState().insertBoring(boring);
         }
     }
 }
