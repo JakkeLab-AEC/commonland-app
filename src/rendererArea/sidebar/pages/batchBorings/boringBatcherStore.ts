@@ -13,7 +13,7 @@ interface BoringBatcherStore {
     unbatchBorings: (ids: string[]) => void;
     updateBatchedBoringDisplayItem: (id: string, checked: boolean) => void;
     updateUnbatchedBoringDisplayItem: (id: string, checked: boolean) => void;
-    fetchAllLayerColors:() => void,
+    fetchAllLayerColors:() => void;
     updateLayerColor:(name: string, colorIndex: number) => void;
 }
 

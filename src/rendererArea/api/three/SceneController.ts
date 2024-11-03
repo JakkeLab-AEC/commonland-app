@@ -71,9 +71,9 @@ export class SceneController {
     }
 
     public removeObjectByUUIDs(ids: string[]): void {
-        console.log(ids);
-        const targets = ids.map(id => this.scene.getObjectByProperty('uuid', id));
-        console.log(targets);
+        const targets = ids.map(id => {
+            return this.scene.getObjectByProperty('uuid', id)
+        });
         this.scene.remove(...targets);
         this.render();
     }

@@ -26,11 +26,11 @@ export const setIpcBoringRepository = (ipcMain: IpcMain) => {
         return searchNamesJob;
     });
 
-    ipcMain.handle('boring-repository-search-name-exact', async(_, name: string) => {
+    ipcMain.handle('boring-repository-search-name-exact', async(_, name: string, id?: string) => {
         const searchNamesJob = await AppController
             .getInstance()
             .getBoringRepository()
-            .searchBoringName(name);
+            .searchBoringName(name, id);
         return searchNamesJob;
     });
 

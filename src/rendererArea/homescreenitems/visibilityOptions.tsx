@@ -7,11 +7,15 @@ import { ModelType } from "@/mainArea/models/modelType";
 export const VisibilityOptions = () => {
     const {
         currentTopoOpacity,
-        updateTopoOpacity
+        currentPostOpacity,
+        updateTopoOpacity,
+        updatePostOpacity
     } = useVisibilityOptionStore();
 
     const onChangePostOpacity = (e: ChangeEvent<HTMLInputElement>) => {
-        console.log(e.target.value);
+        SceneController.getInstance()
+            .getViewportControl()
+            .updateOpacityByModelType(ModelType.PostSegment, parseFloat(e.target.value)/100);
     }
 
     const onChangeTopoOpacity = (e: ChangeEvent<HTMLInputElement>) => {
@@ -20,9 +24,14 @@ export const VisibilityOptions = () => {
             .updateOpacityByModelType(ModelType.Topo, parseFloat(e.target.value)/100);
     }
 
-    const onMouseUpOpacity = (e: React.MouseEvent<HTMLInputElement>) => {
+    const onMouseUpTopoOpacity = (e: React.MouseEvent<HTMLInputElement>) => {
         updateTopoOpacity(parseFloat(e.currentTarget.value));
     }
+
+    const onMouseUpPostOpacity = (e: React.MouseEvent<HTMLInputElement>) => {
+        updatePostOpacity(parseFloat(e.currentTarget.value));
+    }
+
 
     const PostOpacitySlider = () => {
         return (
@@ -33,7 +42,11 @@ export const VisibilityOptions = () => {
                 <input 
                     type='range'
                     className="w-[72px]"
-                    onChange={onChangePostOpacity}/>
+                    onChange={onChangePostOpacity}
+                    onMouseUp={onMouseUpPostOpacity}
+                    min='10'
+                    max='100'
+                    defaultValue={currentPostOpacity}/>
             </div>
         )
     }
@@ -48,7 +61,7 @@ export const VisibilityOptions = () => {
                     type='range'
                     className="w-[72px]"
                     onChange={onChangeTopoOpacity}
-                    onMouseUp={onMouseUpOpacity}
+                    onMouseUp={onMouseUpTopoOpacity}
                     min='10'
                     max='100'
                     defaultValue={currentTopoOpacity}/>

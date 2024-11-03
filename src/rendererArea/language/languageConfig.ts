@@ -23,7 +23,8 @@ export const displayStringsGlobal: Map<string, LanguageDisplayItem> = new Map([
 
     ['BoringManager-boringListBoxHeader-kr', {componentName: 'BoringEditor', localeCode:'kr', itemName:'boringListBoxHeader', displayString: '이름'}],
     
-    ['BoringEditor-editorHeader-kr', {componentName: 'BoringEditor', localeCode:'kr', itemName:'editorHeader', displayString: '시추공 편집'}],
+    ['BoringEditor-editorHeaderNew-kr', {componentName: 'BoringEditor', localeCode:'kr', itemName:'editorHeaderNew', displayString: '시추공 생성'}],
+    ['BoringEditor-editorHeaderEdit-kr', {componentName: 'BoringEditor', localeCode:'kr', itemName:'editorHeaderEdit', displayString: '시추공 편집'}],
     
     ['BoringEditor-boringNameHeader-kr', {componentName: 'BoringEditor', localeCode:'kr', itemName:'boringNameHeader', displayString: '시추공 이름'}],
 
