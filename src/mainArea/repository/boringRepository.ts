@@ -20,7 +20,8 @@ interface BoringData {
     location_y: number;
     topo_top: number;
     underground_water: number;
-    is_batched: 0 | 1
+    is_batched: 0 | 1,
+    three_id: string;
 }
 
 interface LayerData {
@@ -58,7 +59,7 @@ export class BoringRepository implements BoringCRUDMethods {
         try {
 
             // Pre-defined props
-            const boringColumns = ['boring_id', 'name', 'location_x', 'location_y', 'topo_top', 'underground_water', 'is_batched'];
+            const boringColumns = ['boring_id', 'name', 'location_x', 'location_y', 'topo_top', 'underground_water', 'is_batched', 'three_id'];
             const layerColumns = ['layer_id', 'boring_id', 'layer_index', 'name', 'thickness'];
             const sptResultColumns = ['spt_id', 'boring_id', 'depth', 'hitcount', 'distance'];
             
@@ -127,7 +128,8 @@ export class BoringRepository implements BoringCRUDMethods {
                     sptResults: [],
                     isBatched: boring.is_batched,
                     id: boring.boring_id,
-                    modelType: ModelType.Service
+                    modelType: ModelType.Service,
+                    threeObjId: boring.three_id,
                 }
 
                 // Get layers
@@ -178,7 +180,7 @@ export class BoringRepository implements BoringCRUDMethods {
     }
 
     async insertBoring(boringDto: BoringDTO): Promise<{result: boolean, message?: string}> {
-        const boringColumns = ['boring_id', 'name', 'location_x', 'location_y', 'topo_top', 'underground_water', 'is_batched'];
+        const boringColumns = ['boring_id', 'name', 'location_x', 'location_y', 'topo_top', 'underground_water', 'is_batched', 'three_id'];
         const layerColumns = ['layer_id', 'boring_id', 'layer_index', 'name', 'thickness'];
         const sptResultColumns = ['spt_id', 'boring_id', 'depth', 'hitCount', 'distance'];
 
@@ -190,7 +192,8 @@ export class BoringRepository implements BoringCRUDMethods {
             boringDto.location.y,
             boringDto.topoTop,
             boringDto.undergroundWater,
-            boringDto.isBatched
+            boringDto.isBatched,
+            boringDto.threeObjId
         ];
         
         const layerInsertQuery = RepositryQueryBuilder.buildInsertQuery(DB_TABLENAMES.LAYERS, layerColumns);
@@ -220,6 +223,7 @@ export class BoringRepository implements BoringCRUDMethods {
             await this.db.exec('BEGIN TRANSACTION');
             
             // Insert all datas
+            console.log(boringParams);
             await this.db.all(boringInsertQuery, boringParams);
 
             if(layerParams.length > 0) {
@@ -273,9 +277,9 @@ export class BoringRepository implements BoringCRUDMethods {
         }
         
         // Update works
-        const boringColumnsNoRenaming = ['location_x', 'location_y', 'topo_top', 'underground_water', 'is_batched'];
-        const boringColumns = ['name', 'location_x', 'location_y', 'topo_top', 'underground_water', 'is_batched'];
-        const {name, location, topoTop, undergroundWater, id, isBatched} = boringDto;
+        const boringColumnsNoRenaming = ['location_x', 'location_y', 'topo_top', 'underground_water', 'is_batched', 'three_id'];
+        const boringColumns = ['name', 'location_x', 'location_y', 'topo_top', 'underground_water', 'is_batched', 'three_id'];
+        const {name, location, topoTop, undergroundWater, id, isBatched, threeObjId} = boringDto;
         
         const layerColumns = ['layer_id', 'boring_id', 'layer_index', 'name', 'thickness'];
         const sptResultColumns = ['spt_id', 'boring_id', 'depth', 'hitCount', 'distance'];
@@ -311,8 +315,8 @@ export class BoringRepository implements BoringCRUDMethods {
 
             // Update boring data
             const updateJob = updateMode == 'Renaming' ? 
-                await this.db.all(queryBoring, [name, location.x, location.y, topoTop, undergroundWater, isBatched, id]) :
-                await this.db.all(queryBoring, [location.x, location.y, topoTop, undergroundWater, isBatched, id])
+                await this.db.all(queryBoring, [name, location.x, location.y, topoTop, undergroundWater, isBatched, threeObjId, id]) :
+                await this.db.all(queryBoring, [location.x, location.y, topoTop, undergroundWater, isBatched, threeObjId, id])
 
             // Update layer data
             const layerDeleteQuery = `
@@ -431,18 +435,27 @@ export class BoringRepository implements BoringCRUDMethods {
         }
     }
 
-    async searchBoringName(name: string): Promise<{result: boolean, message?: string, error?: boolean}> {
-        const query = `
+    async searchBoringName(name: string, id?: string): Promise<{result: boolean, message?: string, error?: boolean}> {
+        const queryWithId = `
             SELECT 
                 name
             FROM 
                 ${DB_TABLENAMES.BORINGS}
             WHERE
-                name = ?
+                boring_id <> ? AND name = ?
+        `
+
+        const queryWithoutId = `
+            SELECT 
+                name
+            FROM 
+                ${DB_TABLENAMES.BORINGS}
+            WHERE
+                name = ${name}
         `
 
         try {
-            const searchJob = await this.db.all(query, name);
+            let searchJob = id ? await this.db.all(queryWithId, [id, name]) : await this.db.all(queryWithoutId, [name]);
             if(searchJob.length == 0) {
                 return {
                     result: false,

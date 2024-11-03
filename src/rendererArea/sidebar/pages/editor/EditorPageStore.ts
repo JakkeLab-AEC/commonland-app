@@ -1,5 +1,8 @@
+import { LayerColorConfig } from "@/mainArea/models/uimodels/layerColorConfig";
 import { Boring } from "../../../../mainArea/models/serviceModels/boring/boring";
 import { create } from "zustand";
+import { SceneController } from "@/rendererArea/api/three/SceneController";
+import { ThreeBoringPost } from "@/rendererArea/api/three/predefinedCreations/boringPost";
 
 interface EditorPageStore {
     borings: Map<string, Boring>;
@@ -7,18 +10,21 @@ interface EditorPageStore {
     selectedBoringId: string;
     updateEventListners: Array<() => void>;
     checkedBoringIds:Set<string>;
+    layerColorConfig: LayerColorConfig;
     fetchAllBorings:() => Promise<void>;
     createNewBoring: () => void;
-    insertBoring: (boring: Boring) => Promise<void>;
-    updateBoring: (boring: Boring) => Promise<void>;
+    insertBoring: (boring: Boring) => Promise<boolean>;
+    updateBoring: (boring: Boring) => Promise<boolean>;
     registerUpdateEventListner: (listner: () => void) => void;
     removeBoring: (id: string[]) => Promise<boolean>;
     selectBoring: (id: string) => Boring;
     unselectBoring: () => void;
-    searchBoringName: (name: string) => Promise<'found'|'notfound'|'internalError'>
+    searchBoringName: (name: string, id?: string) => Promise<'found'|'notfound'|'internalError'>
     searchBoringNamePattern: (prefix: string, index: number) => Promise<string[]>;
     saveCheckedBoringIds: (ids: Set<string>) => void;
     updateBoringDisplayItem: (id: string, checked: boolean) => void;
+    fetchAllLayerColors:() => Promise<void>;
+    updateLayerColor:(name: string, colorIndex: number) => Promise<void>;
 }
 
 export const useEditorPageStore = create<EditorPageStore>((set, get) => ({
@@ -27,6 +33,7 @@ export const useEditorPageStore = create<EditorPageStore>((set, get) => ({
     selectedBoringId: null,
     updateEventListners: [],
     checkedBoringIds: new Set(),
+    layerColorConfig: new LayerColorConfig([]),
     fetchAllBorings: async () => {
         const fetchJob = await window.electronBoringDataAPI.fetchAllBorings();
         if(fetchJob.result) {
@@ -60,17 +67,63 @@ export const useEditorPageStore = create<EditorPageStore>((set, get) => ({
         
     },
     insertBoring: async (boring: Boring) => {
+        // Update new layers' color
+        const layerColorConfig =  get().layerColorConfig;
+        boring.getLayers().forEach(layer => {
+            const layerName = layer.getName();
+            if(!layerColorConfig.getLayerColor(layerName)) {
+                layerColorConfig.registerColor(layerName, 1);
+                set(() => {
+                    return { layerColorConfig: layerColorConfig }
+                });
+            }
+        });
+
+        // Create boring item
+        const createdBoringObject = await ThreeBoringPost.createPostFromModel(boring, layerColorConfig);
+        boring.setThreeObjId(createdBoringObject.uuid);
+        
         const boringDto = boring.serialize();
         const insertJob = await window.electronBoringDataAPI.insertBoring(boringDto);
+        if(insertJob.result) {
+            const updatedBorings = new Map(get().borings);
+            updatedBorings.set(boring.getId().getValue(), boring);
+            set(() => {
+                return { borings: updatedBorings }
+            })
+
+            SceneController.getInstance().addObject(createdBoringObject);
+            return true;
+        }
+        return false;
     },
     updateBoring: async (boring: Boring) => {
+        // Update new layers' color
+        const layerColorConfig =  get().layerColorConfig;
+        console.log(layerColorConfig);
+        boring.getLayers().forEach(layer => {
+            const layerName = layer.getName();
+            console.log(layerColorConfig.getLayerColor(layerName));
+            if(!layerColorConfig.getLayerColor(layerName)) {
+                layerColorConfig.registerColor(layerName, 1);
+                set(() => {
+                    return { layerColorConfig: layerColorConfig }
+                });
+            }
+        });
+
+        // Get old three object id and update it
+        const oldThreeObjId = boring.getThreeObjId();
+        const createdBoringObject = await ThreeBoringPost.createPostFromModel(boring, layerColorConfig);
+        boring.setThreeObjId(createdBoringObject.uuid);
+
         const updateJob = await window.electronBoringDataAPI.updateBoring(boring.serialize());
         if(updateJob.updateError) {
             alert(updateJob.updateError.message);
             set(() => {
                 return {updateEventListners: []}
             });
-            return;
+            return false;
         }
         get().updateEventListners.forEach(listner => listner());
         get().fetchAllBorings();
@@ -78,12 +131,28 @@ export const useEditorPageStore = create<EditorPageStore>((set, get) => ({
         set(() => {
             return {updateEventListners: []}
         })
+
+        // Remove and add object
+        SceneController.getInstance().removeObjectByUUIDs([oldThreeObjId]);
+        SceneController.getInstance().addObject(createdBoringObject);
+
+        return true;
     },
     removeBoring: async (ids: string[]) => {
+        const targetBoringThreeIds: string[] = [];
+        const borings = get().borings;
+        ids.forEach((id) => {
+            targetBoringThreeIds.push(borings.get(id).getThreeObjId());
+        });
+
         const removeJob = await window.electronBoringDataAPI.removeBoring(ids);
-        get().fetchAllBorings();
-        
-        return removeJob.result;
+        if(removeJob.result) {
+            get().fetchAllBorings();
+            SceneController.getInstance().removeObjectByUUIDs(targetBoringThreeIds);
+            return true;
+        }
+
+        return false;
     },
     selectBoring: (id: string) => {
         const status = get();
@@ -92,8 +161,8 @@ export const useEditorPageStore = create<EditorPageStore>((set, get) => ({
         })
         return status.borings.get(id);
     },
-    searchBoringName: async (name: string) => {
-        const searchJob = await window.electronBoringDataAPI.searchBoringName(name);
+    searchBoringName: async (name: string, id?: string) => {
+        const searchJob = await window.electronBoringDataAPI.searchBoringName(name, id);
         if(!searchJob) {
             return 'internalError';
         }
@@ -139,5 +208,21 @@ export const useEditorPageStore = create<EditorPageStore>((set, get) => ({
         items.get(id).checked = checked;
 
         set(() => {return {boringDisplayItems : items}});
+    },
+    fetchAllLayerColors: async () => {
+        const fetchJob = await window.electronBoringDataAPI.getAllLayerColors();
+        if(fetchJob.result) {
+            set(() => {return {layerColorConfig: new LayerColorConfig(fetchJob.layerColors)}})
+        }
+    }, 
+    updateLayerColor: async (name: string, colorIndex: number) => {
+        const updateJob = await window.electronBoringDataAPI.updateLayerColor(name, colorIndex);
+        if(!updateJob.result) return;
+
+        const fetchJob = await window.electronBoringDataAPI.getAllLayerColors();
+        if(fetchJob.result) {
+            set(() => {return {layerColorConfig: new LayerColorConfig(fetchJob.layerColors)}})
+            SceneController.getInstance().getViewportControl().updateLayerColor([{layerName: name, colorIndex: colorIndex}]);
+        }
     },
 }));

@@ -6,6 +6,8 @@ import { LayerColorConfig } from '../../../../mainArea/models/uimodels/layerColo
 import { Boring } from '../../../../mainArea/models/serviceModels/boring/boring';
 import { colorPaletteValues } from '../../../../public/colorPalette';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils';
+import { ModelType } from '@/mainArea/models/modelType';
+import { useVisibilityOptionStore } from '@/rendererArea/homescreenitems/visibilityOptionsStore';
 
 
 export class ThreeBoringPost {
@@ -44,7 +46,7 @@ export class ThreeBoringPost {
 
             // For real object
             const mat = new THREE.MeshBasicMaterial({
-                color: 0x000000
+                color: 0x000000,
             });
 
             const textObjectDepth = new THREE.Mesh(obj.textGeometryDepth, mat);
@@ -53,12 +55,7 @@ export class ThreeBoringPost {
             threeObjs.push(obj.leaderLine);
             threeObjs.push(textObjectDepth);
             threeObjs.push(textObjectSPTResult);
-
-            // For wrapping object
-            // threeGeometryWrapping.push(obj.textGeometryDepth.clone());
-            // , obj.textGeometrySPTResult.clone()
-            // obj.leaderLine.geometry.clone(), 
-        })
+        });
 
         threeItems.postSegments.forEach(obj => {
             obj.textGeometry.applyMatrix4(moveMatrix);
@@ -67,12 +64,25 @@ export class ThreeBoringPost {
 
             // For real object
             const realMat = new THREE.MeshPhongMaterial({
-                color: obj.color
-            })
+                color: obj.color,
+                transparent: true,
+                opacity: useVisibilityOptionStore.getState().currentPostOpacity/100,
+                side: THREE.DoubleSide,
+                depthTest: false,
+
+                polygonOffset: true,
+                polygonOffsetFactor: 1,
+                polygonOffsetUnits: 1
+            });
             const segmentMesh = new THREE.Mesh(obj.postGeometry, realMat);
+            segmentMesh.userData = {
+                type: ModelType.PostSegment,
+                layerName: obj.layerName,
+            }
             
             const textMat = new THREE.MeshBasicMaterial({
-                color: 0x000000
+                color: 0x000000,
+                side: THREE.DoubleSide,
             })
             const textMesh = new THREE.Mesh(obj.textGeometry, textMat);
 
@@ -82,9 +92,7 @@ export class ThreeBoringPost {
 
             // For wrapping object
             threeGeometryWrapping.push(obj.postGeometry.clone());
-            // , obj.textGeometry.clone()
-            // obj.leaderLine.geometry.clone(), 
-        })
+        });
 
         //#region PostName Leader
         if(!threeItems.postNameLeader) return;
@@ -94,14 +102,11 @@ export class ThreeBoringPost {
         
         // For real object
         const postNameObject = new THREE.Mesh(threeItems.postNameLeader.textGeometry, new THREE.MeshBasicMaterial({
-            color: 0x000000
+            color: 0x000000,
+            side: THREE.DoubleSide,
         }));
 
         threeObjs.push(postNameObject);
-
-        // For wrapping object
-        // threeGeometryWrapping.push(threeItems.postNameLeader.textGeometry.clone());
-        // threeItems.postNameLeader.leaderLine.geometry.clone(), 
         
         //#endregion
         
@@ -113,17 +118,14 @@ export class ThreeBoringPost {
 
         // For real object
         const boringEndTextObject = new THREE.Mesh(threeItems.boringEndLeader.textGeometry, new THREE.MeshBasicMaterial({
-            color: 0x000000
+            color: 0x000000,
+            side: THREE.DoubleSide,
         }));
 
         threeObjs.push(boringEndTextObject);
 
-        // For wrapping object
-        // threeGeometryWrapping.push(threeItems.boringEndLeader.textGeometry.clone());
-        // threeItems.boringEndLeader.leaderLine.geometry.clone(), 
 
         // Merge all wrapping objects
-        console.log(threeGeometryWrapping);
         const mergedGeometry = BufferGeometryUtils.mergeGeometries(threeGeometryWrapping, true);
         const wrappingMaterial = new THREE.MeshStandardMaterial({
             color: 0xFFFFFF,      // Green color
@@ -135,6 +137,7 @@ export class ThreeBoringPost {
         parentObject.add(...threeObjs);
 
         //#endregion
+        console.log(parentObject);
         return parentObject;
     }
     
@@ -157,7 +160,7 @@ export class ThreeBoringPost {
 
         // Create cylinder segments
         let topoLevel = topoTop;
-        const postSegments:{postGeometry: THREE.CylinderGeometry, textGeometry: TextGeometry, leaderLine: THREE.Line, color: number}[] = [];
+        const postSegments:{postGeometry: THREE.CylinderGeometry, textGeometry: TextGeometry, leaderLine: THREE.Line, color: number, layerName: string}[] = [];
         for(let i = 0; i < layers.length; i++) {
             const {name, thickness, color} = layers[i];
             if(i == 0) {
@@ -234,7 +237,7 @@ export class ThreeBoringPost {
         curvedLeader: boolean,
         offsetText = 0.1,
         postColor = 0xbfff75
-    ):Promise<{postGeometry: THREE.CylinderGeometry, textGeometry: TextGeometry, leaderLine: THREE.Line, color: number}> {
+    ):Promise<{postGeometry: THREE.CylinderGeometry, textGeometry: TextGeometry, leaderLine: THREE.Line, color: number, layerName: string}> {
         // Create post
         const geometry = new THREE.CylinderGeometry(radius, radius, thickness, 64);
 
@@ -268,7 +271,7 @@ export class ThreeBoringPost {
             );
         }
 
-        return {postGeometry: geometry, textGeometry: leaderSet.textGeometry, leaderLine: leaderSet.leaderLine, color: postColor}
+        return {postGeometry: geometry, textGeometry: leaderSet.textGeometry, leaderLine: leaderSet.leaderLine, color: postColor, layerName: name}
     }
 
     private static async createLeader(
