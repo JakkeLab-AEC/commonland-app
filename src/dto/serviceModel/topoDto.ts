@@ -11,6 +11,7 @@ export interface TopoDTO extends DTOBase {
         y: number,
         z: number
     }[],
+    threeObjId: string,
     colorIndex: number,
     isBatched: 0 | 1,
 }

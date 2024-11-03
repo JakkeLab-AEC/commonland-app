@@ -1,14 +1,27 @@
 import { ChangeEvent } from "react"
 import { FoldableControlHor } from "../components/foldableControl/foldableControlHor"
+import { SceneController } from "../api/three/SceneController";
+import { useVisibilityOptionStore } from "./visibilityOptionsStore";
+import { ModelType } from "@/mainArea/models/modelType";
 
 export const VisibilityOptions = () => {
+    const {
+        currentTopoOpacity,
+        updateTopoOpacity
+    } = useVisibilityOptionStore();
 
     const onChangePostOpacity = (e: ChangeEvent<HTMLInputElement>) => {
         console.log(e.target.value);
     }
 
     const onChangeTopoOpacity = (e: ChangeEvent<HTMLInputElement>) => {
-        console.log(e.target.value);
+        SceneController.getInstance()
+            .getViewportControl()
+            .updateOpacityByModelType(ModelType.Topo, parseFloat(e.target.value)/100);
+    }
+
+    const onMouseUpOpacity = (e: React.MouseEvent<HTMLInputElement>) => {
+        updateTopoOpacity(parseFloat(e.currentTarget.value));
     }
 
     const PostOpacitySlider = () => {
@@ -34,7 +47,11 @@ export const VisibilityOptions = () => {
                 <input 
                     type='range'
                     className="w-[72px]"
-                    onChange={onChangeTopoOpacity}/>
+                    onChange={onChangeTopoOpacity}
+                    onMouseUp={onMouseUpOpacity}
+                    min='10'
+                    max='100'
+                    defaultValue={currentTopoOpacity}/>
             </div>
         )
     }

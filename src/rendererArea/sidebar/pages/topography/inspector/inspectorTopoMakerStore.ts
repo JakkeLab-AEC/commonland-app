@@ -1,4 +1,6 @@
 import { Topo } from "@/mainArea/models/serviceModels/topo/Topo";
+import { createDelaunatedMesh } from "@/rendererArea/api/three/geometricUtils/delaunayUtils";
+import { SceneController } from "@/rendererArea/api/three/SceneController";
 import { create } from "zustand";
 
 interface TopoMakerProp {
@@ -13,8 +15,8 @@ interface TopoMakerProp {
     selectValue: (boringId: string, layerId: string) => void,
     selectOnce: (layerName: string) => void,
     updateDisplayItemCheck: (id: string, checked: boolean) => void,
-    updateDisplayItemColor: (id: string, color: number) => Promise<void>,
-    removeTopos: (ids: string[]) => Promise<boolean>,
+    updateDisplayItemColor: (id: string, color: number) => Promise<{result: boolean, updatedTopo?: Topo}>,
+    removeTopos: (ids: string[]) => Promise<{result: boolean, deletedTopos?: Topo[]}>,
     reset: () => void,
 }
 
@@ -88,7 +90,12 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
         }
     },
     insertTopo: async (topo: Topo) => {
+        const createdMesh = createDelaunatedMesh(topo);
+        topo.setThreeObjId(createdMesh.uuid);
         const insertJob = await window.electronTopoLayerAPI.insertTopo(topo.serialize());
+        if(insertJob.result) {
+            SceneController.getInstance().addObject(createdMesh);
+        }
     },
     selectValue: (boringId: string, layerId: string) => {
         const slot = get().selectedValues;
@@ -136,6 +143,7 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
         const updateJob = await window.electronTopoLayerAPI.updateTopoColor(id, color);
         if(updateJob.result) {
             const updatedDisplayItems = new Map(get().topoDisplayItems);
+            const updatedTopos = new Map(get().fetchedTopos);
             const formerStatus = updatedDisplayItems.get(id);
 
             updatedDisplayItems.set(id, {
@@ -144,22 +152,44 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
                 colorIndex: color
             });
 
-            set(() => {return {topoDisplayItems: updatedDisplayItems}});
+            const fetchJob = await window.electronTopoLayerAPI.fetchAllTopos();
+            if(fetchJob.result) {
+                fetchJob.topoDatas.forEach(topo => {
+                    updatedTopos.set(topo.id, Topo.deserialize(topo));
+                });
+
+                set(() => {return {
+                    topoDisplayItems: updatedDisplayItems,
+                    fetchedTopos: updatedTopos,
+                }});
+            }
+
+            return {result: true, updatedTopo:  get().fetchedTopos.get(id)};
         }
+        return {result: false};
     },
     removeTopos: async(ids: string[]) => {
         const removeJob = await window.electronTopoLayerAPI.removeTopos(ids);
+        const oldTopos = get().fetchedTopos;
+        const updatedTopos = new Map(oldTopos);
+        const deletedTargets: Map<string, Topo> = new Map();
         const newDisplayItems = new Map(get().topoDisplayItems);
         if(removeJob.result) {
             ids.forEach(id => {
+                deletedTargets.set(id, oldTopos.get(id));
                 newDisplayItems.delete(id);
+                updatedTopos.delete(id);
             })
 
             set(() => {
-                return { topoDisplayItems : newDisplayItems }
+                return { 
+                    topoDisplayItems : newDisplayItems,
+                    fetchedTopos: updatedTopos,
+                }
             })
+            return {result: removeJob.result, deletedTopos: Array.from(deletedTargets.values())};
         }
         
-        return removeJob.result;
+        return {result: false}
     }
 }));

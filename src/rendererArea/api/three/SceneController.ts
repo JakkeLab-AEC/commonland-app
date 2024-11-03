@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { DefaultDimensions } from './defaultConfigs/DefaultDimensionConfigs';
+import { ViewportControlService } from './services/viewportControlService';
 
 export class SceneController {
 
@@ -21,6 +22,11 @@ export class SceneController {
     public drawingPlaneXZ: THREE.Plane;
     
     /* Services */
+    private viewportControl: ViewportControlService;
+
+    public getViewportControl() {
+        return this.viewportControl;
+    }
 
     /* Default Configs */
     
@@ -33,6 +39,7 @@ export class SceneController {
         this.mouse = new THREE.Vector2();
         this.controls.update();
         this.drawingPlaneXZ = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+        this.viewportControl = new ViewportControlService(this);
     }
 
     public static getInstance(): SceneController {
@@ -60,6 +67,14 @@ export class SceneController {
 
     public removeObject(object: THREE.Object3D): void {
         this.scene.remove(object);
+        this.render();
+    }
+
+    public removeObjectByUUIDs(ids: string[]): void {
+        console.log(ids);
+        const targets = ids.map(id => this.scene.getObjectByProperty('uuid', id));
+        console.log(targets);
+        this.scene.remove(...targets);
         this.render();
     }
 

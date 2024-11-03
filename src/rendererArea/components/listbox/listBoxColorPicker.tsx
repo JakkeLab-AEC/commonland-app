@@ -80,7 +80,7 @@ export const ListBoxColorPicker: React.FC<ListBoxColorPickerProps> = ({height, i
                 <ListBoxHeader id={"header"} displayText={header} onCheckedHandler={onCheckHeaderHandler} checked={headerChecked}/>
             </div>
             <hr />
-            <div className="h-full" style={{overflowY:'auto'}}>
+            <div className="h-full" style={{overflowY:'auto', overflowX: 'hidden'}}>
                 {convertedItems.map(item => {
                     return (
                         <ListBoxItemColorPicker 
