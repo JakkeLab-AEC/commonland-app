@@ -4,7 +4,7 @@ import { ThreeBoringPost } from "../../../rendererArea/api/three/predefinedCreat
 import { ButtonPositive } from "../../../rendererArea/components/buttons/buttonPositive"
 import React from "react"
 import * as THREE from 'three';
-import { DXFWriter, Layer, Text, Line, Block, BlockInsert } from "../../../rendererArea/api/dxfwriter/dxfwriter"
+import { DXFWriter, DXFLayer, Text, Line, Block, BlockInsert } from "../../../rendererArea/api/dxfwriter/dxfwriter"
 import { ColorIndexPalette } from "../../../rendererArea/components/palette/colorIndexPalette"
 import { TestAPI } from "../../../rendererArea/api/test/testAPI"
 import {MultilineTextbox} from '../../components/multilineTextbox/multilineTextBox';

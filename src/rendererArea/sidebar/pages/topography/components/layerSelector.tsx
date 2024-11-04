@@ -54,7 +54,7 @@ export const LayerSelector:React.FC<LayerSelectorProp> = ({boringName, boringId,
                             ref={handleAddRef(layer.layerId)} 
                             checked={selectedValues.get(boringId) == layer.layerId}/> 
                         <div className="flex-grow max-w-[84px]">
-                            {layer.layerName.length} 
+                            {layer.layerName.length > 7 ? layer.layerName.slice(0, 7) + '...' : layer.layerName} 
                         </div>
                         <div>
                             ({layer.layerDepth.toFixed(2)})

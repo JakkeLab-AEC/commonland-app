@@ -1,10 +1,10 @@
 export class DXFWriter {
-    private layers: Layer[] = [];
+    private layers: DXFLayer[] = [];
     private components: IDXFWriterGeometryComponent[] = [];
     private styles: StyleBase<StyleType>[] = [];  // 스타일 목록
 
     // Register a new layer
-    registerLayer(layer: Layer): void {
+    registerLayer(layer: DXFLayer): void {
         this.layers.push(layer);
     }
 
@@ -114,8 +114,8 @@ export class DXFWriter {
         const writer = new DXFWriter();
 
         // Create layers
-        const layerA = new Layer('LayerA', 1);  // 빨간색 레이어
-        const layerB = new Layer('LayerB', 2);  // 노란색 레이어
+        const layerA = new DXFLayer('LayerA', 1);  // 빨간색 레이어
+        const layerB = new DXFLayer('LayerB', 2);  // 노란색 레이어
 
         // Register layers
         writer.registerLayer(layerA);
@@ -129,8 +129,8 @@ export class DXFWriter {
         const writer = new DXFWriter();
 
         // Create layers
-        const layerA = new Layer('LayerA', 1);  // 빨간색 레이어
-        const layerB = new Layer('LayerB', 2);  // 노란색 레이어
+        const layerA = new DXFLayer('LayerA', 1);  // 빨간색 레이어
+        const layerB = new DXFLayer('LayerB', 2);  // 노란색 레이어
 
         // Register layers
         writer.registerLayer(layerA);
@@ -161,7 +161,7 @@ export class DXFWriter {
 
 
 // Non-geometry Items
-export class Layer {
+export class DXFLayer {
     constructor(
         public name: string,
         public color: number = 0,
@@ -296,7 +296,7 @@ export class LineStyle implements StyleBase<StyleType.LineType> {
 
 // Geometry Items
 export interface IDXFWriterGeometryComponent {
-    layer: Layer,
+    layer: DXFLayer,
     color: number,
     serialize(): string;
 }
@@ -307,7 +307,7 @@ export class Text implements IDXFWriterGeometryComponent {
     public y: number;
     public z: number;
     public height: number;
-    public layer: Layer;
+    public layer: DXFLayer;
     public style: TextStyle;
     public color = -1;
     public textAlignment: 'left'|'center'|'right'|'aligned'|'middle'|'fit';
@@ -318,7 +318,7 @@ export class Text implements IDXFWriterGeometryComponent {
         y: number,
         z: number,
         height: number,
-        layer: Layer,
+        layer: DXFLayer,
         color = -1,
         textAlignment:'left'|'center'|'right'|'aligned'|'middle'|'fit',
         style?: TextStyle
@@ -383,7 +383,7 @@ export class Line implements IDXFWriterGeometryComponent {
     constructor(
         public ptStart: {x: number, y: number, z: number},
         public ptEnd: {x: number, y: number, z: number},
-        public layer: Layer,
+        public layer: DXFLayer,
         public color = -1
     ) {}
 
@@ -411,7 +411,7 @@ export class Line implements IDXFWriterGeometryComponent {
 export class Polyline implements IDXFWriterGeometryComponent {
     constructor(
         public pts: { x: number, y: number, z: number }[], // 다각선의 꼭지점들
-        public layer: Layer, // 레이어
+        public layer: DXFLayer, // 레이어
         public color = -1 // 색상 (기본값 -1)
     ) {
         if (pts.length < 2) {
@@ -456,7 +456,7 @@ export class Cylinder implements IDXFWriterGeometryComponent {
         public radius: number,
         public height: number,
         public segments: number = 64,
-        public layer: Layer,
+        public layer: DXFLayer,
         public color = -1
     ) {
         if (segments < 3) {
@@ -569,5 +569,53 @@ export class Cylinder implements IDXFWriterGeometryComponent {
             '12', `${points[2].x}`, '22', `${points[2].y}`, '32', `${points[2].z}`,
             '13', `${points[3].x}`, '23', `${points[3].y}`, '33', `${points[3].z}`
         ];
+    }
+}
+
+type TriangleVertices = {
+    v1: {x: number, y: number, z: number},
+    v2: {x: number, y: number, z: number},
+    v3: {x: number, y: number, z: number},
+}
+
+export class Triangle3d implements IDXFWriterGeometryComponent {
+    layer: DXFLayer;
+    color: number;
+    private vertices: {
+        v1: {x: number, y: number, z: number},
+        v2: {x: number, y: number, z: number},
+        v3: {x: number, y: number, z: number},
+    }
+
+    serialize(): string {
+        const {v1, v2, v3} = this.vertices;
+        const arr = [
+            '0', '3DFACE',
+            '8', `${this.layer.name}`,
+        ];
+        
+        if(this.color > 0) {
+            arr.push(...['62', `${this.color}`]);
+        }
+
+        arr.push(...[
+            '10', `${v1.x}`, '20', `${v1.y}`, '30', `${v1.z}`,
+            '11', `${v2.x}`, '21', `${v2.y}`, '31', `${v2.z}`,
+            '12', `${v3.x}`, '22', `${v3.y}`, '32', `${v3.z}`,
+            '13', `${v3.x}`, '23', `${v3.y}`, '33', `${v3.z}`
+        ]);
+
+        return arr.join('\n');
+    }
+    
+    
+    constructor(
+        vertices: TriangleVertices, 
+        layer: DXFLayer,
+        color = -1,
+    ) {
+        this.layer = layer;
+        this.color = color;
+        this.vertices = vertices;
     }
 }

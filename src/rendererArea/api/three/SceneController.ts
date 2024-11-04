@@ -11,7 +11,7 @@ export class SceneController {
     private scene: THREE.Scene;
     private camera: THREE.Camera;
     private renderer: THREE.Renderer;
-    private controls: OrbitControls;
+    controls: OrbitControls;
     public raycaster: THREE.Raycaster;
     public mouse: THREE.Vector2;
     
@@ -52,6 +52,43 @@ export class SceneController {
     public static setInstance(config: { renderer: THREE.Renderer, scene: THREE.Scene, camera: THREE.Camera, control: OrbitControls }): void {
         const sceneController = new SceneController(config);
         sceneController.addGridHelper();
+
+        // // Define updateCameraPlane function
+        // function updateCameraPlane() {
+        //     const boundingBox = new THREE.Box3();
+
+        //      // Calculate bounding box for the scene
+        //     boundingBox.setFromObject(sceneController.getScene());
+
+        //     const min = boundingBox.min;
+        //     const max = boundingBox.max;
+
+        //     // Calculate the direction vector from min to max
+        //     const directionMinToMax = max.clone().sub(min).normalize();
+
+        //     // Load scene, camera, renderer
+        //     const scene = sceneController.getScene();
+        //     const camera = sceneController.getCamera() as THREE.OrthographicCamera;
+        //     const renderer = sceneController.getRenderer();
+            
+        //     const cameraCenter = camera.position.clone(); // Keep the current camera position
+        //     const cameraLookAt = max.clone().sub(directionMinToMax.clone().multiplyScalar(10));
+
+        //     console.log(cameraCenter);
+
+        //     camera.near = 0.1;
+        //     camera.far = cameraCenter.distanceTo(cameraLookAt)+2000;
+        //     camera.updateProjectionMatrix();
+
+        //     renderer.render(scene, camera);
+        //     sceneController.setCamera(camera);
+        //     console.log(camera.position);
+        // }
+    
+        // Add event listener to update near/far planes on control change
+        sceneController.controls.addEventListener('change', sceneController.viewportControl.updateCameraPlane);
+    
+        // Initial render
         SceneController.defaultInstance = sceneController;
     }
 
@@ -93,6 +130,10 @@ export class SceneController {
 
     public getCamera(): THREE.Camera {
         return this.camera;
+    }
+
+    public setCamera(camera: THREE.Camera) {
+        this.camera = camera;
     }
 
     public getRenderer(): THREE.Renderer {
@@ -298,19 +339,6 @@ export class SceneController {
         });
         return boundingBox;
     }
-    
-    //#region Event Handlers
-    /**
-     * Test method for checking raycast.
-     * @param position 
-     */
-    private TaddCylinder(position: THREE.Vector3): void {
-        const geometry = new THREE.CylinderGeometry(0.1, 0.1, 1, 32);
-        const material = new THREE.MeshPhongMaterial({color: 0x00ff00});
-        const cylinder = new THREE.Mesh(geometry, material);
-        cylinder.position.copy(position);
-        this.addObject(cylinder);
-    }
 
     //#endregion
     static CreateRenderer(canvas: HTMLCanvasElement): THREE.Renderer {
@@ -330,12 +358,6 @@ export class SceneController {
         
         const aspect = canvasWidth / canvasHeight;
         const frustumSize = canvasHeight;
-    
-        // const targetCamera = camera ? camera : new THREE.OrthographicCamera(
-        //     -frustumSize * aspect / 2, frustumSize * aspect / 2,
-        //     frustumSize / 2, -frustumSize / 2,
-        //     -1000, 1000
-        // );
     
         const targetCamera = camera ? camera : new THREE.OrthographicCamera(
             -frustumSize * aspect / 2, frustumSize * aspect / 2,
@@ -365,18 +387,7 @@ export class SceneController {
         const directionalLight = new THREE.DirectionalLight('white', 1);
         directionalLight.position.set(5, 10, 7.5);
         targetScene.add(directionalLight);
-
-        // Default dim sets
-        // DefaultDimensions.initiate();
-    
-        //Render
-        function initiateRender() {
-            renderer.render(targetScene, targetCamera);
-        }
-    
-        controls.addEventListener('change', initiateRender);
-    
-        initiateRender();
+        
         return {renderer: renderer, scene: targetScene, camera: targetCamera, control: controls}
     }
 }

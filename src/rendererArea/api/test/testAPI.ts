@@ -10,8 +10,8 @@ export class TestAPI {
             const boringName = `BH-${i}`;
             const boring = new Boring(
                 boringName,
-                Math.random()*100,
-                Math.random()*100,
+                Math.trunc(Math.random()*10000)/100,
+                Math.trunc(Math.random()*10000)/100,
                 Number((20 + Math.random()*10).toFixed(2)),
                 this.values[Math.trunc(Math.random()*10)],
             );
