@@ -37,16 +37,14 @@ export default function Header({appName}:{appName: string}) {
             displayString: '시추공 DXF 내보내기',
             isActionIdBased: false,
             action: async () => {
-                // await window.electronProjectIOAPI.openProject();
-                // updateHomeId();
-                // setNaviationIndex(navigationIndex == 1 ? 0 : 1);
+                ThreeExporter.exportBoringsDXF();
             },
             closeHandler: () => setMenuVisibility(false),
         }, {
             displayString: '지형 DXF 내보내기',
             isActionIdBased: false,
             action: async () => {
-                ThreeExporter.exportTopos();
+                ThreeExporter.exportToposDXF();
             },
             closeHandler: () => setMenuVisibility(false),
         },

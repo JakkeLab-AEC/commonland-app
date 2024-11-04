@@ -2,8 +2,9 @@ import * as THREE from 'three';
 import { SceneController } from '../SceneController';
 import { OBJExporter } from 'three/examples/jsm/exporters/OBJExporter';
 import { ModelType } from '@/mainArea/models/modelType';
-import { DXFLayer, DXFWriter, Triangle3d } from '../../dxfwriter/dxfwriter';
+import { Cylinder, DXFLayer, DXFWriter, Line, Text3d, TextStyle, Triangle3d } from '../../dxfwriter/dxfwriter';
 import { TopoDTO } from '@/dto/serviceModel/topoDto';
+import { BoringDTO } from '@/dto/serviceModel/BoringDTO';
 
 interface MeshProp {
     createdFrom: TopoDTO,
@@ -11,6 +12,8 @@ interface MeshProp {
     vertexNormals:  Map<number, {x: number, y: number, z: number}>,
     faces:  Map<number, {v1: number, v2: number, v3: number}>
 }
+
+const radius = 1;
 
 export class ThreeExporter {
     static exportAsObjAndMtl() {
@@ -53,7 +56,7 @@ export class ThreeExporter {
         URL.revokeObjectURL(link.href);
     }
 
-    static exportTopos() {
+    static exportToposDXF() {
         // Create DXFWriter
         const dxfWriter = new DXFWriter();
         
@@ -132,12 +135,12 @@ export class ThreeExporter {
 
         // Create Layer map
         const layerMap:Map<string, DXFLayer> = new Map();
-        meshProps.forEach(r=>layerMap.set(r.createdFrom.name, new DXFLayer(r.createdFrom.name, r.createdFrom.colorIndex)));
+        meshProps.forEach((r, index) =>layerMap.set(r.createdFrom.name, new DXFLayer(`Layer-Topo-${index+1}`, r.createdFrom.colorIndex)));
         
         // DXF Writing
         // RegisterLayers
-        layerMap.forEach((value, key) => {
-            dxfWriter.registerLayer(new DXFLayer(key, value.color));
+        layerMap.forEach((value) => {
+            dxfWriter.registerLayer(value);
         });
 
         meshProps.forEach(prop => {
@@ -155,5 +158,125 @@ export class ThreeExporter {
         })
 
         dxfWriter.exportAsDXFFile();
+    }
+
+    static async exportBoringsDXF() {
+        const dxfWriter = new DXFWriter();
+
+        // Load boring datas;
+        const boringDatas = await window.electronBoringDataAPI.fetchAllBorings();
+        const layerDatas = await window.electronBoringDataAPI.getAllLayerColors();
+        if(!boringDatas || !boringDatas.result || !layerDatas || !layerDatas.result) {
+            alert('내보내기 오류.');
+            return;
+        }
+
+        // Register layers
+        const layerMap: Map<string, DXFLayer> = new Map();
+        layerDatas.layerColors.forEach((layerInfo, index) => {
+            layerMap.set(layerInfo[0], new DXFLayer(`Layer-Boring-${index+1}`, layerInfo[1]));
+        });
+        const textLayer = new DXFLayer('ANNOT', 4);
+        layerMap.set(textLayer.name, textLayer);
+
+        layerMap.forEach((layer) => {
+            dxfWriter.registerLayer(layer);
+        })
+
+        // Register new text style
+        const textNormalStyle = new TextStyle('TextNormal', 'malgun', 'malgun.ttf', 2);
+        const textSmallStyle = new TextStyle('TextSmall', 'malgun', 'malgun.ttf', 1);
+        dxfWriter.registerTextStyle(textNormalStyle);
+        dxfWriter.registerTextStyle(textSmallStyle);
+
+        // Create boring shapes
+        boringDatas.fetchedBorings.forEach(boring => {
+            this.addBoringShape(boring, dxfWriter, layerMap, textLayer, textNormalStyle, textSmallStyle);
+        });
+
+        // Export as file
+        dxfWriter.exportAsDXFFile();
+    }
+
+    private static addBoringShape(boring: BoringDTO, dxfWriter: DXFWriter, postLayers: Map<string, DXFLayer>, textLayer: DXFLayer, layerTextStyle: TextStyle, sptTextStyle: TextStyle) {
+        let layerTop = boring.topoTop;
+        const {x, y} = boring.location;
+
+        // Post and layers
+        boring.layers.forEach(layer => {
+
+            // Create cylinder
+            const postLayer = postLayers.get(layer.name);
+            const cylinder = new Cylinder({x: x, y: y, z: layerTop - layer.thickness}, radius, layer.thickness, 64, postLayer, -1);
+            dxfWriter.addComponent(cylinder);
+
+            // Create leader
+            const line = new Line(
+                {x: x+radius, y: y, z: layerTop},
+                {x: x+radius+10, y: y, z: layerTop},
+                textLayer,
+            );
+            dxfWriter.addComponent(line);
+
+            // Create Text
+            const text = new Text3d(
+                `${layer.name} (${layer.thickness.toFixed(2)})`,
+                'XZ',
+                {x: x+radius+12, y: y, z: layerTop},
+                2,
+                textLayer,
+                -1,
+                'left',
+                layerTextStyle
+            );
+            dxfWriter.addComponent(text);
+            
+            layerTop -= layer.thickness;
+        });
+        
+        // Create boring end leader
+        const line = new Line(
+            {x: x+radius, y: y, z: layerTop},
+            {x: x+radius+10, y: y, z: layerTop},
+            textLayer,
+        );
+        dxfWriter.addComponent(line);
+
+        const text = new Text3d(
+            `시추종료 (${layerTop.toFixed(2)})})`,
+            'XZ',
+            {x: x+radius+12, y: y, z: layerTop},
+            2,
+            textLayer,
+            -1,
+            'left',
+            layerTextStyle
+        );
+        dxfWriter.addComponent(text);
+
+        // Create SPT Results
+        let sptTop = boring.topoTop;
+        boring.sptResults.forEach(spt => {
+            // Create leader
+            const line = new Line(
+                {x: -(x+radius), y: y, z: sptTop},
+                {x: -(x+radius+10), y: y, z: sptTop},
+                textLayer,
+            );
+            dxfWriter.addComponent(line);
+
+            // Create Text
+            const text = new Text3d(
+                `${spt.depth}    ${spt.hitCount}/${spt.distance}`,
+                'XZ',
+                {x: -(x+radius+12), y: y, z: sptTop},
+                2,
+                textLayer,
+                -1,
+                'right',
+                sptTextStyle
+            );
+            dxfWriter.addComponent(text);
+        });
     }
 }

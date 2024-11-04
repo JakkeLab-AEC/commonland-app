@@ -41,6 +41,10 @@ export const TestPage = () => {
         console.log(textLines);
     }
     
+    const onClickTestMText = () => {
+        DXFWriter.testMText()
+    }
+    
     return (
         <div>
             {/* <ButtonPositive text={"Test Post"} isEnabled={true} onClickHandler={testAddPost}/>
@@ -48,6 +52,7 @@ export const TestPage = () => {
             <ButtonPositive text={"Test DXF Export Empty"} isEnabled={true} onClickHandler={testDXFWriter}/>
             <ButtonPositive text={"Test DXF Export Text"} isEnabled={true} onClickHandler={testDXFWriterWithEntity}/> */}
             <ButtonPositive text={"Create Test Borings"} isEnabled={true} onClickHandler={testPosts}/>
+            <ButtonPositive text={"Text DXF MText"} isEnabled={true} onClickHandler={onClickTestMText}/>
             <ColorIndexPalette width={'full'} height={120} onClickHandler={testOnSelectColor} headerName="Colors" />
             <MultilineTextbox height={240} width={160} maxCharsPerLine={8} />
         </div>

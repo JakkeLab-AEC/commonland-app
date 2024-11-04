@@ -157,6 +157,41 @@ export class DXFWriter {
         // Serialize and download as DXF file (no entities, only layers)
         writer.exportAsDXFFile('test_entity_styled.dxf');
     }
+
+    static testMText() {
+        const writer = new DXFWriter();
+
+        // Create layers
+        const layerA = new DXFLayer('LayerA', 1);  // 빨간색 레이어
+        const layerB = new DXFLayer('LayerB', 2);  // 노란색 레이어
+
+        // Register layers
+        writer.registerLayer(layerA);
+        writer.registerLayer(layerB);
+        
+
+        // Create text style
+        const textStyleA = new TextStyle('TextStyleA', 'malgun', 'malgun.ttf', 500);
+
+        // Register text style
+        writer.registerTextStyle(textStyleA);
+
+        const textA = new Text3d(
+            "Hello",
+            'XZ',
+            {x: 10, y: 0, z: 15},
+            500,
+            layerA,
+            -1,
+            'left',
+            textStyleA
+        );
+        writer.addComponent(textA);
+
+        // Serialize and download as DXF file (no entities, only layers)
+        writer.exportAsDXFFile('test_mtext.dxf');
+    }
+    
 }
 
 
@@ -379,6 +414,155 @@ export class Text implements IDXFWriterGeometryComponent {
     }
 }
 
+export class Text3d implements IDXFWriterGeometryComponent {
+    public layer: DXFLayer;
+    public color: number;
+
+    public content: string;
+    public x: number;
+    public y: number;
+    public z: number;
+
+    public plane: 'XY'|'YZ'|'XZ';
+    public height: number;
+    public textAlignment: 'left'|'center'|'right'|'aligned'|'middle'|'fit';
+    public style?: TextStyle;
+
+    serialize(): string {
+        const colorIndex = this.color > -1 ? this.color : this.layer.color;
+        let alignIndex: number;
+        switch(this.textAlignment) {
+            case 'left':
+                alignIndex = 0;
+                break;
+            case 'center':
+                alignIndex = 1;
+                break;
+            case 'right':
+                alignIndex = 2;
+                break;
+            case 'aligned':
+                alignIndex = 3;
+                break;
+            case 'middle':
+                alignIndex = 4;
+                break;
+            case 'fit':
+                alignIndex = 5;
+                break;
+        }
+
+        // Adjust coordinates based on plane
+        let xCoord = this.x, yCoord = this.y, zCoord = this.z;
+        switch (this.plane) {
+            case "XY":
+                // Use X, Y, Z as is for XY plane
+                break;
+            case "YZ":
+                // Swap Y -> X (10), Z -> Y (20), X -> Z (30)
+                xCoord = this.y;
+                yCoord = this.z;
+                zCoord = this.x;
+                break;
+            case "XZ":
+                // Swap X -> X (10), Z -> Y (20), Y -> Z (30)
+                xCoord = this.x;
+                yCoord = this.z;
+                zCoord = this.y;
+                break;
+        }
+
+        const prop = [
+            '0', 'TEXT',
+            '8', `${this.layer}`,   // 레이어
+            '62', `${colorIndex}`,  // 색상
+            '10', `${xCoord}`,      // X coordinate based on plane
+            '20', `${yCoord}`,      // Y coordinate based on plane
+            '30', `${zCoord}`,      // Z coordinate based on plane
+            '40', `${this.height}`, // 텍스트 높이
+            '1', `${this.content}`, // 텍스트 내용
+            '72', `${alignIndex}`,  // Align factor
+        ];
+
+        // Adding style
+        if(this.style) {
+            prop.push('7', this.style.styleName);
+        }
+
+        // Extrusion direction
+        switch(this.plane) {
+            case "XY":
+                prop.push(
+                    '210', '0',
+                    '220', '0',
+                    '230', '-1',
+                );
+                break;
+            case "YZ":
+                prop.push(
+                    '210', '-1',
+                    '220', '0',
+                    '230', '0',
+                );
+                break;
+            case "XZ":
+                prop.push(
+                    '210', '0',
+                    '220', '-1',
+                    '230', '0',
+                );
+                break;
+        }
+
+        const serialized = prop.join('\n');
+
+        return serialized;
+    }
+
+    constructor(
+        content: string,
+        plane: 'XY'|'YZ'|'XZ',
+        coordinate: {x: number, y: number, z: number},
+        height: number,
+        layer: DXFLayer,
+        color = -1,
+        textAlignment:'left'|'center'|'right'|'aligned'|'middle'|'fit',
+        style?: TextStyle
+    ) {
+        this.content = content;
+        this.plane = plane;
+        this.layer = layer;
+        this.color = color;
+        this.height = height;
+        
+        switch(plane) {
+            case "XY":{
+                this.x = coordinate.x;
+                this.y = -coordinate.y;
+                this.z = coordinate.z;
+                break;
+            }
+
+            case "YZ":{
+                this.x = coordinate.x;
+                this.y = coordinate.y;
+                this.z = -coordinate.z;
+                break;
+            }
+
+            case "XZ":{
+                this.x = coordinate.x;
+                this.y = coordinate.y;
+                this.z = -coordinate.z;
+                break;
+            }
+        }
+
+        this.textAlignment = textAlignment;
+        this.style = style;
+    }
+}
+
 export class Line implements IDXFWriterGeometryComponent {
     constructor(
         public ptStart: {x: number, y: number, z: number},
@@ -388,6 +572,7 @@ export class Line implements IDXFWriterGeometryComponent {
     ) {}
 
     serialize(): string {
+        
         const props = [
             '0',
             'LINE',
