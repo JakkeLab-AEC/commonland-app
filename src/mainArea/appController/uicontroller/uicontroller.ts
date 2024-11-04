@@ -1,19 +1,37 @@
 import { BrowserWindow } from "electron";
 
 export class UIController {
-    private windowController: Map<string, BrowserWindow>;
+    public static instance: UIController;
+    private windowMap: Map<string, BrowserWindow>;
 
     registerWindow(key: string, window: BrowserWindow) {
-        if(!this.windowController.get(key)) {
-            this.windowController.set(key, window);
+        if(!this.windowMap.get(key)) {
+            this.windowMap.set(key, window);
         }
     }
 
     unregisterWindow(key: string) {
-        this.windowController.delete(key);
+        this.windowMap.delete(key);
     }
 
-    constructor() {
-        this.windowController = new Map();
+    getWindow(name: string) {
+        return this.windowMap.get(name);
+    }
+
+    removeWindow(name: string) {
+        this.windowMap.delete(name);
+    }
+
+    setWindow(name: string, window: BrowserWindow) {
+        this.windowMap.set(name, window);
+    }
+
+    private constructor() {
+        this.windowMap = new Map();
+        UIController.instance = this;
+    }
+
+    public static initiate() {
+        new UIController();
     }
 }

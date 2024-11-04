@@ -124,7 +124,7 @@ export const TopographyManage = () => {
                     onCheckedHandler={onCheckedHandler}/>
             </div>
             <div className="flex flex-row place-content-between">
-                <ButtonPositive text={"새로 만들기"} isEnabled={true} width={84} onClickHandler={showEditor} />
+                <ButtonPositive text={"새로 만들기"} isEnabled={true} width={92} onClickHandler={showEditor} />
                 <ButtonNegative text={"삭제"} isEnabled={true} width={48} onClickHandler={onClickDeleteTopos}/>
             </div>
             <hr/>

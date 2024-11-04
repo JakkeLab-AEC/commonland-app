@@ -9,8 +9,7 @@ type RepositoryTypes = 'Boring'|'LandInfo'|'Topo'
 export class AppController {
     private static Instance: AppController;
     private db?:Database;
-    private uiController: UIController;
-
+    
     private boringRepository?: BoringRepository;
     private topoRepotisotry?: TopoRepository;
 
@@ -20,8 +19,6 @@ export class AppController {
             this.boringRepository = new BoringRepository(this.db);
             this.topoRepotisotry = new TopoRepository(this.db);
         });
-        
-        this.uiController = new UIController();
     }
 
     public static InitiateAppController(){

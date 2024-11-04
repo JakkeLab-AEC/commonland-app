@@ -8,6 +8,7 @@ import { VisibilityOptions } from "./homescreenitems/visibilityOptions"
 import { ModalOverlay } from './homescreenitems/modalOverlay'
 
 export default function HomeScreen() {    
+    
     return (
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
             <div style={{position: 'absolute', width:'100%'}}>

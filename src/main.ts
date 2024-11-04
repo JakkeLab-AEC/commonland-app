@@ -1,10 +1,12 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { AppController } from './mainArea/appController/appController';
 import path from 'path';
+import os, { platform } from 'os';
 import { setIpcWindowControl } from './mainArea/ipcHandlers/ipcWindowControl';
 import { setIpcBoringRepository } from './mainArea/ipcHandlers/ipcBoringRepository';
 import { setIpcProjectIOHandler } from './mainArea/ipcHandlers/ipcProjectFile';
 import { setIpcTopoRepository } from './mainArea/ipcHandlers/ipcTopoRepository';
+import { UIController } from './mainArea/appController/uicontroller/uicontroller';
 
 if (require('electron-squirrel-startup')) app.quit();
 
@@ -17,11 +19,13 @@ const createMainWindow = () => {
     height: 800,
     minWidth: 600,
     minHeight: 800,
-    titleBarStyle: 'hiddenInset',
+    title: 'Commonland Desktop',
+    titleBarStyle: os.platform() == 'win32'? 'hidden' : 'hiddenInset',
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),  // preload 스크립트 설정
+      preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: true,
+      devTools: !app.isPackaged,
     },
   });
   
@@ -30,10 +34,37 @@ const createMainWindow = () => {
   } else {
     mainWindow.loadFile(path.join(__dirname, '../.vite/index.html'));
   }
-  
+
+  // Send os info
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow.webContents.send('os-info', {
+      platform: os.platform(),
+      arch: os.arch(),
+      release: os.release(),
+      mode: app.isPackaged ? 'dist' : 'dev'
+    });
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
+    app.quit();
   });
+
+  // Prevent refresh on dist environment
+  if(app.isPackaged) {
+    mainWindow.webContents.on('before-input-event', (event, input) => {
+      if (
+        input.key === 'F5' || 
+        (input.control && input.key === 'r') || 
+        (input.control && input.shift && input.key === 'R')
+      ) {
+        event.preventDefault();
+      }
+    });
+  }
+  
+  UIController.initiate();
+  UIController.instance.registerWindow('main-window', mainWindow);
 };
 
 app.on('ready', () => {
