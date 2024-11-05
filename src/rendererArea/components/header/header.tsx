@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ContextMenu, ContextMenuProp } from "../contextmenu/contextMenu";
 import { useHomeStore } from "../../commonStatus/homeStatusModel";
 import { useSidebarStore } from "../../../rendererArea/sidebar/sidebarStore";
+import { ThreeExporter } from "@/rendererArea/api/three/exporters/threeExporter";
 
 
 export default function Header({appName}:{appName: string}) {
@@ -23,13 +24,27 @@ export default function Header({appName}:{appName: string}) {
             isActionIdBased: false,
             action: async () => await window.electronProjectIOAPI.saveProject(),
             closeHandler: () => setMenuVisibility(false),
-        },{
+        }, {
             displayString: '파일 불러오기',
             isActionIdBased: false,
             action: async () => {
                 await window.electronProjectIOAPI.openProject();
                 updateHomeId();
                 setNaviationIndex(navigationIndex == 1 ? 0 : 1);
+            },
+            closeHandler: () => setMenuVisibility(false),
+        }, {
+            displayString: '시추공 DXF 내보내기',
+            isActionIdBased: false,
+            action: async () => {
+                ThreeExporter.exportBoringsDXF();
+            },
+            closeHandler: () => setMenuVisibility(false),
+        }, {
+            displayString: '지형 DXF 내보내기',
+            isActionIdBased: false,
+            action: async () => {
+                ThreeExporter.exportToposDXF();
             },
             closeHandler: () => setMenuVisibility(false),
         },

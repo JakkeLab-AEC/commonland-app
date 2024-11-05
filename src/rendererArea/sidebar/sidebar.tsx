@@ -35,11 +35,6 @@ export default function Sidebar() {
             displayHeader: findValue('BoringManager', 'pageHeader'),
             menuClickHandler: navigateMenu
         }, {
-            menuName: "Batcher", 
-            menuPage: (<BoringBatcher />), 
-            displayHeader: '시추공 배치',
-            menuClickHandler: navigateMenu
-        }, {
             menuName: "Topo",
             menuPage: (<TopographyManage />),
             displayHeader: '지형 관리',

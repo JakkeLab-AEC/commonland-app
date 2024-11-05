@@ -289,6 +289,7 @@ export const BoringManager = () => {
                             defaultValue={1}
                             className="border-b w-[44px]"
                             ref={indexRef}
+                            min={1}
                             disabled={namingMode != 'autoincrement'}/>
                     </div>
                 </div>
@@ -304,7 +305,7 @@ export const BoringManager = () => {
                 <label>직접 입력</label>
             </div>
             <div className="flex flex-row items-center gap-2">
-                <div className="w-[32px]">
+                <div className="w-[40px]">
                     이름
                 </div>
                 <input 

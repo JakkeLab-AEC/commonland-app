@@ -168,7 +168,7 @@ export class ThreeBoringPost {
                 moveMatrix.makeTranslation(0, topoLevel - thickness*0.5, 0);
                 const postSegment = await this.createPostSegmenet(
                     name,
-                    `EL ${topoLevel}`,
+                    `EL ${topoLevel.toFixed(2)}`,
                     thickness,
                     radius,
                     false,
@@ -187,7 +187,7 @@ export class ThreeBoringPost {
 
                 const postSegment = await this.createPostSegmenet(
                     name,
-                    `EL ${topoLevel}`,
+                    `EL ${topoLevel.toFixed(2)}`,
                     thickness,
                     radius,
                     layers[i-1].thickness < 0.6,
@@ -209,7 +209,7 @@ export class ThreeBoringPost {
         let sum = 0;
         layers.forEach(layer => sum += layer.thickness);
         const boringEndLedaer = await this.createLeader(
-            `시추종료 : ${topoTop - sum}`,
+            `시추종료 : ${(topoTop - sum).toFixed(2)}`,
             0.5,
             {curved: true, leaderSegmentLength: [1, 1, 1]},
             radius,
@@ -374,7 +374,7 @@ export class ThreeBoringPost {
                 `${spt.hitCount} / ${spt.distance}`,
                 0.3,
                 {curved: false, leaderLength: leaderLength},
-                0.2,
+                1,
                 offsetText,
                 topLevel - spt.depth,
                 0x000000,
