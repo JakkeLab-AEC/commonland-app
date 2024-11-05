@@ -3,6 +3,7 @@ import { FoldableControlHor } from "../components/foldableControl/foldableContro
 import { SceneController } from "../api/three/SceneController";
 import { useVisibilityOptionStore } from "./visibilityOptionsStore";
 import { ModelType } from "@/mainArea/models/modelType";
+import { ButtonPositive } from "../components/buttons/buttonPositive";
 
 export const VisibilityOptions = () => {
     const {
@@ -45,7 +46,7 @@ export const VisibilityOptions = () => {
                     onChange={onChangePostOpacity}
                     onMouseUp={onMouseUpPostOpacity}
                     min='10'
-                    max='100'
+                    max='90'
                     defaultValue={currentPostOpacity}/>
             </div>
         )
@@ -63,17 +64,22 @@ export const VisibilityOptions = () => {
                     onChange={onChangeTopoOpacity}
                     onMouseUp={onMouseUpTopoOpacity}
                     min='10'
-                    max='100'
+                    max='90'
                     defaultValue={currentTopoOpacity}/>
             </div>
         )
+    }
+
+    const onClickResetCamera = () => {
+        SceneController.getInstance().getViewportControl().resetCamera();
     }
 
     return (
         <>
             <FoldableControlHor header={"표시 설정"} controls={[
                 <PostOpacitySlider/>,
-                <TopoOpacitySlider/>
+                <TopoOpacitySlider/>,
+                <ButtonPositive text={"전체 보기"} isEnabled={true} onClickHandler={onClickResetCamera}/>
             ]} />
         </>
     )

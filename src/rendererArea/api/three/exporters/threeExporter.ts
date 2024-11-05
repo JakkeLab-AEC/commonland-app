@@ -1,6 +1,19 @@
 import * as THREE from 'three';
 import { SceneController } from '../SceneController';
 import { OBJExporter } from 'three/examples/jsm/exporters/OBJExporter';
+import { ModelType } from '@/mainArea/models/modelType';
+import { Cylinder, DXFLayer, DXFWriter, Line, Text3d, TextStyle, Triangle3d } from '../../dxfwriter/dxfwriter';
+import { TopoDTO } from '@/dto/serviceModel/topoDto';
+import { BoringDTO } from '@/dto/serviceModel/BoringDTO';
+
+interface MeshProp {
+    createdFrom: TopoDTO,
+    vertices: Map<number, {x: number, y: number, z: number}>,
+    vertexNormals:  Map<number, {x: number, y: number, z: number}>,
+    faces:  Map<number, {v1: number, v2: number, v3: number}>
+}
+
+const radius = 1;
 
 export class ThreeExporter {
     static exportAsObjAndMtl() {
@@ -41,5 +54,229 @@ export class ThreeExporter {
         link.download = fileName;
         link.click();
         URL.revokeObjectURL(link.href);
+    }
+
+    static exportToposDXF() {
+        // Create DXFWriter
+        const dxfWriter = new DXFWriter();
+        
+        // Get all mesh topos
+        const scene = SceneController.getInstance().getScene();
+        const targetObjects:THREE.Object3D[] = [];
+        scene.traverse((obj) => {
+            if(obj.userData['type'] == ModelType.Topo) {
+                // Remove children (LineSegments)
+                const clonedObj = obj.clone();
+                clonedObj.remove(...clonedObj.children)
+                targetObjects.push(clonedObj);
+            }
+        });
+
+        // Parse as mesh face datas
+        const exporter = new OBJExporter();
+        const meshProps: MeshProp[] = []
+        
+        targetObjects.forEach(obj => {
+            const data = exporter.parse(obj);
+            const lines = data.split('\n');
+            
+            let vIndex = 1;
+            let vnIndex = 1;
+            let fIndex = 1;
+            const newMeshProp: MeshProp = {
+                createdFrom: obj.userData['createdFrom'],
+                vertices: new Map(),
+                vertexNormals: new Map(),
+                faces: new Map()
+            };
+
+            lines.forEach(line => {
+                if(line.length != 0) {
+                    const splitedLine = line.split(' ');
+                    switch(splitedLine[0]) {
+                        case 'v': {
+                            const slicedLine = line.slice(1);
+                            const values = slicedLine.split(' ');
+                            newMeshProp.vertices.set(vIndex++, {
+                                x: parseFloat(values[1]),
+                                y: parseFloat(values[3]),
+                                z: parseFloat(values[2])
+                            })
+                            break;
+                        }
+
+                        case 'vn': {
+                            const slicedLine = line.slice(1);
+                            const values = slicedLine.split(' ');
+                            newMeshProp.vertexNormals.set(vnIndex++, {
+                                x: parseFloat(values[1]),
+                                y: parseFloat(values[3]),
+                                z: parseFloat(values[2])
+                            })
+                            break;
+                        }
+
+                        case 'f': {
+                            const slicedLine = line.slice(1);
+                            const values = slicedLine.split(' ');
+                            newMeshProp.faces.set(fIndex++, {
+                                v1: parseInt(values[1][0]),
+                                v2: parseInt(values[2][0]),
+                                v3: parseInt(values[3][0])
+                            })
+                            break;
+                        }
+                    }
+                }
+            });
+
+            meshProps.push(newMeshProp);
+        });
+
+        // Create Layer map
+        const layerMap:Map<string, DXFLayer> = new Map();
+        meshProps.forEach((r, index) =>layerMap.set(r.createdFrom.name, new DXFLayer(`Layer-Topo-${index+1}`, r.createdFrom.colorIndex)));
+        
+        // DXF Writing
+        // RegisterLayers
+        layerMap.forEach((value) => {
+            dxfWriter.registerLayer(value);
+        });
+
+        meshProps.forEach(prop => {
+            const layer = layerMap.get(prop.createdFrom.name);
+            prop.faces.forEach((value, key) => {
+                const triangle3d = new Triangle3d({
+                        v1: prop.vertices.get(value.v1),
+                        v2: prop.vertices.get(value.v2),
+                        v3: prop.vertices.get(value.v3),
+                    }, 
+                    layer
+                );
+                dxfWriter.addComponent(triangle3d);
+            });
+        })
+
+        dxfWriter.exportAsDXFFile();
+    }
+
+    static async exportBoringsDXF() {
+        const dxfWriter = new DXFWriter();
+
+        // Load boring datas;
+        const boringDatas = await window.electronBoringDataAPI.fetchAllBorings();
+        const layerDatas = await window.electronBoringDataAPI.getAllLayerColors();
+        if(!boringDatas || !boringDatas.result || !layerDatas || !layerDatas.result) {
+            alert('내보내기 오류.');
+            return;
+        }
+
+        // Register layers
+        const layerMap: Map<string, DXFLayer> = new Map();
+        layerDatas.layerColors.forEach((layerInfo, index) => {
+            layerMap.set(layerInfo[0], new DXFLayer(`Layer-Boring-${index+1}`, layerInfo[1]));
+        });
+        const textLayer = new DXFLayer('ANNOT', 4);
+        layerMap.set(textLayer.name, textLayer);
+
+        layerMap.forEach((layer) => {
+            dxfWriter.registerLayer(layer);
+        })
+
+        // Register new text style
+        const textNormalStyle = new TextStyle('TextNormal', 'malgun', 'malgun.ttf', 2);
+        const textSmallStyle = new TextStyle('TextSmall', 'malgun', 'malgun.ttf', 1);
+        dxfWriter.registerTextStyle(textNormalStyle);
+        dxfWriter.registerTextStyle(textSmallStyle);
+
+        // Create boring shapes
+        boringDatas.fetchedBorings.forEach(boring => {
+            this.addBoringShape(boring, dxfWriter, layerMap, textLayer, textNormalStyle, textSmallStyle);
+        });
+
+        // Export as file
+        dxfWriter.exportAsDXFFile();
+    }
+
+    private static addBoringShape(boring: BoringDTO, dxfWriter: DXFWriter, postLayers: Map<string, DXFLayer>, textLayer: DXFLayer, layerTextStyle: TextStyle, sptTextStyle: TextStyle) {
+        let layerTop = boring.topoTop;
+        const {x, y} = boring.location;
+
+        // Post and layers
+        boring.layers.forEach(layer => {
+
+            // Create cylinder
+            const postLayer = postLayers.get(layer.name);
+            const cylinder = new Cylinder({x: x, y: y, z: layerTop - layer.thickness}, radius, layer.thickness, 64, postLayer, -1);
+            dxfWriter.addComponent(cylinder);
+
+            // Create leader
+            const line = new Line(
+                {x: x+radius, y: y, z: layerTop},
+                {x: x+radius+10, y: y, z: layerTop},
+                textLayer,
+            );
+            dxfWriter.addComponent(line);
+
+            // Create Text
+            const text = new Text3d(
+                `${layer.name} (${layer.thickness.toFixed(2)})`,
+                'XZ',
+                {x: x+radius+12, y: y, z: layerTop},
+                2,
+                textLayer,
+                -1,
+                'left',
+                layerTextStyle
+            );
+            dxfWriter.addComponent(text);
+            
+            layerTop -= layer.thickness;
+        });
+        
+        // Create boring end leader
+        const line = new Line(
+            {x: x+radius, y: y, z: layerTop},
+            {x: x+radius+10, y: y, z: layerTop},
+            textLayer,
+        );
+        dxfWriter.addComponent(line);
+
+        const text = new Text3d(
+            `시추종료 (${layerTop.toFixed(2)})})`,
+            'XZ',
+            {x: x+radius+12, y: y, z: layerTop},
+            2,
+            textLayer,
+            -1,
+            'left',
+            layerTextStyle
+        );
+        dxfWriter.addComponent(text);
+
+        // Create SPT Results
+        let sptTop = boring.topoTop;
+        boring.sptResults.forEach(spt => {
+            // Create leader
+            const line = new Line(
+                {x: -(x+radius), y: y, z: sptTop},
+                {x: -(x+radius+10), y: y, z: sptTop},
+                textLayer,
+            );
+            dxfWriter.addComponent(line);
+
+            // Create Text
+            const text = new Text3d(
+                `${spt.depth}    ${spt.hitCount}/${spt.distance}`,
+                'XZ',
+                {x: -(x+radius+12), y: y, z: sptTop},
+                2,
+                textLayer,
+                -1,
+                'right',
+                sptTextStyle
+            );
+            dxfWriter.addComponent(text);
+        });
     }
 }

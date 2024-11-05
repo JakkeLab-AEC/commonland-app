@@ -57,11 +57,11 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
             });
 
             
-
+            console.log(depths);
             set(() => {
                 return { 
                     allDepths: depths,
-                    allLayerNames: Array.from(layerNames),
+                    allLayerNames: Array.from(layerNames).sort(),
                     selectedValues: valueSlot
                 }
             });
