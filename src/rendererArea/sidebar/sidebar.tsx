@@ -16,6 +16,7 @@ export default function Sidebar() {
 
     const {
         currentHomeId,
+        mode,
     } = useHomeStore();
 
     const [homeId, setHomeId] = useState<string>(currentHomeId);
@@ -39,13 +40,17 @@ export default function Sidebar() {
             menuPage: (<TopographyManage />),
             displayHeader: '지형 관리',
             menuClickHandler: navigateMenu
-        }, {
+        }, 
+    ];
+
+    if(mode == 'dev') [
+        menuNavigations.push({
             menuName: "TEST", 
             menuPage: (<TestPage />), 
             displayHeader: 'Test',
             menuClickHandler: navigateMenu
-        }
-    ];
+        })
+    ]
 
     useEffect(() => {
         setHomeId(homeId);

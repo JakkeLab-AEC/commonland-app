@@ -274,10 +274,10 @@ export const BoringManager = () => {
                             접두어
                         </div>
                         <input 
-                            className="h-full border-b w-[90px]"
+                            className="h-full border-b w-[80px]"
                             onChange={onChangePrefixHandler}
                             ref={prefixRef}
-                            placeholder="영문 알파벳"
+                            placeholder="알파벳"
                             disabled={namingMode != 'autoincrement'}/>
                     </div>
                     <div className="flex flex-row gap-2 self-end">

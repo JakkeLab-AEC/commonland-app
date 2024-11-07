@@ -1,0 +1,24 @@
+.menu-btn-neutral {
+    padding: 4px;
+    border-radius: 50%;
+    background-color: 'none';
+    transition: 0.2s;
+}
+
+.menu-btn-neutral:hover {
+    background-color: hsl(194, 100%, 65%);
+    transition: 0.2s;
+}
+
+
+.menu-btn-negative {
+    padding: 4px;
+    border-radius: 50%;
+    background-color: 'none';
+    transition: 0.2s;
+}
+
+.menu-btn-negative:hover {
+    background-color: rgb(255, 146, 146);
+    transition: 0.2s;
+}
