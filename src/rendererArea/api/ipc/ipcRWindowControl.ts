@@ -1,5 +1,7 @@
 export interface IElectronIPCWindowControl {
-    createNewWindow: () => Promise<{result: boolean, message?: string}>;
+    minimize: () => void;
+    maximize: () => void;
+    quit: () => void;
 }
 
 declare global {

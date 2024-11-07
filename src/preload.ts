@@ -3,7 +3,9 @@ import { BoringDTO } from "./dto/serviceModel/BoringDTO";
 import { TopoDTO } from "./dto/serviceModel/topoDto";
 
 contextBridge.exposeInMainWorld('electronWindowControlAPI', {
-    createNewWindow: () => ipcRenderer.invoke('window-control-new-window'),
+    minimize: () => ipcRenderer.invoke('window-control-minimize'),
+    maximize: () => ipcRenderer.invoke('window-control-maximize'),
+    quit: () => ipcRenderer.invoke('window-control-quit'),
 })
 
 contextBridge.exposeInMainWorld('electronBoringDataAPI', {
@@ -29,4 +31,8 @@ contextBridge.exposeInMainWorld('electronTopoLayerAPI', {
     updateTopoColor: (id:string, index: number) => ipcRenderer.invoke('topolayer-update-color', id, index),
     updateTopoThreeObjId: (ids: {id: string, threeObjId: string}[]) => ipcRenderer.invoke('topolayer-update-threeobjid', ids),
     removeTopos: (ids: string[]) => ipcRenderer.invoke('topolayer-remove', ids),
+});
+
+contextBridge.exposeInMainWorld('electronSystemAPI', {
+    receiveOSInfo: (callback) => ipcRenderer.on('os-info', (_event, osInfo) => callback(osInfo)),
 });

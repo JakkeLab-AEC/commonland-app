@@ -3,6 +3,8 @@ import { create } from "zustand";
 import { v4 as uuidv4 } from 'uuid';
 
 interface homeStatusProps {
+    osName: string;
+    mode: 'dist'|'dev';
     currentHomeId: string;
     inspectorVisibility: boolean,
     inspectorSize: {width: number, height: number},
@@ -11,6 +13,8 @@ interface homeStatusProps {
     inspectorClosingListeners: Array<() => void>,
     inspectorPositonTop: number,
     inspectorPositonLeft: number,
+    setOSName: (name: string) => void,
+    setMode: (mode: 'dist'|'dev') => void,
     updateHomeId: () => void,
     setInspectorTitle: (title: string) => void,
     setInspectorVisiblity: (visiblity: boolean) => void,
@@ -22,6 +26,8 @@ interface homeStatusProps {
 }
 
 export const useHomeStore = create<homeStatusProps>((set, get) => ({
+    osName: '',
+    mode: 'dev',
     currentHomeId: uuidv4(),
     inspectorVisibility: false,
     inspectorSize: {width: 360, height: 420},
@@ -95,5 +101,15 @@ export const useHomeStore = create<homeStatusProps>((set, get) => ({
                 inspectorSize: {width: 360, height: 420},
             }
         })
-    }
+    },
+    setOSName: (name: string) => {
+        set(() => {
+            return {osName: name}
+        })
+    },
+    setMode: (mode: 'dist'|'dev') => {
+        set(() => {
+            return {mode : mode}
+        })
+    },
 }));

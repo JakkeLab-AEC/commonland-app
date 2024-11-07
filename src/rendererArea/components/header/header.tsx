@@ -5,12 +5,15 @@ import { ContextMenu, ContextMenuProp } from "../contextmenu/contextMenu";
 import { useHomeStore } from "../../commonStatus/homeStatusModel";
 import { useSidebarStore } from "../../../rendererArea/sidebar/sidebarStore";
 import { ThreeExporter } from "@/rendererArea/api/three/exporters/threeExporter";
-
+import './headerStyle.css';
 
 export default function Header({appName}:{appName: string}) {
+    
+
     const [menuVisibility, setMenuVisibility] = useState<boolean>(false);
     const {
         updateHomeId,
+        osName
     } = useHomeStore();
 
     const {
@@ -52,12 +55,13 @@ export default function Header({appName}:{appName: string}) {
         width: 180,
         onClose: () => setMenuVisibility(false)
     }
+
     return (
-        <div className="w-full flex key-color-main h-[48px] items-center pl-20 pr-4 " style={{borderBottomWidth: 2, borderColor: "silver"}}>
+        <div className={`w-full flex key-color-main h-[48px] items-center ${osName == 'win32' ? 'pl-4' : 'pl-20'} pr-4`} style={{borderBottomWidth: 2, borderColor: "silver", userSelect: 'none'}}>
             <div className="main-header flex-grow">
                 <ServiceLogo appName={appName} />
             </div>
-            <div className="mr-[120px]">
+            <div className={osName == 'win32' ? `mr-[20px]` : `mr-[120px]`}>
                 <ButtonPositive text={"메뉴"} width={80} isEnabled={true} onClickHandler={() => setMenuVisibility(true)}/>
             </div>
             { menuVisibility && 
@@ -66,6 +70,32 @@ export default function Header({appName}:{appName: string}) {
                     menuItemProps = {contextMenuProp.menuItemProps} 
                     width={contextMenuProp.width} 
                     onClose={contextMenuProp.onClose} />
+            </div>}
+            {osName == 'win32' && 
+            <div className="flex flex-row gap-4">
+            {/* Minimize Button */}
+            <button onClick={() => {window.electronWindowControlAPI.minimize()}} className="menu-btn-neutral">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke='black'>
+                    <line x1="3" y1="7" x2="13" y2="7" strokeWidth="1"/>
+                </svg>
+            </button>
+
+            {/* Maximize/Restore Button */}
+            {/* ipcRenderer.send('window-control', 'maximize') */}
+            <button onClick={() => {window.electronWindowControlAPI.maximize()}} className="menu-btn-neutral">
+                <svg width="16" height="16" viewBox="0 0 16 16"  fill="none" stroke="black">
+                    <rect x="3" y="3" width="10" height="10" strokeWidth={1}/>
+                </svg>
+            </button>
+
+            {/* Close Button */}
+            {/* ipcRenderer.send('window-control', 'close') */}
+            <button onClick={() => {window.electronWindowControlAPI.quit()}} className="menu-btn-negative">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="black">
+                    <line x1="3" y1="3" x2="13" y2="13" strokeWidth="1"/>
+                    <line x1="3" y1="13" x2="13" y2="3" strokeWidth="1"/>
+                </svg>
+            </button>
             </div>}
         </div>
     )
