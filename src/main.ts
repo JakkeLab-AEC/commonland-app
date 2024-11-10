@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, MenuItemConstructorOptions } from 'electron';
 import { AppController } from './mainArea/appController/appController';
 import path from 'path';
 import os, { platform } from 'os';
@@ -62,6 +62,26 @@ const createMainWindow = () => {
       }
     });
   }
+
+  // Menu template
+  const submenus: MenuItemConstructorOptions[] = [
+    {role: 'about'},
+    {role: 'quit'},
+  ];
+
+  const menuOption: MenuItemConstructorOptions = {
+    label: 'Edit',
+    submenu: submenus
+  };
+
+  if(!app.isPackaged) {
+    submenus.push({role: 'toggleDevTools'});
+  }
+
+  const template:MenuItemConstructorOptions[] = [menuOption];
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
+  
   
   UIController.initiate();
   UIController.instance.registerWindow('main-window', mainWindow);
@@ -79,7 +99,6 @@ app.on('ready', () => {
   setIpcProjectIOHandler(ipcMain);
 
   setIpcTopoRepository(ipcMain);
-
 });
 
 app.on('window-all-closed', () => {

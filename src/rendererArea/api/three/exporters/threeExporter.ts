@@ -2,9 +2,10 @@ import * as THREE from 'three';
 import { SceneController } from '../SceneController';
 import { OBJExporter } from 'three/examples/jsm/exporters/OBJExporter';
 import { ModelType } from '@/mainArea/models/modelType';
-import { Cylinder, DXFLayer, DXFWriter, Line, Text3d, TextStyle, Triangle3d } from '../../dxfwriter/dxfwriter';
+import { Circle, Cylinder, DXFLayer, DXFWriter, Line, Polyline, Text, Text3d, TextStyle, Triangle3d } from '../../dxfwriter/dxfwriter';
 import { TopoDTO } from '@/dto/serviceModel/topoDto';
 import { BoringDTO } from '@/dto/serviceModel/BoringDTO';
+import { UnicodeConverter } from '../../dxfwriter/unicodeConverter';
 
 interface MeshProp {
     createdFrom: TopoDTO,
@@ -16,37 +17,6 @@ interface MeshProp {
 const radius = 1;
 
 export class ThreeExporter {
-    static exportAsObjAndMtl() {
-        const scene = SceneController.getInstance().getScene();
-        
-        // OBJExporter로 obj 파일 내보내기
-        const objExporter = new OBJExporter();
-        const objContent = objExporter.parse(scene);
-
-        // 재질 정보 수동 생성 (기본적으로 Lambert 재질 사용)
-        const mtlContent = scene.children.map((child: any) => {
-            if (child.material) {
-                const material = child.material;
-                return `
-                    newmtl ${material.name}
-                    Ka ${material.color.r} ${material.color.g} ${material.color.b}
-                    Kd ${material.color.r} ${material.color.g} ${material.color.b}
-                    Ks 0.000000 0.000000 0.000000
-                    d 1.0
-                    illum 2
-                    Ns 0.000000
-                    `;
-                }
-            return '';
-        }).join('\n');
-
-        // OBJ 파일 다운로드 링크 생성
-        this.downloadFile('scene.obj', objContent);
-        
-        // MTL 파일 다운로드 링크 생성
-        this.downloadFile('scene.mtl', mtlContent);
-    }
-
     static downloadFile(fileName: string, content: string) {
         const blob = new Blob([content], { type: 'text/plain' });
         const link = document.createElement('a');
@@ -135,7 +105,10 @@ export class ThreeExporter {
 
         // Create Layer map
         const layerMap:Map<string, DXFLayer> = new Map();
-        meshProps.forEach((r, index) =>layerMap.set(r.createdFrom.name, new DXFLayer(`Layer-Topo-${index+1}`, r.createdFrom.colorIndex)));
+        meshProps.forEach((r, index) => {
+            const convertedLayerName = UnicodeConverter.convertStringToUnicode(r.createdFrom.name);
+            layerMap.set(r.createdFrom.name, new DXFLayer(convertedLayerName, r.createdFrom.colorIndex));
+        });
         
         // DXF Writing
         // RegisterLayers
@@ -157,10 +130,10 @@ export class ThreeExporter {
             });
         })
 
-        dxfWriter.exportAsDXFFile();
+        dxfWriter.exportAsDXFFile('KOR');
     }
 
-    static async exportBoringsDXF() {
+    static async exportBoringsDXF(language: 'ENG'|'KOR'|'JPN') {
         const dxfWriter = new DXFWriter();
 
         // Load boring datas;
@@ -174,9 +147,11 @@ export class ThreeExporter {
         // Register layers
         const layerMap: Map<string, DXFLayer> = new Map();
         layerDatas.layerColors.forEach((layerInfo, index) => {
-            layerMap.set(layerInfo[0], new DXFLayer(`Layer-Boring-${index+1}`, layerInfo[1]));
+            const convertedLayerName = UnicodeConverter.convertStringToUnicode(layerInfo[0]);
+            layerMap.set(layerInfo[0], new DXFLayer(convertedLayerName, layerInfo[1]));
         });
-        const textLayer = new DXFLayer('ANNOT', 4);
+
+        const textLayer = new DXFLayer('ANNOT', 250);
         layerMap.set(textLayer.name, textLayer);
 
         layerMap.forEach((layer) => {
@@ -184,23 +159,53 @@ export class ThreeExporter {
         })
 
         // Register new text style
-        const textNormalStyle = new TextStyle('TextNormal', 'malgun', 'malgun.ttf', 2);
-        const textSmallStyle = new TextStyle('TextSmall', 'malgun', 'malgun.ttf', 1);
+        const textNormalStyle = new TextStyle('TextNormal', 'malgun', 'malgun.ttf', 0.5);
+        const textSmallStyle = new TextStyle('TextSmall', 'malgun', 'malgun.ttf', 0.5);
         dxfWriter.registerTextStyle(textNormalStyle);
         dxfWriter.registerTextStyle(textSmallStyle);
+        const boringEnds = boringDatas.fetchedBorings.flatMap(boring => 
+            boring.topoTop - boring.layers.flatMap(ly => ly.thickness).reduce((thickness, sum) => sum += thickness, 0)
+        );
+
+        const zMin = Math.min(...boringEnds);
 
         // Create boring shapes
         boringDatas.fetchedBorings.forEach(boring => {
-            this.addBoringShape(boring, dxfWriter, layerMap, textLayer, textNormalStyle, textSmallStyle);
+            this.addBoringShape(boring, dxfWriter, layerMap, textLayer, textNormalStyle, textSmallStyle, zMin-2);
         });
 
         // Export as file
-        dxfWriter.exportAsDXFFile();
+        dxfWriter.exportAsDXFFile(language);
     }
 
-    private static addBoringShape(boring: BoringDTO, dxfWriter: DXFWriter, postLayers: Map<string, DXFLayer>, textLayer: DXFLayer, layerTextStyle: TextStyle, sptTextStyle: TextStyle) {
+    private static addBoringShape(boring: BoringDTO, dxfWriter: DXFWriter, postLayers: Map<string, DXFLayer>, textLayer: DXFLayer, layerTextStyle: TextStyle, sptTextStyle: TextStyle, zMin = 0) {
         let layerTop = boring.topoTop;
         const {x, y} = boring.location;
+
+        // Register layer
+        const boringLocationLayer = new DXFLayer("BoringLocation", 1);
+        dxfWriter.registerLayer(boringLocationLayer);
+
+        // Create boring center mark
+        const centerCircle = new Circle(x, y, zMin, 1, boringLocationLayer);
+        dxfWriter.addComponent(centerCircle);
+
+        const centerLineVer = new Line(
+            {x: x, y: y-1, z: zMin}, 
+            {x: x, y: y+1, z: zMin},
+            boringLocationLayer 
+        );
+        dxfWriter.addComponent(centerLineVer);
+
+        const centerLineHor = new Line(
+            {x: x-1, y: y, z: zMin}, 
+            {x: x+1, y: y, z: zMin},
+            boringLocationLayer 
+        );
+        dxfWriter.addComponent(centerLineHor);
+        
+        const boringText = new Text(boring.name, x+1, y+1, zMin, 1, boringLocationLayer, -1, "left", "baseline", layerTextStyle);
+        dxfWriter.addComponent(boringText);
 
         // Post and layers
         boring.layers.forEach(layer => {
@@ -213,70 +218,109 @@ export class ThreeExporter {
             // Create leader
             const line = new Line(
                 {x: x+radius, y: y, z: layerTop},
-                {x: x+radius+10, y: y, z: layerTop},
+                {x: x+radius+8, y: y, z: layerTop},
                 textLayer,
             );
             dxfWriter.addComponent(line);
 
             // Create Text
+            const convertedLayerName = UnicodeConverter.convertStringToUnicode(layer.name);
             const text = new Text3d(
-                `${layer.name} (${layer.thickness.toFixed(2)})`,
+                `${convertedLayerName} (${layerTop.toFixed(2)})`,
                 'XZ',
-                {x: x+radius+12, y: y, z: layerTop},
-                2,
+                {x: x+radius+9, y: y, z: layerTop},
+                0.5,
                 textLayer,
                 -1,
-                'left',
+                "left",
+                "middle",
                 layerTextStyle
             );
             dxfWriter.addComponent(text);
             
             layerTop -= layer.thickness;
         });
+
+        // Create boring name leader
+        const boringNameLine = new Line(
+            {x: x-radius,   y: y, z: boring.topoTop},
+            {x: x-radius-8, y: y, z: boring.topoTop},
+            textLayer,
+        );
+        dxfWriter.addComponent(boringNameLine);
+        const boringNameText = new Text3d(
+            boring.name,
+            "XZ",
+            {x: x-radius-8, y: y, z: boring.topoTop},
+            1,
+            textLayer,
+            -1,
+            "right",
+            "middle",
+            layerTextStyle
+        );
+        dxfWriter.addComponent(boringNameText);
         
         // Create boring end leader
         const line = new Line(
-            {x: x+radius, y: y, z: layerTop},
-            {x: x+radius+10, y: y, z: layerTop},
+            {x: x+radius,   y: y, z: layerTop},
+            {x: x+radius+8, y: y, z: layerTop},
             textLayer,
         );
         dxfWriter.addComponent(line);
 
-        const text = new Text3d(
-            `시추종료 (${layerTop.toFixed(2)})})`,
-            'XZ',
-            {x: x+radius+12, y: y, z: layerTop},
-            2,
+        const convertedContent = UnicodeConverter.convertStringToUnicode(`시추종료 (${layerTop.toFixed(2)})`);
+        const boringEndText = new Text3d(
+            convertedContent,
+            "XZ",
+            {x: x+radius+9, y: y, z: layerTop},
+            0.5,
             textLayer,
             -1,
-            'left',
+            "left",
+            "middle",
             layerTextStyle
-        );
-        dxfWriter.addComponent(text);
+        )
+        dxfWriter.addComponent(boringEndText);
 
         // Create SPT Results
-        let sptTop = boring.topoTop;
+        const sptTop = boring.topoTop;
         boring.sptResults.forEach(spt => {
             // Create leader
             const line = new Line(
-                {x: -(x+radius), y: y, z: sptTop},
-                {x: -(x+radius+10), y: y, z: sptTop},
+                {x: x-radius, y: y, z: sptTop-spt.depth},
+                {x: x-radius-1, y: y, z: sptTop-spt.depth},
                 textLayer,
             );
             dxfWriter.addComponent(line);
 
-            // Create Text
-            const text = new Text3d(
-                `${spt.depth}    ${spt.hitCount}/${spt.distance}`,
+            // Create depth text
+            const depthText = new Text3d(
+                `${spt.depth}`,
                 'XZ',
-                {x: -(x+radius+12), y: y, z: sptTop},
-                2,
+                {x: x-radius-6, y: y, z: sptTop-spt.depth},
+                0.5,
                 textLayer,
                 -1,
                 'right',
+                'middle',
                 sptTextStyle
             );
-            dxfWriter.addComponent(text);
+            dxfWriter.addComponent(depthText);
+
+            // Create SPT result text
+            const sptResultText = new Text3d(
+                `${spt.hitCount} / ${spt.distance}`,
+                'XZ',
+                {x: x-radius-3, y: y, z: sptTop-spt.depth},
+                0.5,
+                textLayer,
+                -1,
+                'right',
+                'middle',
+                sptTextStyle
+            );
+            dxfWriter.addComponent(sptResultText);
         });
     }
 }

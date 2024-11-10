@@ -30,20 +30,39 @@ export class DXFWriter {
     }
 
     // Serialize the DXF content to a string
-    serialize(): string {
+    serialize(language: 'ENG'|'KOR'|'JPN'): string {
         return [
-            this.serializeHeader(),
+            this.serializeHeader(language),
             this.serializeTables(),
             this.serializeEntities(),
             '0\nEOF\n'  // EOF ensures the file ends properly
         ].join('\n');
     }
 
-    // Serialize the HEADER section with AutoCAD version
-    private serializeHeader(): string {
+    /**
+     * Serialize the HEADER section with AutoCAD version
+     * @param language This parameter determins ANSI code of language.
+     * @returns Serialized header section's DXF code
+     */
+    private serializeHeader(language: 'ENG'|'KOR'|'JPN'): string {
+        let ansiCode: string = '';
+        switch(language){
+            case 'ENG':
+                ansiCode = 'ANSI_1252';
+                break;
+            case 'KOR':
+                ansiCode = 'ANSI_949';
+                break;
+            case 'JPN':
+                ansiCode = 'ANSI_932';
+                break;
+        }
+
         return [
             '0', 'SECTION',
             '2', 'HEADER',
+            '9', '$DWGCODEPAGE',
+            '3', ansiCode,
             '0', 'ENDSEC'
         ].join('\n');
     }
@@ -101,97 +120,19 @@ export class DXFWriter {
     }
 
     // Export as DXF file and trigger download
-    exportAsDXFFile(fileName = 'drawing.dxf'): void {
-        const dxfContent = this.serialize();
+    exportAsDXFFile(language: 'ENG'|'KOR'|'JPN', fileName = 'drawing.dxf'): void {
+        const dxfContent = this.serialize(language);
         const blob = new Blob([dxfContent], { type: 'text/plain' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
+
+        if(!fileName.endsWith('.dxf')) {
+            fileName += '.dxf';
+        }
+
         link.download = fileName;
         link.click();
     }
-
-    static testNoEntityWithLayers() {
-        const writer = new DXFWriter();
-
-        // Create layers
-        const layerA = new DXFLayer('LayerA', 1);  // 빨간색 레이어
-        const layerB = new DXFLayer('LayerB', 2);  // 노란색 레이어
-
-        // Register layers
-        writer.registerLayer(layerA);
-        writer.registerLayer(layerB);
-
-        // Serialize and download as DXF file (no entities, only layers)
-        writer.exportAsDXFFile('test_no_entity_with_layers.dxf');
-    }
-
-    static testTextEntityWithLayers() {
-        const writer = new DXFWriter();
-
-        // Create layers
-        const layerA = new DXFLayer('LayerA', 1);  // 빨간색 레이어
-        const layerB = new DXFLayer('LayerB', 2);  // 노란색 레이어
-
-        // Register layers
-        writer.registerLayer(layerA);
-        writer.registerLayer(layerB);
-        
-
-        // Create text style
-        const textStyleA = new TextStyle('TextStyleA', 'malgun', 'malgun.ttf', 500);
-
-        // Register text style
-        writer.registerTextStyle(textStyleA);
-
-        const textA = new Text('TestA', 0, 0, 0, 500, layerA, -1, 'left', textStyleA);
-        writer.addComponent(textA);
-        const line1 = new Line({x: 0, y: 0, z: 0}, {x: 50, y: 50, z: 0}, layerB);
-        writer.addComponent(line1);
-        const line2 = new Line({x: 0, y: 50, z: 0}, {x: 50, y: 50, z: 0}, layerB, 4);
-        writer.addComponent(line2);
-
-        // Create Cylinder
-        const cylinder = new Cylinder({x: 0, y: 0, z: 0}, 1000, 8000, 64, layerA);
-        writer.addComponent(cylinder);
-
-        // Serialize and download as DXF file (no entities, only layers)
-        writer.exportAsDXFFile('test_entity_styled.dxf');
-    }
-
-    static testMText() {
-        const writer = new DXFWriter();
-
-        // Create layers
-        const layerA = new DXFLayer('LayerA', 1);  // 빨간색 레이어
-        const layerB = new DXFLayer('LayerB', 2);  // 노란색 레이어
-
-        // Register layers
-        writer.registerLayer(layerA);
-        writer.registerLayer(layerB);
-        
-
-        // Create text style
-        const textStyleA = new TextStyle('TextStyleA', 'malgun', 'malgun.ttf', 500);
-
-        // Register text style
-        writer.registerTextStyle(textStyleA);
-
-        const textA = new Text3d(
-            "Hello",
-            'XZ',
-            {x: 10, y: 0, z: 15},
-            500,
-            layerA,
-            -1,
-            'left',
-            textStyleA
-        );
-        writer.addComponent(textA);
-
-        // Serialize and download as DXF file (no entities, only layers)
-        writer.exportAsDXFFile('test_mtext.dxf');
-    }
-    
 }
 
 
@@ -345,7 +286,8 @@ export class Text implements IDXFWriterGeometryComponent {
     public layer: DXFLayer;
     public style: TextStyle;
     public color = -1;
-    public textAlignment: 'left'|'center'|'right'|'aligned'|'middle'|'fit';
+    public horizontalAlignment: 'left'|'center'|'right'|'aligned'|'middle'|'fit';
+    public verticalAlignment: 'baseline'|'bottom'|'middle'|'top';
     
     constructor(
         content: string,
@@ -355,7 +297,8 @@ export class Text implements IDXFWriterGeometryComponent {
         height: number,
         layer: DXFLayer,
         color = -1,
-        textAlignment:'left'|'center'|'right'|'aligned'|'middle'|'fit',
+        horizontalAlignment: 'left'|'center'|'right'|'aligned'|'middle'|'fit',
+        verticalAlignment: 'baseline'|'bottom'|'middle'|'top',
         style?: TextStyle
     ) {
         this.content = content;
@@ -365,43 +308,64 @@ export class Text implements IDXFWriterGeometryComponent {
         this.height = height;
         this.layer = layer;
         this.color = color;
-        this.textAlignment = textAlignment;
+        this.horizontalAlignment = horizontalAlignment;
+        this.verticalAlignment = verticalAlignment;
         this.style = style;
     }
 
     serialize(): string {
         const colorIndex = this.color > -1 ? this.color : this.layer.color;
-        let alignIndex: number;
-        switch(this.textAlignment) {
+        let horizontalAlignmentIndex: number, verticalAligmentIndex;
+        switch(this.horizontalAlignment) {
             case 'left':
-                alignIndex = 0;
+                horizontalAlignmentIndex = 0;
                 break;
             case 'center':
-                alignIndex = 1;
+                horizontalAlignmentIndex = 1;
                 break;
             case 'right':
-                alignIndex = 2;
+                horizontalAlignmentIndex = 2;
                 break;
             case 'aligned':
-                alignIndex = 3;
+                horizontalAlignmentIndex = 3;
                 break;
             case 'middle':
-                alignIndex = 4;
+                horizontalAlignmentIndex = 4;
                 break;
             case 'fit':
-                alignIndex = 5;
+                horizontalAlignmentIndex = 5;
+                break;
+        }
+
+        switch(this.verticalAlignment) {
+            case 'baseline':
+                verticalAligmentIndex = 0;
+                break;
+            case 'bottom':
+                verticalAligmentIndex = 1;
+                break;
+            case 'middle':
+                verticalAligmentIndex = 2;
+                break;
+            case 'top':
+                verticalAligmentIndex = 3;
                 break;
         }
 
         const prop = [
             '0', 'TEXT',
-            '8', `${this.layer}`,  // 레이어
-            '62', `${colorIndex}`, // 색상
-            '10', `${this.x}`,     // X 좌표
-            '20', `${this.y}`,     // Y 좌표
-            '40', `${this.height}`,// 텍스트 높이
-            '1', `${this.content}`,// 텍스트 내용
-            '72', `${alignIndex}`,
+            '8', `${this.layer}`,                   // 레이어
+            '62', `${colorIndex}`,                  // 색상
+            '10', `${this.x}`,                      // X 좌표
+            '20', `${this.y}`,                      // Y 좌표
+            '30', `${this.z}`,                      // Z 좌표
+            '11', `${this.x}`,                      // X 좌표
+            '21', `${this.y}`,                      // Y 좌표
+            '31', `${this.z}`,                      // Z 좌표
+            '40', `${this.height}`,                 // 텍스트 높이
+            '1', `${this.content}`,                 // 텍스트 내용
+            '72', `${horizontalAlignmentIndex}`,    // Horizontal align factor
+            '73', `${verticalAligmentIndex}`,       // Vertical align factor
         ];
         
         if(this.style) {
@@ -425,30 +389,46 @@ export class Text3d implements IDXFWriterGeometryComponent {
 
     public plane: 'XY'|'YZ'|'XZ';
     public height: number;
-    public textAlignment: 'left'|'center'|'right'|'aligned'|'middle'|'fit';
+    public horizontalAlignment: 'left'|'center'|'right'|'aligned'|'middle'|'fit';
+    public verticalAlignment: 'baseline'|'bottom'|'middle'|'top';
     public style?: TextStyle;
 
     serialize(): string {
         const colorIndex = this.color > -1 ? this.color : this.layer.color;
-        let alignIndex: number;
-        switch(this.textAlignment) {
+        let horizontalAlignmentIndex: number, verticalAligmentIndex;
+        switch(this.horizontalAlignment) {
             case 'left':
-                alignIndex = 0;
+                horizontalAlignmentIndex = 0;
                 break;
             case 'center':
-                alignIndex = 1;
+                horizontalAlignmentIndex = 1;
                 break;
             case 'right':
-                alignIndex = 2;
+                horizontalAlignmentIndex = 2;
                 break;
             case 'aligned':
-                alignIndex = 3;
+                horizontalAlignmentIndex = 3;
                 break;
             case 'middle':
-                alignIndex = 4;
+                horizontalAlignmentIndex = 4;
                 break;
             case 'fit':
-                alignIndex = 5;
+                horizontalAlignmentIndex = 5;
+                break;
+        }
+
+        switch(this.verticalAlignment) {
+            case 'baseline':
+                verticalAligmentIndex = 0;
+                break;
+            case 'bottom':
+                verticalAligmentIndex = 1;
+                break;
+            case 'middle':
+                verticalAligmentIndex = 2;
+                break;
+            case 'top':
+                verticalAligmentIndex = 3;
                 break;
         }
 
@@ -457,18 +437,21 @@ export class Text3d implements IDXFWriterGeometryComponent {
         switch (this.plane) {
             case "XY":
                 // Use X, Y, Z as is for XY plane
+                xCoord = this.x;
+                yCoord = this.y;
+                zCoord = -this.z;
                 break;
             case "YZ":
                 // Swap Y -> X (10), Z -> Y (20), X -> Z (30)
                 xCoord = this.y;
                 yCoord = this.z;
-                zCoord = this.x;
+                zCoord = -this.x;
                 break;
             case "XZ":
                 // Swap X -> X (10), Z -> Y (20), Y -> Z (30)
                 xCoord = this.x;
                 yCoord = this.z;
-                zCoord = this.y;
+                zCoord = -this.y;
                 break;
         }
 
@@ -479,9 +462,13 @@ export class Text3d implements IDXFWriterGeometryComponent {
             '10', `${xCoord}`,      // X coordinate based on plane
             '20', `${yCoord}`,      // Y coordinate based on plane
             '30', `${zCoord}`,      // Z coordinate based on plane
+            '11', `${xCoord}`,      // X coordinate End on Plane, using for applying 72, 73
+            '21', `${yCoord}`,      // Y coordinate End on Plane, using for applying 72, 73
+            '31', `${zCoord}`,      // Z coordinate End on Plane, using for applying 72, 73
             '40', `${this.height}`, // 텍스트 높이
             '1', `${this.content}`, // 텍스트 내용
-            '72', `${alignIndex}`,  // Align factor
+            '72', `${horizontalAlignmentIndex}`,  // Horizontal align factor
+            '73', `${verticalAligmentIndex}`,  // Vertical align factor
         ];
 
         // Adding style
@@ -526,7 +513,8 @@ export class Text3d implements IDXFWriterGeometryComponent {
         height: number,
         layer: DXFLayer,
         color = -1,
-        textAlignment:'left'|'center'|'right'|'aligned'|'middle'|'fit',
+        horizontaAlignment:'left'|'center'|'right'|'aligned'|'middle'|'fit',
+        verticalAlignment:'baseline'|'bottom'|'middle'|'top',
         style?: TextStyle
     ) {
         this.content = content;
@@ -538,7 +526,7 @@ export class Text3d implements IDXFWriterGeometryComponent {
         switch(plane) {
             case "XY":{
                 this.x = coordinate.x;
-                this.y = -coordinate.y;
+                this.y = coordinate.y;
                 this.z = coordinate.z;
                 break;
             }
@@ -546,19 +534,20 @@ export class Text3d implements IDXFWriterGeometryComponent {
             case "YZ":{
                 this.x = coordinate.x;
                 this.y = coordinate.y;
-                this.z = -coordinate.z;
+                this.z = coordinate.z;
                 break;
             }
 
             case "XZ":{
                 this.x = coordinate.x;
                 this.y = coordinate.y;
-                this.z = -coordinate.z;
+                this.z = coordinate.z;
                 break;
             }
         }
 
-        this.textAlignment = textAlignment;
+        this.horizontalAlignment = horizontaAlignment;
+        this.verticalAlignment = verticalAlignment;
         this.style = style;
     }
 }
@@ -574,8 +563,7 @@ export class Line implements IDXFWriterGeometryComponent {
     serialize(): string {
         
         const props = [
-            '0',
-            'LINE',
+            '0', 'LINE',
             '8', `${this.layer}`,
             '10', `${this.ptStart.x}`,
             '20', `${this.ptStart.y}`,
@@ -602,6 +590,17 @@ export class Polyline implements IDXFWriterGeometryComponent {
         if (pts.length < 2) {
             throw new Error('Polyline should contain more than 2 points.');
         }
+    }
+
+    static generateCirclePoints(x: number, y: number, z: number, radius: number, segments = 64): { x: number, y: number, z: number }[] {
+        return Array.from({ length: segments }, (_, i) => {
+            const angle = (i / segments) * Math.PI * 2;
+            return {
+                x: x + radius * Math.cos(angle),
+                y: y + radius * Math.sin(angle),
+                z: z
+            };
+        });
     }
 
     serialize(): string {
@@ -647,9 +646,11 @@ export class Cylinder implements IDXFWriterGeometryComponent {
         if (segments < 3) {
             throw new Error('Cylinder should have at least 3 segments.');
         }
+        
+        const circlePts = this.generateCirclePoints(0);
     }
 
-    private generateCirclePoints(z: number): { x: number, y: number, z: number }[] {
+    generateCirclePoints(z: number): { x: number, y: number, z: number }[] {
         return Array.from({ length: this.segments }, (_, i) => {
             const angle = (i / this.segments) * Math.PI * 2;
             return {
@@ -666,12 +667,6 @@ export class Cylinder implements IDXFWriterGeometryComponent {
         const topCircle = this.generateCirclePoints(this.center.z + this.height);
     
         const dxfArray: string[] = [];
-    
-        // Bottom circle polyline
-        dxfArray.push(...this.serializePolyline(bottomCircle, colorIndex));
-    
-        // Top circle polyline
-        dxfArray.push(...this.serializePolyline(topCircle, colorIndex));
     
         // Side faces
         for (let i = 0; i < this.segments; i++) {
@@ -718,30 +713,6 @@ export class Cylinder implements IDXFWriterGeometryComponent {
         ], colorIndex));
     
         return dxfArray.join('\n');
-    }
-
-    private serializePolyline(points: { x: number, y: number, z: number }[], colorIndex: number): string[] {
-        const dxfArray = [
-            '0', 'POLYLINE',
-            '8', `${this.layer.name}`,
-            '62', `${colorIndex}`,
-            '66', '1',
-            '70', '0'
-        ];
-
-        for (const pt of points) {
-            dxfArray.push(
-                '0', 'VERTEX',
-                '8', `${this.layer.name}`,
-                '10', `${pt.x}`,
-                '20', `${pt.y}`,
-                '30', `${pt.z}`
-            );
-        }
-
-        dxfArray.push('0', 'SEQEND');
-
-        return dxfArray;
     }
 
     private serialize3DFace(points: { x: number, y: number, z: number }[], colorIndex: number): string[] {
@@ -802,5 +773,30 @@ export class Triangle3d implements IDXFWriterGeometryComponent {
         this.layer = layer;
         this.color = color;
         this.vertices = vertices;
+    }
+}
+
+export class Circle implements IDXFWriterGeometryComponent {
+    private center: {x: number, y: number, z: number};
+    private radius: number;
+
+    layer: DXFLayer;
+    color: number;
+    serialize(): string {
+        return [
+            '0', 'CIRCLE',
+            '8', `${this.layer.name}`,
+            '10', `${this.center.x}`,
+            '20', `${this.center.y}`,
+            '30', `${this.center.z}`,
+            '40', `${this.radius}`
+        ].join('\n');
+    }
+
+    constructor(x: number, y: number, z: number, r: number, layer: DXFLayer, color = -1) {
+        this.center = {x: x, y: y, z: z};
+        this.radius = r;
+        this.layer = layer;
+        this.color = color;
     }
 }

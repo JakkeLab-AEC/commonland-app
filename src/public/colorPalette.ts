@@ -1,257 +1,257 @@
 export const colorPaletteValues: { [key: number]: string } = {
-    1: "#FF0000", // Red
-    2: "#FFFF00", // Yellow
-    3: "#00FF00", // Green
-    4: "#00FFFF", // Cyan
-    5: "#0000FF", // Blue
-    6: "#FF00FF", // Magenta
-    7: "#FFFFFF", // White
-    8: "#808080", // Gray
-    9: "#C0C0C0", // Light Gray
-    10: "#FF0000", // Red (same as 1)
-    11: "#FFFF00", // Yellow (same as 2)
-    12: "#00FF00", // Green (same as 3)
-    13: "#00FFFF", // Cyan (same as 4)
-    14: "#0000FF", // Blue (same as 5)
-    15: "#FF00FF", // Magenta (same as 6)
-    16: "#FF0000", // Dark Red
-    17: "#FFAAAA", // Light Red
-    18: "#FFFFAA", // Light Yellow
-    19: "#AAFFAA", // Light Green
-    20: "#AAFFFF", // Light Cyan
-    21: "#AAAFFF", // Light Blue
-    22: "#FFAAFF", // Light Magenta
-    23: "#AAAAAA", // Light Gray
-    24: "#545454", // Dark Gray
-    25: "#A5A5A5", // Silver
-    26: "#FF5555", // Light Red
-    27: "#FFFF55", // Light Yellow
-    28: "#55FF55", // Light Green
-    29: "#55FFFF", // Light Cyan
-    30: "#5555FF", // Light Blue
-    31: "#FF55FF", // Light Magenta
-    32: "#FF5555", // Light Red (Duplicate)
-    33: "#FFFF55", // Light Yellow (Duplicate)
-    34: "#55FF55", // Light Green (Duplicate)
-    35: "#55FFFF", // Light Cyan (Duplicate)
-    36: "#5555FF", // Light Blue (Duplicate)
-    37: "#FF55FF", // Light Magenta (Duplicate)
-    38: "#AA0000", // Dark Red
-    39: "#AA5500", // Dark Orange
-    40: "#AAFF00", // Yellow Green
-    41: "#00AA00", // Dark Green
-    42: "#00AA55", // Dark Cyan
-    43: "#00AAFF", // Sky Blue
-    44: "#0000AA", // Dark Blue
-    45: "#5500AA", // Dark Purple
-    46: "#AA00AA", // Dark Magenta 
-    47: "#FF0055", // Reddish Pink
-    48: "#FFAA55", // Orange
-    49: "#FFFF55", // Light Yellow
-    50: "#AAFF55", // Yellow Green
-    51: "#55FF55", // Light Green
-    52: "#55FFAA", // Light Cyan
-    53: "#55FFFF", // Light Blue Cyan
-    54: "#55AAFF", // Light Sky Blue
-    55: "#5555FF", // Light Blue
-    56: "#AA55FF", // Light Purple
-    57: "#FF55FF", // Light Magenta
-    58: "#FF55AA", // Pink Magenta
-    59: "#FF5555", // Light Red
-    60: "#FFAA55", // Light Orange
-    61: "#FFFFAA", // Pale Yellow
-    62: "#AAFFAA", // Pale Green
-    63: "#AAFFFF", // Pale Cyan
-    64: "#AAD4FF", // Pale Blue
-    65: "#AAAAFF", // Soft Blue
-    66: "#FFAAAA", // Soft Red
-    67: "#FFAAFF", // Soft Pink
-    68: "#FFD4FF", // Soft Magenta
-    69: "#FFC0C0", // Soft Red Tone
-    70: "#FFFFC0", // Soft Yellow Tone
-    71: "#C0FFC0", // Soft Green Tone
-    72: "#C0FFFF", // Soft Cyan Tone
-    73: "#C0D4FF", // Soft Sky Blue
-    74: "#C0C0FF", // Soft Blue Tone
-    75: "#D4C0FF", // Soft Purple Tone
-    76: "#FFC0D4", // Soft Magenta Pink
-    77: "#FFC0AA", // Pale Orange
-    78: "#FFFFAA", // Pale Yellow
-    79: "#AAFFAA", // Pale Green
-    80: "#AAFFFF", // Pale Cyan
-    81: "#AAD4FF", // Pale Sky Blue
-    82: "#AAAAFF", // Pale Blue
-    83: "#FFD4AA", // Pale Soft Orange
-    84: "#FFC0AA", // Light Orange
-    85: "#FFD4C0", // Soft Red Orange
-    86: "#FFFFC0", // Soft Yellow Orange
-    87: "#D4FFAA", // Light Yellow Green
-    88: "#C0FFAA", // Soft Green Yellow
-    89: "#D4FFFF", // Pale Cyan Green
-    90: "#C0FFFF", // Soft Cyan Blue
-    91: "#D4AAFF", // Pale Purple Pink
-    92: "#FFD4FF", // Light Soft Pink
-    93: "#FFC0FF", // Soft Pink Magenta
-    94: "#FFC0D4", // Light Pink
-    95: "#FFC0C0", // Pale Red Tone
-    96: "#FFAAAA", // Soft Red
-    97: "#FFD4AA", // Soft Orange
-    98: "#FFFFAA", // Soft Yellow
-    99: "#D4FFAA", // Soft Yellow Green
-    100: "#AAFFAA", // Soft Green
-    101: "#AAFFD4", // Soft Green Cyan
-    102: "#AAFFFF", // Soft Cyan
-    103: "#AAD4FF", // Soft Sky Blue
-    104: "#AAAAFF", // Soft Blue
-    105: "#D4AAFF", // Soft Purple
-    106: "#FFAAFF", // Soft Pink
-    107: "#FFAAFF", // Light Pink
-    108: "#FF55FF", // Bright Magenta
-    109: "#FF55AA", // Bright Pink
-    110: "#FF5555", // Bright Red
-    111: "#FFAA55", // Bright Orange
-    112: "#FFFF55", // Bright Yellow
-    113: "#AAFF55", // Bright Yellow Green
-    114: "#55FF55", // Bright Green
-    115: "#55FFAA", // Bright Green Cyan
-    116: "#55FFFF", // Bright Cyan
-    117: "#55AAFF", // Bright Sky Blue
-    118: "#5555FF", // Bright Blue
-    119: "#AA55FF", // Bright Purple
-    120: "#FF55FF", // Bright Pink
-    121: "#FFAAFF", // Light Magenta
-    122: "#FFAAAA", // Pale Red
-    123: "#FF5555", // Bright Red
-    124: "#FFD4AA", // Pale Orange
-    125: "#FFFFAA", // Pale Yellow
-    126: "#D4FFAA", // Light Yellow Green
-    127: "#AAFFAA", // Light Green
-    128: "#AAFFD4", // Light Green Cyan
-    129: "#AAFFFF", // Light Cyan
-    130: "#AAD4FF", // Light Sky Blue
-    131: "#AAAAFF", // Light Blue
-    132: "#D4AAFF", // Light Purple
-    133: "#FFAAFF", // Light Pink
-    134: "#FFAAAA", // Pale Red
-    135: "#FFD4FF", // Pale Pink
-    136: "#FFC0FF", // Light Pink
-    137: "#FFC0C0", // Soft Red
-    138: "#FFD4C0", // Soft Orange Red
-    139: "#FFFFC0", // Soft Yellow Orange
-    140: "#D4FFC0", // Pale Green Yellow
-    141: "#C0FFC0", // Pale Green
-    142: "#C0FFD4", // Pale Green Cyan
-    143: "#C0FFFF", // Pale Cyan
-    144: "#C0D4FF", // Pale Blue Cyan
-    145: "#C0C0FF", // Pale Blue
-    146: "#D4C0FF", // Pale Purple Blue
-    147: "#FFC0FF", // Pale Pink Purple
-    148: "#FFC0D4", // Pale Pink Red
-    149: "#FFAAAA", // Light Red
-    150: "#FF5555", // Bright Red
-    151: "#FFD4AA", // Light Orange
-    152: "#FFFFAA", // Light Yellow
-    153: "#D4FFAA", // Light Yellow Green
-    154: "#AAFFAA", // Light Green
-    155: "#AAFFD4", // Light Cyan Green
-    156: "#AAFFFF", // Light Cyan
-    157: "#AAD4FF", // Light Blue Cyan
-    158: "#AAAAFF", // Light Blue
-    159: "#D4AAFF", // Light Purple Blue
-    160: "#FFAAFF", // Light Pink Purple
-    161: "#FFAAAA", // Light Red Pink
-    162: "#FFD4FF", // Light Pink
-    163: "#FFC0FF", // Light Magenta
-    164: "#FFC0C0", // Pale Red
-    165: "#FFD4C0", // Pale Orange Red
-    166: "#FFFFC0", // Pale Yellow Orange
-    167: "#D4FFC0", // Light Yellow Green
-    168: "#C0FFC0", // Light Green
-    169: "#C0FFD4", // Light Cyan Green
-    170: "#C0FFFF", // Light Cyan
-    171: "#C0D4FF", // Light Blue Cyan
-    172: "#C0C0FF", // Light Blue
-    173: "#D4C0FF", // Light Purple Blue
-    174: "#FFC0FF", // Light Pink Purple
-    175: "#FFC0D4", // Light Pink Red
-    176: "#FFAAAA", // Light Red
-    177: "#FF5555", // Bright Red
-    178: "#FFD4AA", // Bright Orange
-    179: "#FFFFAA", // Bright Yellow
-    180: "#D4FFAA", // Bright Yellow Green
-    181: "#AAFFAA", // Bright Green
-    182: "#AAFFD4", // Bright Cyan Green
-    183: "#AAFFFF", // Bright Cyan
-    184: "#AAD4FF", // Bright Blue Cyan
-    185: "#AAAAFF", // Bright Blue
-    186: "#D4AAFF", // Bright Purple Blue
-    187: "#FFAAFF", // Bright Pink Purple
-    188: "#FFAAAA", // Bright Red Pink
-    189: "#FFD4FF", // Bright Pink
-    190: "#FFC0FF", // Bright Magenta
-    191: "#FFC0C0", // Bright Pale Red
-    192: "#FFD4C0", // Bright Pale Orange
-    193: "#FFFFC0", // Bright Pale Yellow
-    194: "#D4FFC0", // Bright Pale Yellow Green
-    195: "#C0FFC0", // Bright Pale Green
-    196: "#C0FFD4", // Bright Pale Cyan Green
-    197: "#C0FFFF", // Bright Pale Cyan
-    198: "#C0D4FF", // Bright Pale Blue Cyan
-    199: "#C0C0FF", // Bright Pale Blue
-    200: "#D4C0FF", // Bright Pale Purple Blue
-    201: "#FFC0FF", // Bright Pale Pink Purple
-    202: "#FFC0D4", // Bright Pale Pink Red
-    203: "#FFAAAA", // Light Red
-    204: "#FF5555", // Bright Red
-    205: "#FFD4AA", // Light Orange
-    206: "#FFFFAA", // Light Yellow
-    207: "#D4FFAA", // Light Yellow Green
-    208: "#AAFFAA", // Light Green
-    209: "#AAFFD4", // Light Cyan Green
-    210: "#AAFFFF", // Light Cyan
-    211: "#AAD4FF", // Light Blue Cyan
-    212: "#AAAAFF", // Light Blue
-    213: "#D4AAFF", // Light Purple Blue
-    214: "#FFAAFF", // Light Pink Purple
-    215: "#FFAAAA", // Light Red Pink
-    216: "#FFD4FF", // Light Pink
-    217: "#FFC0FF", // Light Magenta
-    218: "#FFC0C0", // Pale Red
-    219: "#FFD4C0", // Pale Orange
-    220: "#FFFFC0", // Pale Yellow
-    221: "#D4FFC0", // Pale Yellow Green
-    222: "#C0FFC0", // Pale Green
-    223: "#C0FFD4", // Pale Green Cyan
-    224: "#C0FFFF", // Pale Cyan
-    225: "#C0D4FF", // Pale Blue Cyan
-    226: "#C0C0FF", // Pale Blue
-    227: "#D4C0FF", // Pale Purple Blue
-    228: "#FFC0FF", // Pale Pink Purple
-    229: "#FFC0D4", // Pale Pink Red
-    230: "#FFAAAA", // Pale Red Pink
-    231: "#FF5555", // Bright Red Pink
-    232: "#FFD4AA", // Bright Orange Pink
-    233: "#FFFFAA", // Bright Yellow Pink
-    234: "#D4FFAA", // Bright Yellow Green Pink
-    235: "#AAFFAA", // Bright Green Pink
-    236: "#AAFFD4", // Bright Cyan Green Pink
-    237: "#AAFFFF", // Bright Cyan Pink
-    238: "#AAD4FF", // Bright Blue Cyan Pink
-    239: "#AAAAFF", // Bright Blue Pink
-    240: "#D4AAFF", // Bright Purple Pink
-    241: "#FFAAFF", // Bright Pink Purple
-    242: "#FFAAAA", // Bright Red Pink
-    243: "#FFD4FF", // Bright Pink
-    244: "#FFC0FF", // Bright Magenta Pink
-    245: "#FFC0C0", // Pale Red Pink
-    246: "#FFD4C0", // Pale Orange Pink
-    247: "#FFFFC0", // Pale Yellow Pink
-    248: "#D4FFC0", // Pale Yellow Green Pink
-    249: "#C0FFC0", // Pale Green Pink
-    250: "#C0FFD4", // Pale Green Cyan Pink
-    251: "#C0FFFF", // Pale Cyan Pink
-    252: "#C0D4FF", // Pale Blue Cyan Pink
-    253: "#C0C0FF", // Pale Blue Pink
-    254: "#D4C0FF", // Pale Purple Pink
-    255: "#FFFFFF" // White
+    1: '#FF0000',
+    2: '#FFFF00',
+    3: '#00FF00',
+    4: '#00FFFF',
+    5: '#0000FF',
+    6: '#FF00FF',
+    7: '#FFFFFF',
+    8: '#414141',
+    9: '#808080',
+    10: '#FF0000',
+    11: '#FFAAAA',
+    12: '#BD0000',
+    13: '#BD7E7E',
+    14: '#810000',
+    15: '#815656',
+    16: '#680000',
+    17: '#684545',
+    18: '#4F0000',
+    19: '#4F3535',
+    20: '#FF3F00',
+    21: '#FFBFAA',
+    22: '#BD2E00',
+    23: '#BD8D7E',
+    24: '#811F00',
+    25: '#816056',
+    26: '#681900',
+    27: '#684E45',
+    28: '#4F1300',
+    29: '#4F3B35',
+    30: '#FF7F00',
+    31: '#FFD4AA',
+    32: '#BD5E00',
+    33: '#BD9D7E',
+    34: '#814000',
+    35: '#816B56',
+    36: '#683400',
+    37: '#685645',
+    38: '#4F2700',
+    39: '#4F4235',
+    40: '#FFBF00',
+    41: '#FFEAAA',
+    42: '#BD8D00',
+    43: '#BDAD7E',
+    44: '#816000',
+    45: '#817656',
+    46: '#684E00',
+    47: '#685F45',
+    48: '#4F3B00',
+    49: '#4F4935',
+    50: '#FFFF00',
+    51: '#FFFFAA',
+    52: '#BDBD00',
+    53: '#BDBD7E',
+    54: '#818100',
+    55: '#818156',
+    56: '#686800',
+    57: '#686845',
+    58: '#4F4F00',
+    59: '#4F4F35',
+    60: '#BFFF00',
+    61: '#EAFFAA',
+    62: '#8DBD00',
+    63: '#ADBD7E',
+    64: '#608100',
+    65: '#768156',
+    66: '#4E6800',
+    67: '#5F6845',
+    68: '#3B4F00',
+    69: '#494F35',
+    70: '#7FFF00',
+    71: '#D4FFAA',
+    72: '#5EBD00',
+    73: '#9DBD7E',
+    74: '#408100',
+    75: '#6B8156',
+    76: '#346800',
+    77: '#566845',
+    78: '#274F00',
+    79: '#424F35',
+    80: '#3FFF00',
+    81: '#BFFFAA',
+    82: '#2EBD00',
+    83: '#8DBD7E',
+    84: '#1F8100',
+    85: '#608156',
+    86: '#196800',
+    87: '#4E6845',
+    88: '#134F00',
+    89: '#3B4F35',
+    90: '#00FF00',
+    91: '#AAFFAA',
+    92: '#00BD00',
+    93: '#7EBD7E',
+    94: '#008100',
+    95: '#568156',
+    96: '#006800',
+    97: '#456845',
+    98: '#004F00',
+    99: '#354F35',
+    100: '#00FF3F',
+    101: '#AAFFBF',
+    102: '#00BD2E',
+    103: '#7EBD8D',
+    104: '#00811F',
+    105: '#568160',
+    106: '#006819',
+    107: '#45684E',
+    108: '#004F13',
+    109: '#354F3B',
+    110: '#00FF7F',
+    111: '#AAFFD4',
+    112: '#00BD5E',
+    113: '#7EBD9D',
+    114: '#008140',
+    115: '#56816B',
+    116: '#006834',
+    117: '#456856',
+    118: '#004F27',
+    119: '#354F42',
+    120: '#00FFBF',
+    121: '#AAFFEA',
+    122: '#00BD8D',
+    123: '#7EBDAD',
+    124: '#008160',
+    125: '#568176',
+    126: '#00684E',
+    127: '#45685F',
+    128: '#004F3B',
+    129: '#354F49',
+    130: '#00FFFF',
+    131: '#AAFFFF',
+    132: '#00BDBD',
+    133: '#7EBDBD',
+    134: '#008181',
+    135: '#568181',
+    136: '#006868',
+    137: '#456868',
+    138: '#004F4F',
+    139: '#354F4F',
+    140: '#00BFFF',
+    141: '#AAEAFF',
+    142: '#008DBD',
+    143: '#7EADBD',
+    144: '#006081',
+    145: '#567681',
+    146: '#004E68',
+    147: '#455F68',
+    148: '#003B4F',
+    149: '#35494F',
+    150: '#007FFF',
+    151: '#AAD4FF',
+    152: '#005EBD',
+    153: '#7E9DBD',
+    154: '#004081',
+    155: '#566B81',
+    156: '#003468',
+    157: '#455668',
+    158: '#00274F',
+    159: '#35424F',
+    160: '#003FFF',
+    161: '#AABFFF',
+    162: '#002EBD',
+    163: '#7E8DBD',
+    164: '#001F81',
+    165: '#566081',
+    166: '#001968',
+    167: '#454E68',
+    168: '#00134F',
+    169: '#353B4F',
+    170: '#0000FF',
+    171: '#AAAAFF',
+    172: '#0000BD',
+    173: '#7E7EBD',
+    174: '#000081',
+    175: '#565681',
+    176: '#000068',
+    177: '#454568',
+    178: '#00004F',
+    179: '#35354F',
+    180: '#3F00FF',
+    181: '#BFAAFF',
+    182: '#2E00BD',
+    183: '#8D7EBD',
+    184: '#1F0081',
+    185: '#605681',
+    186: '#190068',
+    187: '#4E4568',
+    188: '#13004F',
+    189: '#3B354F',
+    190: '#7F00FF',
+    191: '#D4AAFF',
+    192: '#5E00BD',
+    193: '#9D7EBD',
+    194: '#400081',
+    195: '#6B5681',
+    196: '#340068',
+    197: '#564568',
+    198: '#27004F',
+    199: '#42354F',
+    200: '#BF00FF',
+    201: '#EAAAFF',
+    202: '#8D00BD',
+    203: '#AD7EBD',
+    204: '#600081',
+    205: '#765681',
+    206: '#4E0068',
+    207: '#5F4568',
+    208: '#3B004F',
+    209: '#49354F',
+    210: '#FF00FF',
+    211: '#FFAAFF',
+    212: '#BD00BD',
+    213: '#BD7EBD',
+    214: '#810081',
+    215: '#815681',
+    216: '#680068',
+    217: '#684568',
+    218: '#4F004F',
+    219: '#4F354F',
+    220: '#FF00BF',
+    221: '#FFAAEA',
+    222: '#BD008D',
+    223: '#BD7EAD',
+    224: '#810060',
+    225: '#815676',
+    226: '#68004E',
+    227: '#68455F',
+    228: '#4F003B',
+    229: '#4F3549',
+    230: '#FF007F',
+    231: '#FFAAD4',
+    232: '#BD005E',
+    233: '#BD7E9D',
+    234: '#810040',
+    235: '#81566B',
+    236: '#680034',
+    237: '#684556',
+    238: '#4F0027',
+    239: '#4F3542',
+    240: '#FF003F',
+    241: '#FFAABF',
+    242: '#BD002E',
+    243: '#BD7E8D',
+    244: '#81001F',
+    245: '#815660',
+    246: '#680019',
+    247: '#68454E',
+    248: '#4F0013',
+    249: '#4F353B',
+    250: '#333333',
+    251: '#505050',
+    252: '#696969',
+    253: '#828282',
+    254: '#BEBEBE',
+    255: '#FFFFFF'
 };

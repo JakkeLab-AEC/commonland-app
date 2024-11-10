@@ -5,8 +5,8 @@ import { useEditorPageStore } from "@/rendererArea/sidebar/pages/editor/EditorPa
 
 export class TestAPI {
     private values = [15, 20, 25, 30, 35, 40, 12, 24, 36, 48];
-    async createTestBorings() {
-        for(let i = 1; i < 10; i++) {
+    async createTestBorings(count: number) {
+        for(let i = 1; i <= count; i++) {
             const boringName = `BH-${i}`;
             const boring = new Boring(
                 boringName,
