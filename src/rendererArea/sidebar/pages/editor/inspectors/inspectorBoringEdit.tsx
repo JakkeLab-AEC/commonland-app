@@ -211,8 +211,8 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring, isNewC
                 {/* Left column with fixed height content */}
                 <div className="flex flex-col w-[260px]" style={{borderRightWidth: 1}}>
                     {/* Boring name */}
-                    <div className="grid grid-cols-[76px_1fr] p-2 gap-1">
-                        <div>{findValue("BoringEditor", "boringNameHeader")}</div>
+                    <div className="flex flex-row p-2 gap-1">
+                        <div className="w-[202px]">{findValue("BoringEditor", "boringNameHeader")}</div>
                         <input 
                             ref={tbBoringName} 
                             className="border w-full" 
@@ -259,7 +259,7 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring, isNewC
                         </div>
                         <div></div>
                         <div className="grid grid-cols-[84px_1fr] gap-x-2">
-                            <div>{findValue("BoringEditor", "undergroundwater")} GL</div>
+                            <div className="w-[192px]">{findValue("BoringEditor", "undergroundwater")} GL</div>
                             <input 
                                 ref={tbBoringName} 
                                 className="border w-full" 
@@ -288,13 +288,10 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring, isNewC
                         SPTResultSet={currentSPTResult}/>
                 </div>
             </div>
-
             {/* Save buttons */}
-            <div className="flex self-end">
-                <div className="flex flex-row gap-2 justify-end p-2">
-                    <ButtonPositive text={"저장"} width={48} isEnabled={true} onClickHandler={onClickSave}/>
-                    <ButtonNegative text={"취소"} width={48} isEnabled={true} onClickHandler={onClickCancel}/>
-                </div>
+            <div className="flex self-end flex flex-row gap-2 justify-end p-2">
+                <ButtonPositive text={"저장"} width={48} isEnabled={true} onClickHandler={onClickSave}/>
+                <ButtonNegative text={"취소"} width={48} isEnabled={true} onClickHandler={onClickCancel}/>
             </div>
         </div>
     );

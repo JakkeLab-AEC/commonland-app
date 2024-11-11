@@ -44,6 +44,7 @@ export const BoringManager = () => {
     const prefixRef = useRef<HTMLInputElement>(null);
     const manualNameRef = useRef<HTMLInputElement>(null);
     const indexRef = useRef<HTMLInputElement>(null);
+    const layerColorsRef = useRef<HTMLDivElement>(null);
     const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
     const [namingMode, setNamingMode] = useState<'manual'|'autoincrement'>('autoincrement');
 
@@ -59,6 +60,7 @@ export const BoringManager = () => {
         setInspectorPosition,
         registerInspectorClosingListner,
         resetInspector,
+        currentSidebarHeight
     } = useHomeStore();
 
     const {
@@ -217,7 +219,9 @@ export const BoringManager = () => {
         setInspectorContent(<ColorPicker targetId={id} onClickHandler={onPickColor}/>);
         setInspectorTitle(`색상 선택 : ${id}`)
         setInspectorSize({width: 244, height: 180});
-        setInspectorPosition(672, 340);
+
+        // Calculate bottom position
+        setInspectorPosition(586, 340);
         setInspectorVisiblity(true);
     }
 
@@ -319,7 +323,7 @@ export const BoringManager = () => {
                 <ButtonPositive text={"추가"} width={40} isEnabled={true} onClickHandler={onClickAddBoring}/>
                 <ButtonNegative text={"삭제"} width={40} isEnabled={true} onClickHandler={onClickRemoveBoring}/>
             </div>
-            <div className="flex flex-row flex-grow gap-1">
+            <div className="flex flex-row flex-grow gap-1" ref={layerColorsRef}>
                 <FoldableControl title={"색상"}>
                     <ListInputBox items={layerColorConfig.getAllLayerColors()} width={'full'} height={180} onClickHandler={onClickLayerColor} />
                 </FoldableControl>
