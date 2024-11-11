@@ -8,8 +8,6 @@ import { ThreeExporter } from "@/rendererArea/api/three/exporters/threeExporter"
 import './headerStyle.css';
 
 export default function Header({appName}:{appName: string}) {
-    
-
     const [menuVisibility, setMenuVisibility] = useState<boolean>(false);
     const {
         updateHomeId,
@@ -40,7 +38,7 @@ export default function Header({appName}:{appName: string}) {
             displayString: '시추공 DXF 내보내기',
             isActionIdBased: false,
             action: async () => {
-                ThreeExporter.exportBoringsDXF();
+                ThreeExporter.exportBoringsDXF('KOR');
             },
             closeHandler: () => setMenuVisibility(false),
         }, {
@@ -87,7 +85,6 @@ export default function Header({appName}:{appName: string}) {
                     <rect x="3" y="3" width="10" height="10" strokeWidth={1}/>
                 </svg>
             </button>
-
             {/* Close Button */}
             {/* ipcRenderer.send('window-control', 'close') */}
             <button onClick={() => {window.electronWindowControlAPI.quit()}} className="menu-btn-negative">

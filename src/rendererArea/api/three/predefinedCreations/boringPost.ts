@@ -366,7 +366,13 @@ export class ThreeBoringPost {
         }
     }
 
-    static async createSPTResults(sptValues: {depth: number, hitCount: number, distance: number}[], topLevel: number, directionFactor = -1, offsetText = 0.1, leaderLength = 2, textColor = 0x000000) {
+    static async createSPTResults(
+        sptValues: {depth: number, hitCount: number, distance: number}[], 
+        topLevel: number, 
+        directionFactor = -1, 
+        offsetText = 0.1, 
+        leaderLength = 1, 
+    ) {
         const threeObjects:{ textGeometrySPTResult: TextGeometry, textGeometryDepth:TextGeometry, leaderLine: THREE.Line }[] = [];
         for(const spt of sptValues) {
             // Create leader objects
@@ -393,7 +399,7 @@ export class ThreeBoringPost {
 
             const matrix = new THREE.Matrix4();
             matrix.makeTranslation(
-                directionFactor == 1 ? directionFactor*(leaderLength + offsetText) : directionFactor*(leaderLength + offsetText + horLength + hitCountTextLength + 1),
+                directionFactor == 1 ? directionFactor*(leaderLength + offsetText) : directionFactor*(leaderLength + offsetText + horLength + hitCountTextLength + 2),
                 topLevel - spt.depth - verLength*0.5,
                 0
             );
