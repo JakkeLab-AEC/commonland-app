@@ -137,9 +137,7 @@ export class ViewportControlService {
         // Apply change
         this.sceneController.setCamera(camera);
         this.sceneController.render();
-
-        console.log(camera.position);
-
+        
         // Restore the eventListener
         this.sceneController.controls.addEventListener('change', this.updateCameraPlane);
     }
@@ -164,14 +162,11 @@ export class ViewportControlService {
         const cameraCenter = camera.position.clone(); // Keep the current camera position
         const cameraLookAt = max.clone().sub(directionMinToMax.clone().multiplyScalar(10));
 
-        console.log(cameraCenter);
-
         camera.near = 0.1;
         camera.far = cameraCenter.distanceTo(cameraLookAt)+2000;
         camera.updateProjectionMatrix();
 
         renderer.render(scene, camera);
         this.sceneController.setCamera(camera);
-        console.log(camera.position);
     }
 }
