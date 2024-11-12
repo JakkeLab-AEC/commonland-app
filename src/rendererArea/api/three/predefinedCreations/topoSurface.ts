@@ -16,8 +16,6 @@ export class ThreeTopoSurface {
             points3d.map(p => [p.x, p.z])
         )
 
-        console.log(indexDelaunay);
-
         const pts = points3d.map(p => new THREE.Vector3(p.x, p.z, p.y));
 
         const geom = new THREE.BufferGeometry().setFromPoints(pts);

@@ -100,7 +100,6 @@ export const BoringBatcher = () => {
             setCheckedUnbatchedItems(newSet);
             updateUnbatchedBoringDisplayItem(id, checked);
         }
-        console.log(checkedUnbatchedItems);
     }
 
     const unbatchBoringsWrapper = async () => {
@@ -129,7 +128,9 @@ export const BoringBatcher = () => {
     const onClickCreatePosts = async () => {
         const threeObjs: THREE.Object3D[] = [];
         for(const boring of batchedBorings.values()) {
-            const obj = await ThreeBoringPost.createPostFromModel(boring, layerColorConfig);
+            const boringPostCreator = new ThreeBoringPost();
+            await boringPostCreator.init();
+            const obj = await boringPostCreator.createPostFromModel(boring, layerColorConfig);
             threeObjs.push(obj);
         }
 

@@ -57,7 +57,6 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
             });
 
             
-            console.log(depths);
             set(() => {
                 return { 
                     allDepths: depths,

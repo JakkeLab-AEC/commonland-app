@@ -96,7 +96,6 @@ export const TopographyManage = () => {
 
         if(deleteJobResult.result) {
             setCheckedItems(new Set());
-            console.log(deleteJobResult.deletedTopos);
             const targetThreeIds = deleteJobResult.deletedTopos.map(topo => topo.getThreeObjId());
             SceneController.getInstance().removeObjectByUUIDs(targetThreeIds);
         }

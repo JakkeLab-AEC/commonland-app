@@ -32,7 +32,6 @@ export class ViewportControlService {
 
     updateTopoColor = (updateArgs: {threeObjId: string, colorIndex: number}[]) => {
         try {
-            console.log(updateArgs);
             updateArgs.forEach(arg => {
                 const threeObj = this.sceneController.getScene().getObjectByProperty('uuid', arg.threeObjId);
                 if(threeObj) {
@@ -123,8 +122,6 @@ export class ViewportControlService {
         // Calculate positions
         const cameraCenter = max.clone().add(directionMinToMax.clone().multiplyScalar(10));
         const cameraLookAt = min;
-        
-        console.log(cameraCenter);
         
         // Set camera's coordinates
         camera.position.set(cameraCenter.x, cameraCenter.y, cameraCenter.z);

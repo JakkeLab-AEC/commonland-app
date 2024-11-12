@@ -1,6 +1,5 @@
 import { useHomeStore } from "../../../commonStatus/homeStatusModel";
 import { ListBox } from "../../../../rendererArea/components/listbox/listBox"
-import { ListBoxItem } from "../../../../rendererArea/components/listbox/listBoxItem"
 import React, { ChangeEvent, useEffect, useRef, useState } from "react"
 import { InspectorBoringEdit } from "./inspectors/inspectorBoringEdit";
 import { useLanguageStore } from "../../../../rendererArea/language/languageStore";
@@ -12,7 +11,8 @@ import { Layer } from "../../../../mainArea/models/serviceModels/boring/layer";
 import { FoldableControl } from "@/rendererArea/components/foldableControl/foldableControl";
 import { ListInputBox } from "@/rendererArea/components/listbox/listInputBox";
 import { ColorIndexPalette } from "@/rendererArea/components/palette/colorIndexPalette";
-import { SceneController } from "@/rendererArea/api/three/SceneController";
+import { useModalOveralyStore } from "@/rendererArea/homescreenitems/modalOverlayStore";
+import {ModalSwapXY} from './modals/modalswapxy';
 
 interface InspectorContent {
     boring: Boring,
@@ -49,6 +49,11 @@ export const BoringManager = () => {
     const [namingMode, setNamingMode] = useState<'manual'|'autoincrement'>('autoincrement');
 
     const {
+        toggleMode,
+        updateModalContent,
+    } = useModalOveralyStore();
+
+    const {
         findValue,
     } = useLanguageStore();
     
@@ -77,12 +82,12 @@ export const BoringManager = () => {
         selectedBoringId,
         layerColorConfig,
         fetchAllLayerColors,
+        updateBoring,
     } = useEditorPageStore();
 
     
     const onClickHandler = (id: string) => {
         const selectedBoring = selectBoring(id);
-        console.log(selectedBoring.serialize());
         resetInspector();
         setInspectorContent(<InspectorContent key={selectedBoring.getId().getValue()} boring={selectedBoring} isNewCreated={false}/>)
 
@@ -233,6 +238,36 @@ export const BoringManager = () => {
         }
     }
 
+    // Swap X, Y Coord
+    const onChangeXYCoord = () => {
+        updateModalContent(<ModalSwapXY onSelectMode={swapXYCoord} />)
+        toggleMode(true);
+    }
+
+    const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+    const swapXYCoord = async (result: boolean) => {
+        if (!result) return;
+    
+        const updatedBoringMap = new Map(borings);
+        const updatedBorings: Boring[] = [];
+        
+        updatedBoringMap.forEach((boring, key) => {
+            const coordX = boring.getLocationX();
+            const coordY = boring.getLocationY();
+    
+            const clonedBoring = boring.clone();
+            clonedBoring.setLocationX(coordY);
+            clonedBoring.setLocationY(coordX);
+    
+            updatedBorings.push(clonedBoring);
+        });
+    
+        for (const boring of updatedBorings) {
+            await updateBoring(boring);
+        }
+    }
+
     useEffect(() => {
         fetchAllBorings();
         fetchAllLayerColors();
@@ -255,7 +290,7 @@ export const BoringManager = () => {
             </div>
             <div>
                 <ListBox 
-                    height={420} 
+                    height={340} 
                     items={boringDisplayItems}
                     onClickHandler={onClickHandler} 
                     onCheckedHandler={onCheckedItemHandler}
@@ -326,6 +361,13 @@ export const BoringManager = () => {
             <div className="flex flex-row flex-grow gap-1" ref={layerColorsRef}>
                 <FoldableControl title={"색상"}>
                     <ListInputBox items={layerColorConfig.getAllLayerColors()} width={'full'} height={180} onClickHandler={onClickLayerColor} />
+                </FoldableControl>
+            </div>
+            <div className="flex flex-row flex-grow">
+                <FoldableControl title={"편집"}>
+                    <div className="w-full gap-1">
+                        <ButtonPositive text={"X, Y 좌표 바꾸기"} isEnabled={true} width={128} onClickHandler={onChangeXYCoord}/>
+                    </div>
                 </FoldableControl>
             </div>
         </div>

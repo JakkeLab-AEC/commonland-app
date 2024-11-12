@@ -202,7 +202,7 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring, isNewC
     }
 
     useEffect(() => {
-        console.log(boring.serialize());
+
     }, [])
 
     return (
