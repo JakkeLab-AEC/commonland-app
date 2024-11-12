@@ -47,7 +47,9 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring, isNewC
 
     const [currentLayers, setLayers] = useState<Layer[]>(boring.getLayers());
     const [currentSPTResult] = useState<SPTResultSet>(boring.getSPTResultSet());
-    const tbBoringName = useRef(null);
+    const tbBoringName = useRef<HTMLInputElement>(null);
+    const tbCoordXRef = useRef<HTMLInputElement>(null);
+    const tbCoordYRef = useRef<HTMLInputElement>(null);
     
     const onClickCancel = () => {
         setInspectorVisiblity(false);
@@ -201,6 +203,15 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring, isNewC
         boring.getSPTResultSet().buildByMultipleValues(e);
     }
 
+    const onSwapCoordinate = () => {
+        const [coordX, coordY] = [boring.getLocationX(), boring.getLocationY()];
+        boring.setLocationX(coordY);
+        boring.setLocationY(coordX);
+
+        tbCoordXRef.current.value = coordY.toString();
+        tbCoordYRef.current.value = coordX.toString();
+    }
+
     useEffect(() => {
 
     }, [])
@@ -230,9 +241,12 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring, isNewC
                                 type="number" 
                                 step={0.01} 
                                 defaultValue={boring.getLocationX()}
-                                onChange={onChangeCoordXHandler}/>
+                                onChange={onChangeCoordXHandler}
+                                ref={tbCoordXRef} />
                         </div>
-                        <div></div>
+                        <div>
+                            <ButtonPositive text={"변경"} isEnabled={true} onClickHandler={onSwapCoordinate}/>
+                        </div>
                         <div className="grid grid-cols-[28px_1fr] gap-x-2">
                             <div>Y:</div>
                             <input 
@@ -240,7 +254,8 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring, isNewC
                                 type="number" 
                                 step={0.01} 
                                 defaultValue={boring.getLocationY()}
-                                onChange={onChangeCoordYHander}/>
+                                onChange={onChangeCoordYHander}
+                                ref={tbCoordYRef} />
                         </div>
                     </div>
                     <hr />

@@ -38,14 +38,16 @@ export default function Header({appName}:{appName: string}) {
             displayString: '시추공 DXF 내보내기',
             isActionIdBased: false,
             action: async () => {
-                ThreeExporter.exportBoringsDXF('KOR');
+                const exporter = new ThreeExporter('euclidean');
+                exporter.exportBoringsDXF('KOR');
             },
             closeHandler: () => setMenuVisibility(false),
         }, {
             displayString: '지형 DXF 내보내기',
             isActionIdBased: false,
             action: async () => {
-                ThreeExporter.exportToposDXF();
+                const exporter = new ThreeExporter('euclidean');
+                exporter.exportToposDXF();
             },
             closeHandler: () => setMenuVisibility(false),
         },

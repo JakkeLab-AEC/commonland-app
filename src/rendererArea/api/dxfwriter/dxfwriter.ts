@@ -88,7 +88,6 @@ export class DXFWriter {
         tables.push('0', 'TABLE', '2', 'STYLE');
 
         // Add each style's serialization
-        console.log(this.styles);
         for (const style of this.styles) {
             if(style.styleType == StyleType.TextStyle) {
                 tables.push(style.serialize());

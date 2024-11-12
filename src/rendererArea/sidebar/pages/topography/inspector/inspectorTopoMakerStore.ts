@@ -89,6 +89,7 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
         }
     },
     insertTopo: async (topo: Topo) => {
+        console.log(topo.getAllPoints());
         const createdMesh = createDelaunatedMesh(topo);
         topo.setThreeObjId(createdMesh.uuid);
         const insertJob = await window.electronTopoLayerAPI.insertTopo(topo.serialize());

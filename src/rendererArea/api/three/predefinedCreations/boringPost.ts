@@ -104,6 +104,7 @@ export class ThreeBoringPost {
             });
             const segmentMesh = new THREE.Mesh(obj.postGeometry, realMat);
             segmentMesh.userData = {
+                modelCreatedFrom: 'CommonLandApp',
                 type: ModelType.PostSegment,
                 layerName: obj.layerName,
             }
@@ -165,7 +166,6 @@ export class ThreeBoringPost {
         parentObject.add(...threeObjs);
 
         //#endregion
-        console.log(parentObject);
         return parentObject;
     }
     
