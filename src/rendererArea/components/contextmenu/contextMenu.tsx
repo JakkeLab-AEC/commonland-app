@@ -5,7 +5,7 @@ export interface ContextMenuItemProp {
     displayString: string,
     id?: string|null,
     isActionIdBased: boolean
-    action?: (e: string|null) => void,
+    action?: (e?: string|null) => void,
     closeHandler: () => void,
 }
 

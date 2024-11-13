@@ -6,6 +6,7 @@ import { Circle, Cylinder, DXFLayer, DXFWriter, Line, Polyline, Text, Text3d, Te
 import { TopoDTO } from '@/dto/serviceModel/topoDto';
 import { BoringDTO } from '@/dto/serviceModel/BoringDTO';
 import { UnicodeConverter } from '../../dxfwriter/unicodeConverter';
+import { Boring } from '@/mainArea/models/serviceModels/boring/boring';
 
 interface MeshProp {
     createdFrom: TopoDTO,
@@ -32,7 +33,9 @@ export class ThreeExporter {
         URL.revokeObjectURL(link.href);
     }
 
-    exportToposDXF() {
+    exportToposDXF(language: 'ENG'|'KOR'|'JPN', moveCoordinate?: {dx: number, dy: number}) {
+        const [dx, dy] = moveCoordinate ? [moveCoordinate.dx, moveCoordinate.dy] : [0, 0];
+
         // Create DXFWriter
         const dxfWriter = new DXFWriter();
         
@@ -65,9 +68,9 @@ export class ThreeExporter {
                 const y = geometry.attributes.position.getY(i);
                 const z = geometry.attributes.position.getZ(i);
                 if(this.zAxisMode == 'camera') {
-                    meshProp.vertices.set(i + 1, { x: x , y: y, z: z });
+                    meshProp.vertices.set(i + 1, { x: x+dx , y: y+dy, z: z });
                 } else {
-                    meshProp.vertices.set(i + 1, { x: x, y: z, z: y });
+                    meshProp.vertices.set(i + 1, { x: x+dx, y: z, z: y+dy });
                 }
             });
 
@@ -78,9 +81,9 @@ export class ThreeExporter {
                     const y = geometry.attributes.normal.getY(i);
                     const z = geometry.attributes.normal.getZ(i);
                     if(this.zAxisMode == 'camera') {
-                        meshProp.vertexNormals.set(i + 1, { x: x, y: y, z: z });
+                        meshProp.vertexNormals.set(i + 1, { x: x+dx, y: y+dy, z: z });
                     } else {
-                        meshProp.vertexNormals.set(i + 1, { x: x, y: z, z: y });
+                        meshProp.vertexNormals.set(i + 1, { x: x+dx, y: z, z: y+dy });
                     }
                 });
             }
@@ -128,23 +131,25 @@ export class ThreeExporter {
             });
         })
 
-        dxfWriter.exportAsDXFFile('KOR');
+        dxfWriter.exportAsDXFFile(language);
     }
 
-    async exportBoringsDXF(language: 'ENG'|'KOR'|'JPN') {
+    async exportBoringsDXF(language: 'ENG'|'KOR'|'JPN', moveCoordinate?: {dx: number, dy: number}) {
         const dxfWriter = new DXFWriter();
 
+        const [dx, dy] = moveCoordinate ? [moveCoordinate.dx, moveCoordinate.dy] : [0, 0];
+        
         // Load boring datas;
-        const boringDatas = await window.electronBoringDataAPI.fetchAllBorings();
-        const layerDatas = await window.electronBoringDataAPI.getAllLayerColors();
-        if(!boringDatas || !boringDatas.result || !layerDatas || !layerDatas.result) {
+        const boringFetch = await window.electronBoringDataAPI.fetchAllBorings();
+        const layerFetch = await window.electronBoringDataAPI.getAllLayerColors();
+        if(!boringFetch || !boringFetch.result || !layerFetch || !layerFetch.result) {
             alert('내보내기 오류.');
             return;
         }
 
         // Register layers
         const layerMap: Map<string, DXFLayer> = new Map();
-        layerDatas.layerColors.forEach((layerInfo, index) => {
+        layerFetch.layerColors.forEach((layerInfo, index) => {
             const convertedLayerName = UnicodeConverter.convertStringToUnicode(layerInfo[0]);
             layerMap.set(layerInfo[0], new DXFLayer(convertedLayerName, layerInfo[1]));
         });
@@ -161,14 +166,21 @@ export class ThreeExporter {
         const textSmallStyle = new TextStyle('TextSmall', 'malgun', 'malgun.ttf', 0.5);
         dxfWriter.registerTextStyle(textNormalStyle);
         dxfWriter.registerTextStyle(textSmallStyle);
-        const boringEnds = boringDatas.fetchedBorings.flatMap(boring => 
+        const boringDatas = boringFetch.fetchedBorings.map(data => {
+            data.location.x += dx;
+            data.location.y += dy;
+
+            return data;
+        })
+
+        const boringEnds = boringDatas.flatMap(boring => 
             boring.topoTop - boring.layers.flatMap(ly => ly.thickness).reduce((thickness, sum) => sum += thickness, 0)
         );
 
         const zMin = Math.min(...boringEnds);
 
         // Create boring shapes
-        boringDatas.fetchedBorings.forEach(boring => {
+        boringDatas.forEach(boring => {
             this.addBoringShape(boring, dxfWriter, layerMap, textLayer, textNormalStyle, textSmallStyle, zMin-2);
         });
 

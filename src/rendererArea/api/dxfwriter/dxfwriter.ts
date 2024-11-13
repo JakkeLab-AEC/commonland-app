@@ -63,6 +63,8 @@ export class DXFWriter {
             '2', 'HEADER',
             '9', '$DWGCODEPAGE',
             '3', ansiCode,
+            '9', '$INSUNITS',
+            '70', '6',
             '0', 'ENDSEC'
         ].join('\n');
     }
