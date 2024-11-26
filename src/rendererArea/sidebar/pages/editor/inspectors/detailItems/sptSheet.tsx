@@ -34,7 +34,7 @@ export const SPTResultUnit:React.FC<SPTResultUnitProp> = ({id, depth, hitCount, 
                         type="number" 
                         defaultValue={hitCount} 
                         className="w-[36px] border" 
-                        min={1} 
+                        min={0} 
                         max={99} 
                         maxLength={2}
                         onChange={onChangeValue}
@@ -46,7 +46,7 @@ export const SPTResultUnit:React.FC<SPTResultUnitProp> = ({id, depth, hitCount, 
                         type="number" 
                         defaultValue={distance} 
                         className="w-[36px] border" 
-                        min={1} 
+                        min={0} 
                         max={99} 
                         maxLength={2}
                         onChange={onChangeValue}
@@ -168,7 +168,7 @@ export const SPTSheet:React.FC<SPTSheetProps> = ({SPTResultSet, onClickSetDepth,
 
     const onSubmitSPTMultipleLines = () => {
         const contents = multilineTextboxRef.current.submitContent();
-        const pattern = /^[1-9]\d*\/[1-9]\d*$/;
+        const pattern = /^[0-9]\d*\/[0-9]\d*$/;
         const falseValue: {index: string, content: string}[] = [];
         contents.forEach((content, index) => {
             const testResult = pattern.test(content);
@@ -189,7 +189,7 @@ export const SPTSheet:React.FC<SPTSheetProps> = ({SPTResultSet, onClickSetDepth,
                 }
             });
             const alertValueJoined = alertValue.join();
-            alert(`일부 값의 형식이 잘못되었습니다.\n자연수/자연수 형태로 입력해주세요\n${alertValueJoined}`);
+            alert(`일부 값의 형식이 잘못되었습니다.\n0 이상의 정수/정수 형태로 입력해주세요\n${alertValueJoined}`);
             return;
         }
         const result: Map<number, {hitCount: number, distance: number}> = new Map()

@@ -9,7 +9,6 @@ import { useVisibilityOptionStore } from '@/rendererArea/homescreenitems/visibil
 export class ViewportControlService {
     constructor(sceneController: SceneController) {
         this.sceneController = sceneController;
-        // this.sceneController.controls.addEventListener('change', this.updateCameraPlane);
     }
 
     private sceneController: SceneController;
