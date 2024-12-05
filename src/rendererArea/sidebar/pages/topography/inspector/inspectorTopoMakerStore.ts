@@ -1,6 +1,7 @@
 import { Topo } from "@/mainArea/models/serviceModels/topo/Topo";
 import { createDelaunatedMesh } from "@/rendererArea/api/three/geometricUtils/delaunayUtils";
 import { SceneController } from "@/rendererArea/api/three/SceneController";
+import { generateUUID } from "three/src/math/MathUtils";
 import { create } from "zustand";
 
 interface TopoMakerProp {
@@ -42,7 +43,8 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
                     boringId: boring.id,
                     layers: [],
                 };
-
+                
+                // Set layer data
                 let layerDepth = boring.topoTop;
                 for(let i = 0; i < boring.layers.length; i++) {
                     const layer = boring.layers[i];
@@ -50,6 +52,10 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
                     layerDepth -= layer.thickness;
                     layerNames.add(layer.name);
                 }
+
+                // Set underground water data
+                layerDepth = boring.topoTop;
+                depth.layers.push({layerId: generateUUID(), layerName: '지하수위', layerDepth: layerDepth - boring.undergroundWater})
 
                 valueSlot.set(boring.id, null);
 

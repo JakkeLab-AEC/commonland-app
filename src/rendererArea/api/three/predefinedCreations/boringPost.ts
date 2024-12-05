@@ -57,7 +57,8 @@ export class ThreeBoringPost {
             boring.getName(),
             boring.getTopoTop(),
             layers,
-            sptValues
+            sptValues,
+            boring.getTopoTop() - boring.getUndergroundWater()
         );
 
         const moveMatrix = new THREE.Matrix4()
@@ -152,6 +153,23 @@ export class ThreeBoringPost {
         }));
 
         threeObjs.push(boringEndTextObject);
+        //#endregion
+
+        //#region Underground water leader
+        if(!threeItems.undergroundWaterLeader) return;
+        threeItems.undergroundWaterLeader.textGeometry.applyMatrix4(moveMatrix);
+        threeItems.undergroundWaterLeader.leaderLine.applyMatrix4(moveMatrix);
+        threeObjs.push(threeItems.undergroundWaterLeader.leaderLine);
+
+        // For real object
+        const undergroundWaterTextObject = new THREE.Mesh(threeItems.undergroundWaterLeader.textGeometry, new THREE.MeshBasicMaterial({
+            color: 0x000000,
+            side: THREE.DoubleSide,
+        }));
+
+        threeObjs.push(undergroundWaterTextObject);
+
+        //#endregion
 
 
         // Merge all wrapping objects
@@ -165,11 +183,10 @@ export class ThreeBoringPost {
         const parentObject = new THREE.Mesh(mergedGeometry, wrappingMaterial);
         parentObject.add(...threeObjs);
 
-        //#endregion
         return parentObject;
     }
     
-    async createPost(boringName: string, topoTop: number, layers:{name: string, thickness:number, color: number}[], sptValues: {depth: number, hitCount: number, distance: number}[]) {
+    async createPost(boringName: string, topoTop: number, layers:{name: string, thickness:number, color: number}[], sptValues: {depth: number, hitCount: number, distance: number}[], undergroundWaterLevel: number) {
         const dims = DefaultDimensions.getInstance().getDims();
         const radius = dims.shoringPostRadius;
         const offsetText = 0.2;
@@ -247,13 +264,28 @@ export class ThreeBoringPost {
             -1
         );
 
+        // Create SPTResults
         const sptObjects = await this.createSPTResults(sptValues, topoTop);
+        
+        // Create underground water level leader
+        const undergroundWaterLeader = await this.createLeader(
+            `지하수위 : ${undergroundWaterLevel.toFixed(2)}`,
+            0.5,
+            {curved: false, leaderLength: 12},
+            radius,
+            0.2,
+            undergroundWaterLevel,
+            0x000000,
+            1
+        );
+
 
         return {
             postNameLeader: postNameLeader,
             postSegments: postSegments,
             boringEndLeader: boringEndLedaer,
-            sptObjects: sptObjects
+            sptObjects: sptObjects,
+            undergroundWaterLeader: undergroundWaterLeader
         };
     }
 

@@ -232,7 +232,7 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring, isNewC
                     </div>
                     <hr />
                     {/* Coordinates */}
-                    <div className="grid grid-cols-[76px_1fr] p-2 gap-y-2">
+                    <div className="grid grid-cols-[48px_1fr] p-2 gap-y-2">
                         <div>{findValue("BoringEditor", "boringCoordinate")}</div>
                         <div className="grid grid-cols-[28px_1fr] gap-x-2">
                             <div>X:</div>
@@ -260,13 +260,13 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring, isNewC
                     </div>
                     <hr />
                     {/* EL, GL Levels */}
-                    <div className="grid grid-cols-[76px_1fr] p-2 gap-y-2">
+                    <div className="grid grid-cols-[48px_1fr] p-2 gap-y-2">
                         <div>{findValue("BoringEditor", "boringLevels")}</div>
                         <div className="grid grid-cols-[84px_1fr] gap-x-2">
                             <div>{findValue("BoringEditor", "elevation")} EL</div>
                             <input 
                                 ref={tbBoringName} 
-                                className="border w-full" 
+                                className="border w-full max-w-[92px] ml-auto" 
                                 type="number" 
                                 step={0.01} 
                                 defaultValue={boring.getTopoTop()} 
@@ -274,10 +274,10 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring, isNewC
                         </div>
                         <div></div>
                         <div className="grid grid-cols-[84px_1fr] gap-x-2">
-                            <div className="w-[192px]">{findValue("BoringEditor", "undergroundwater")} GL</div>
+                            <div className="w-[204px]">{findValue("BoringEditor", "undergroundwater")} GL(-)</div>
                             <input 
                                 ref={tbBoringName} 
-                                className="border w-full" 
+                                className="border w-full max-w-[92px] ml-auto" 
                                 type="number" 
                                 step={0.01} 
                                 defaultValue={boring.getUndergroundWater()} 
