@@ -41,7 +41,7 @@ export const LayerSelector:React.FC<LayerSelectorProp> = ({boringName, boringId,
                 </div>
             </div>
             <hr/>
-            <div className="flex-grow flex flex-col gap-1">
+            <div className="flex-grow flex flex-col gap-1 overflow-auto">
                 {layerValues.map(layer => {
                     return (
                     <label key={layer.layerId} className="flex flex-row]">

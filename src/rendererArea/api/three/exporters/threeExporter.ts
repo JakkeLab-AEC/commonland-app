@@ -219,16 +219,19 @@ export class ThreeExporter {
 
         // Post and layers
         boring.layers.forEach(layer => {
-
             // Create cylinder
             const postLayer = postLayers.get(layer.name);
+
+            const borderCircle = new Circle(x, y, layerTop, radius, textLayer);
+            dxfWriter.addComponent(borderCircle);
+
             const cylinder = new Cylinder({x: x, y: y, z: layerTop - layer.thickness}, radius, layer.thickness, 64, postLayer, -1);
             dxfWriter.addComponent(cylinder);
 
             // Create leader
             const line = new Line(
                 {x: x+radius, y: y, z: layerTop},
-                {x: x+radius+8, y: y, z: layerTop},
+                {x: x+radius+2, y: y, z: layerTop},
                 textLayer,
             );
             dxfWriter.addComponent(line);
@@ -238,7 +241,7 @@ export class ThreeExporter {
             const text = new Text3d(
                 `${convertedLayerName} (${layerTop.toFixed(2)})`,
                 'XZ',
-                {x: x+radius+9, y: y, z: layerTop},
+                {x: x+radius+2.5, y: y, z: layerTop},
                 0.5,
                 textLayer,
                 -1,
@@ -283,7 +286,7 @@ export class ThreeExporter {
         const boringEndText = new Text3d(
             convertedContent,
             "XZ",
-            {x: x+radius+9, y: y, z: layerTop},
+            {x: x+radius+8.5, y: y, z: layerTop},
             0.5,
             textLayer,
             -1,
@@ -332,5 +335,34 @@ export class ThreeExporter {
             );
             dxfWriter.addComponent(sptResultText);
         });
+
+        //#region Create Underground Water
+        const ungdWaterLevel = boring.topoTop - boring.undergroundWater
+        if(!Number.isNaN(ungdWaterLevel)){
+            const borderCircle = new Circle(x, y, ungdWaterLevel, radius, textLayer);
+            dxfWriter.addComponent(borderCircle);
+
+            const line = new Line(
+                {x: x+radius,   y: y, z: ungdWaterLevel},
+                {x: x+radius+8, y: y, z: ungdWaterLevel},
+                textLayer,
+            );
+            dxfWriter.addComponent(line);
+    
+            const convertedContent = UnicodeConverter.convertStringToUnicode(`지하수위 : (${ungdWaterLevel.toFixed(2)})`);
+            const ungdWaterLevelText = new Text3d(
+                convertedContent,
+                "XZ",
+                {x: x+radius+8.5, y: y, z: ungdWaterLevel},
+                0.5,
+                textLayer,
+                -1,
+                "left",
+                "middle",
+                layerTextStyle
+            )
+            dxfWriter.addComponent(ungdWaterLevelText);
+        }
+        //#endregion
     }
 }
