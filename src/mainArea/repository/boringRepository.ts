@@ -354,6 +354,110 @@ export class BoringRepository implements BoringCRUDMethods {
         }
     }
 
+    async updateBoringMultiple(boringDtos: BoringDTO[]) {
+        try {
+            await this.db.exec('BEGIN TRANSACTION');
+            for(const boringDto of boringDtos) {
+                // Update mode
+                let updateMode: 'noRenaming'|'Renaming' = 'Renaming';
+                
+                // Pre-check - Search boring names for prevention of Unique constrain error.
+                const query = `
+                    SELECT 
+                        boring_id, name
+                    FROM 
+                        ${DB_TABLENAMES.BORINGS}
+                    WHERE
+                        name = ?
+                `
+                const searchJob = await this.db.all(query, boringDto.name);
+                if(!searchJob) {
+                    return {result: false, updateError: DB_ERRORCODE['internalError']}
+                }
+
+                if(searchJob.length != 0) {
+                    if(searchJob.filter(col => col.boring_id == boringDto.id).length == 0) {
+                        return {result: false, updateError: DB_ERRORCODE['nameDuplication']}
+                    } else {
+                        updateMode = 'noRenaming';
+                    }
+                }
+                
+                // Update works
+                const boringColumnsNoRenaming = ['location_x', 'location_y', 'topo_top', 'underground_water', 'is_batched', 'three_id'];
+                const boringColumns = ['name', 'location_x', 'location_y', 'topo_top', 'underground_water', 'is_batched', 'three_id'];
+                const {name, location, topoTop, undergroundWater, id, isBatched, threeObjId} = boringDto;
+                
+                const layerColumns = ['layer_id', 'boring_id', 'layer_index', 'name', 'thickness'];
+                const sptResultColumns = ['spt_id', 'boring_id', 'depth', 'hitCount', 'distance'];
+
+                const queryBoring = updateMode == 'Renaming' ? 
+                    RepositryQueryBuilder.buildUpdateQuery(DB_TABLENAMES.BORINGS, boringColumns, 'boring_id') : 
+                    RepositryQueryBuilder.buildUpdateQuery(DB_TABLENAMES.BORINGS, boringColumnsNoRenaming, 'boring_id');
+                
+                const layerInsertQuery = RepositryQueryBuilder.buildInsertQuery(DB_TABLENAMES.LAYERS, layerColumns);
+                const layerParams = boringDto.layers.map(layer => {
+                    return [
+                        layer.id,
+                        boringDto.id,
+                        layer.layerIndex,
+                        layer.name,
+                        layer.thickness
+                    ];
+                })
+
+                const sptResultInsertQuery = RepositryQueryBuilder.buildInsertQuery(DB_TABLENAMES.SPT_RESULTS, sptResultColumns);
+                const sptResultParams = boringDto.sptResults.map(spt => {
+                    return [
+                        spt.id,
+                        boringDto.id,
+                        spt.depth,
+                        spt.hitCount,
+                        spt.distance
+                    ];
+                });
+
+                // Update boring data
+                const updateJob = updateMode == 'Renaming' ? 
+                    await this.db.all(queryBoring, [name, location.x, location.y, topoTop, undergroundWater, isBatched, threeObjId, id]) :
+                    await this.db.all(queryBoring, [location.x, location.y, topoTop, undergroundWater, isBatched, threeObjId, id])
+
+                // Update layer data
+                const layerDeleteQuery = `
+                    DELETE FROM ${DB_TABLENAMES.LAYERS} WHERE boring_id = ?
+                `;
+
+                await this.db.all(layerDeleteQuery, boringDto.id);
+                
+                if(layerParams.length > 0) {
+                    for(const layerParam of layerParams) {
+                        await this.db.all(layerInsertQuery, layerParam);
+                    }
+                }
+                
+                // Update SPT Data
+                const sptDeleteQuery = `
+                    DELETE FROM ${DB_TABLENAMES.SPT_RESULTS} WHERE boring_id = ?
+                `
+
+                await this.db.all(sptDeleteQuery, boringDto.id);
+
+                if(sptResultParams.length > 0) {
+                    for(const sptResultParam of sptResultParams) {
+                        await this.db.all(sptResultInsertQuery, sptResultParam);
+                    }
+                }
+            }
+            
+            await this.db.exec('COMMIT');
+            return {result: true}
+        } catch (error) {
+            await this.db.exec('ROLLBACK');
+            console.log(error);
+            return {result: false, message: typeof error === 'string' ? error : ""}
+        }
+    }
+
     async updateBoringBatch(idAndOptions: {id: string, option: boolean}[]): Promise<{result: boolean, message?: string}> {
         const query = RepositryQueryBuilder.buildUpdateQuery(DB_TABLENAMES.BORINGS, ['is_batched'], 'boring_id');
         try {
@@ -436,6 +540,7 @@ export class BoringRepository implements BoringCRUDMethods {
     }
 
     async searchBoringName(name: string, id?: string): Promise<{result: boolean, message?: string, error?: boolean}> {
+        console.log(`input test - name : ${name}, id : ${id}`);
         const queryWithId = `
             SELECT 
                 name
@@ -451,7 +556,7 @@ export class BoringRepository implements BoringCRUDMethods {
             FROM 
                 ${DB_TABLENAMES.BORINGS}
             WHERE
-                name = ${name}
+                name = ?
         `
 
         try {

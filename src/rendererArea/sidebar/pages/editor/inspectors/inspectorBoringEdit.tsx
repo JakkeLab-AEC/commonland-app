@@ -47,7 +47,9 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring, isNewC
 
     const [currentLayers, setLayers] = useState<Layer[]>(boring.getLayers());
     const [currentSPTResult] = useState<SPTResultSet>(boring.getSPTResultSet());
-    const tbBoringName = useRef(null);
+    const tbBoringName = useRef<HTMLInputElement>(null);
+    const tbCoordXRef = useRef<HTMLInputElement>(null);
+    const tbCoordYRef = useRef<HTMLInputElement>(null);
     
     const onClickCancel = () => {
         setInspectorVisiblity(false);
@@ -201,8 +203,17 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring, isNewC
         boring.getSPTResultSet().buildByMultipleValues(e);
     }
 
+    const onSwapCoordinate = () => {
+        const [coordX, coordY] = [boring.getLocationX(), boring.getLocationY()];
+        boring.setLocationX(coordY);
+        boring.setLocationY(coordX);
+
+        tbCoordXRef.current.value = coordY.toString();
+        tbCoordYRef.current.value = coordX.toString();
+    }
+
     useEffect(() => {
-        console.log(boring.serialize());
+
     }, [])
 
     return (
@@ -211,8 +222,8 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring, isNewC
                 {/* Left column with fixed height content */}
                 <div className="flex flex-col w-[260px]" style={{borderRightWidth: 1}}>
                     {/* Boring name */}
-                    <div className="grid grid-cols-[76px_1fr] p-2 gap-1">
-                        <div>{findValue("BoringEditor", "boringNameHeader")}</div>
+                    <div className="flex flex-row p-2 gap-1">
+                        <div className="w-[202px]">{findValue("BoringEditor", "boringNameHeader")}</div>
                         <input 
                             ref={tbBoringName} 
                             className="border w-full" 
@@ -221,7 +232,7 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring, isNewC
                     </div>
                     <hr />
                     {/* Coordinates */}
-                    <div className="grid grid-cols-[76px_1fr] p-2 gap-y-2">
+                    <div className="grid grid-cols-[48px_1fr] p-2 gap-y-2">
                         <div>{findValue("BoringEditor", "boringCoordinate")}</div>
                         <div className="grid grid-cols-[28px_1fr] gap-x-2">
                             <div>X:</div>
@@ -230,9 +241,12 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring, isNewC
                                 type="number" 
                                 step={0.01} 
                                 defaultValue={boring.getLocationX()}
-                                onChange={onChangeCoordXHandler}/>
+                                onChange={onChangeCoordXHandler}
+                                ref={tbCoordXRef} />
                         </div>
-                        <div></div>
+                        <div>
+                            <ButtonPositive text={"변경"} isEnabled={true} onClickHandler={onSwapCoordinate}/>
+                        </div>
                         <div className="grid grid-cols-[28px_1fr] gap-x-2">
                             <div>Y:</div>
                             <input 
@@ -240,18 +254,19 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring, isNewC
                                 type="number" 
                                 step={0.01} 
                                 defaultValue={boring.getLocationY()}
-                                onChange={onChangeCoordYHander}/>
+                                onChange={onChangeCoordYHander}
+                                ref={tbCoordYRef} />
                         </div>
                     </div>
                     <hr />
                     {/* EL, GL Levels */}
-                    <div className="grid grid-cols-[76px_1fr] p-2 gap-y-2">
+                    <div className="grid grid-cols-[48px_1fr] p-2 gap-y-2">
                         <div>{findValue("BoringEditor", "boringLevels")}</div>
                         <div className="grid grid-cols-[84px_1fr] gap-x-2">
                             <div>{findValue("BoringEditor", "elevation")} EL</div>
                             <input 
                                 ref={tbBoringName} 
-                                className="border w-full" 
+                                className="border w-full max-w-[92px] ml-auto" 
                                 type="number" 
                                 step={0.01} 
                                 defaultValue={boring.getTopoTop()} 
@@ -259,10 +274,10 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring, isNewC
                         </div>
                         <div></div>
                         <div className="grid grid-cols-[84px_1fr] gap-x-2">
-                            <div>{findValue("BoringEditor", "undergroundwater")} GL</div>
+                            <div className="w-[204px]">{findValue("BoringEditor", "undergroundwater")} GL(-)</div>
                             <input 
                                 ref={tbBoringName} 
-                                className="border w-full" 
+                                className="border w-full max-w-[92px] ml-auto" 
                                 type="number" 
                                 step={0.01} 
                                 defaultValue={boring.getUndergroundWater()} 
@@ -288,13 +303,10 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring, isNewC
                         SPTResultSet={currentSPTResult}/>
                 </div>
             </div>
-
             {/* Save buttons */}
-            <div className="flex self-end">
-                <div className="flex flex-row gap-2 justify-end p-2">
-                    <ButtonPositive text={"저장"} width={48} isEnabled={true} onClickHandler={onClickSave}/>
-                    <ButtonNegative text={"취소"} width={48} isEnabled={true} onClickHandler={onClickCancel}/>
-                </div>
+            <div className="flex self-end flex flex-row gap-2 justify-end p-2">
+                <ButtonPositive text={"저장"} width={48} isEnabled={true} onClickHandler={onClickSave}/>
+                <ButtonNegative text={"취소"} width={48} isEnabled={true} onClickHandler={onClickCancel}/>
             </div>
         </div>
     );

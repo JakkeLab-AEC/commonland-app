@@ -80,7 +80,9 @@ export const useEditorPageStore = create<EditorPageStore>((set, get) => ({
         });
 
         // Create boring item
-        const createdBoringObject = await ThreeBoringPost.createPostFromModel(boring, layerColorConfig);
+        const boringCreator = new ThreeBoringPost();
+        await boringCreator.init();
+        const createdBoringObject = await boringCreator.createPostFromModel(boring, layerColorConfig);
         boring.setThreeObjId(createdBoringObject.uuid);
         
         const boringDto = boring.serialize();
@@ -100,10 +102,8 @@ export const useEditorPageStore = create<EditorPageStore>((set, get) => ({
     updateBoring: async (boring: Boring) => {
         // Update new layers' color
         const layerColorConfig =  get().layerColorConfig;
-        console.log(layerColorConfig);
         boring.getLayers().forEach(layer => {
             const layerName = layer.getName();
-            console.log(layerColorConfig.getLayerColor(layerName));
             if(!layerColorConfig.getLayerColor(layerName)) {
                 layerColorConfig.registerColor(layerName, 1);
                 set(() => {
@@ -114,7 +114,9 @@ export const useEditorPageStore = create<EditorPageStore>((set, get) => ({
 
         // Get old three object id and update it
         const oldThreeObjId = boring.getThreeObjId();
-        const createdBoringObject = await ThreeBoringPost.createPostFromModel(boring, layerColorConfig);
+        const boringCreator = new ThreeBoringPost();
+        await boringCreator.init();
+        const createdBoringObject = await boringCreator.createPostFromModel(boring, layerColorConfig);
         boring.setThreeObjId(createdBoringObject.uuid);
 
         const updateJob = await window.electronBoringDataAPI.updateBoring(boring.serialize());

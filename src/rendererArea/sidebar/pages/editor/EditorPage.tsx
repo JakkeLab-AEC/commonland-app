@@ -1,6 +1,5 @@
 import { useHomeStore } from "../../../commonStatus/homeStatusModel";
 import { ListBox } from "../../../../rendererArea/components/listbox/listBox"
-import { ListBoxItem } from "../../../../rendererArea/components/listbox/listBoxItem"
 import React, { ChangeEvent, useEffect, useRef, useState } from "react"
 import { InspectorBoringEdit } from "./inspectors/inspectorBoringEdit";
 import { useLanguageStore } from "../../../../rendererArea/language/languageStore";
@@ -12,7 +11,8 @@ import { Layer } from "../../../../mainArea/models/serviceModels/boring/layer";
 import { FoldableControl } from "@/rendererArea/components/foldableControl/foldableControl";
 import { ListInputBox } from "@/rendererArea/components/listbox/listInputBox";
 import { ColorIndexPalette } from "@/rendererArea/components/palette/colorIndexPalette";
-import { SceneController } from "@/rendererArea/api/three/SceneController";
+import { useModalOveralyStore } from "@/rendererArea/homescreenitems/modalOverlayStore";
+import {ModalSwapXY} from './modals/modalswapxy';
 
 interface InspectorContent {
     boring: Boring,
@@ -44,8 +44,14 @@ export const BoringManager = () => {
     const prefixRef = useRef<HTMLInputElement>(null);
     const manualNameRef = useRef<HTMLInputElement>(null);
     const indexRef = useRef<HTMLInputElement>(null);
+    const layerColorsRef = useRef<HTMLDivElement>(null);
     const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
     const [namingMode, setNamingMode] = useState<'manual'|'autoincrement'>('autoincrement');
+
+    const {
+        toggleMode,
+        updateModalContent,
+    } = useModalOveralyStore();
 
     const {
         findValue,
@@ -59,6 +65,7 @@ export const BoringManager = () => {
         setInspectorPosition,
         registerInspectorClosingListner,
         resetInspector,
+        currentSidebarHeight
     } = useHomeStore();
 
     const {
@@ -75,12 +82,12 @@ export const BoringManager = () => {
         selectedBoringId,
         layerColorConfig,
         fetchAllLayerColors,
+        updateBoring,
     } = useEditorPageStore();
 
     
     const onClickHandler = (id: string) => {
         const selectedBoring = selectBoring(id);
-        console.log(selectedBoring.serialize());
         resetInspector();
         setInspectorContent(<InspectorContent key={selectedBoring.getId().getValue()} boring={selectedBoring} isNewCreated={false}/>)
 
@@ -217,7 +224,9 @@ export const BoringManager = () => {
         setInspectorContent(<ColorPicker targetId={id} onClickHandler={onPickColor}/>);
         setInspectorTitle(`색상 선택 : ${id}`)
         setInspectorSize({width: 244, height: 180});
-        setInspectorPosition(672, 340);
+
+        // Calculate bottom position
+        setInspectorPosition(586, 340);
         setInspectorVisiblity(true);
     }
 
@@ -226,6 +235,36 @@ export const BoringManager = () => {
             setNamingMode('manual')
         } else if(e.target.value == 'autoincrement') {
             setNamingMode('autoincrement');
+        }
+    }
+
+    // Swap X, Y Coord
+    const onChangeXYCoord = () => {
+        updateModalContent(<ModalSwapXY onSelectMode={swapXYCoord} />)
+        toggleMode(true);
+    }
+
+    const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+    const swapXYCoord = async (result: boolean) => {
+        if (!result) return;
+    
+        const updatedBoringMap = new Map(borings);
+        const updatedBorings: Boring[] = [];
+        
+        updatedBoringMap.forEach((boring, key) => {
+            const coordX = boring.getLocationX();
+            const coordY = boring.getLocationY();
+    
+            const clonedBoring = boring.clone();
+            clonedBoring.setLocationX(coordY);
+            clonedBoring.setLocationY(coordX);
+    
+            updatedBorings.push(clonedBoring);
+        });
+    
+        for (const boring of updatedBorings) {
+            await updateBoring(boring);
         }
     }
 
@@ -251,7 +290,7 @@ export const BoringManager = () => {
             </div>
             <div>
                 <ListBox 
-                    height={420} 
+                    height={340} 
                     items={boringDisplayItems}
                     onClickHandler={onClickHandler} 
                     onCheckedHandler={onCheckedItemHandler}
@@ -319,9 +358,16 @@ export const BoringManager = () => {
                 <ButtonPositive text={"추가"} width={40} isEnabled={true} onClickHandler={onClickAddBoring}/>
                 <ButtonNegative text={"삭제"} width={40} isEnabled={true} onClickHandler={onClickRemoveBoring}/>
             </div>
-            <div className="flex flex-row flex-grow gap-1">
+            <div className="flex flex-row flex-grow gap-1" ref={layerColorsRef}>
                 <FoldableControl title={"색상"}>
                     <ListInputBox items={layerColorConfig.getAllLayerColors()} width={'full'} height={180} onClickHandler={onClickLayerColor} />
+                </FoldableControl>
+            </div>
+            <div className="flex flex-row flex-grow">
+                <FoldableControl title={"편집"}>
+                    <div className="w-full gap-1">
+                        <ButtonPositive text={"X, Y 좌표 바꾸기"} isEnabled={true} width={128} onClickHandler={onChangeXYCoord}/>
+                    </div>
                 </FoldableControl>
             </div>
         </div>

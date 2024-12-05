@@ -5,11 +5,13 @@ import { BoringManager } from "./pages/editor/EditorPage";
 import { useLanguageStore } from "../language/languageStore";
 import { BoringBatcher } from "./pages/batchBorings/boringBatchers";
 import { useSidebarStore } from "./sidebarStore";
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useHomeStore } from '../commonStatus/homeStatusModel';
 import { TopographyManage } from './pages/topography/topographyManage';
 
 export default function Sidebar() {
+    const siderbarRef = useRef<HTMLDivElement>(null);
+
     const {
         findValue,
     } = useLanguageStore();
@@ -17,6 +19,7 @@ export default function Sidebar() {
     const {
         currentHomeId,
         mode,
+        updateSidebarHeight
     } = useHomeStore();
 
     const [homeId, setHomeId] = useState<string>(currentHomeId);
@@ -54,10 +57,18 @@ export default function Sidebar() {
 
     useEffect(() => {
         setHomeId(homeId);
+
+        const updateSidebarHeightWrapper = () => {
+            updateSidebarHeight(siderbarRef.current.clientHeight);
+        }
+
+        window.addEventListener('resize', updateSidebarHeightWrapper);
+
+        updateSidebarHeight(siderbarRef.current.clientHeight);
     },[currentHomeId])
     
     return (
-        <div className="w-[334px] h-full flex flex-row" style={{borderWidth: 1, borderColor: 'silver', borderTopRightRadius: 8, borderBottomRightRadius: 8}}>
+        <div className="w-[334px] h-full flex flex-row" style={{borderWidth: 1, borderColor: 'silver', borderTopRightRadius: 8, borderBottomRightRadius: 8}} ref={siderbarRef}>
             <div className="h-full w-12 flex flex-col" style={{backgroundColor: "#ECECEC"}}>
                 {menuNavigations.map((item, index) => {
                     const isEnabled = index == navigationIndex ? true : false;

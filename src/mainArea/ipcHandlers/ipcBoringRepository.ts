@@ -18,6 +18,11 @@ export const setIpcBoringRepository = (ipcMain: IpcMain) => {
         return updateJob;
     });
 
+    ipcMain.handle('boring-repository-update-multiple', async (_, boringDtos: BoringDTO[]) => {
+        const updateJob = await AppController.getInstance().getBoringRepository().updateBoringMultiple(boringDtos);
+        return updateJob;
+    });
+
     ipcMain.handle('boring-repository-search-name-pattern', async(_, prefix: string, index:number) => {
         const searchNamesJob = await AppController
             .getInstance()

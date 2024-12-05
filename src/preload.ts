@@ -12,6 +12,7 @@ contextBridge.exposeInMainWorld('electronBoringDataAPI', {
     insertBoring: (boringDto: BoringDTO) => ipcRenderer.invoke('boring-repository-insert', boringDto),
     fetchAllBorings: () => ipcRenderer.invoke('boring-repository-fetch-all'),
     updateBoring: (boringDto: BoringDTO) => ipcRenderer.invoke('boring-repository-update', boringDto),
+    updateBorings: (boringDtos: BoringDTO[]) => ipcRenderer.invoke('boring-repository-update-multiple', boringDtos),
     updateBoringBatch:(idAndOptions: {id: string, option: boolean}[]) => ipcRenderer.invoke('boring-repository-update-batch', idAndOptions),
     searchBoringNamePattern: (prefix: string, index:number) => ipcRenderer.invoke('boring-repository-search-name-pattern', prefix, index),
     searchBoringName: (name: string, id?: string) => ipcRenderer.invoke('boring-repository-search-name-exact', name, id),

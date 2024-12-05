@@ -13,6 +13,7 @@ interface homeStatusProps {
     inspectorClosingListeners: Array<() => void>,
     inspectorPositonTop: number,
     inspectorPositonLeft: number,
+    currentSidebarHeight: number,
     setOSName: (name: string) => void,
     setMode: (mode: 'dist'|'dev') => void,
     updateHomeId: () => void,
@@ -20,9 +21,10 @@ interface homeStatusProps {
     setInspectorVisiblity: (visiblity: boolean) => void,
     setInspectorSize: (option: {width: number, height: number}) => void,
     setInspectorContent: (content: ReactNode) => void,
-    setInspectorPosition: (top?: number, left?: number) => void;
+    setInspectorPosition: (top?: number, left?: number, minBottom?: number) => void;
     registerInspectorClosingListner: (listener: () => void) => void,
     resetInspector: () => void,
+    updateSidebarHeight: (height: number) => void,
 }
 
 export const useHomeStore = create<homeStatusProps>((set, get) => ({
@@ -36,6 +38,7 @@ export const useHomeStore = create<homeStatusProps>((set, get) => ({
     inspectorClosingListeners: [],
     inspectorPositonTop: 64,
     inspectorPositonLeft: 340,
+    currentSidebarHeight: 0,
     setInspectorVisiblity: (visibility: boolean) => {
         const listeners = get().inspectorClosingListeners;
         if(!visibility) {
@@ -75,13 +78,16 @@ export const useHomeStore = create<homeStatusProps>((set, get) => ({
             }
         })
     },
-    setInspectorPosition:(top?: number, left?: number) => {
+    setInspectorPosition:(top?: number, left?: number, minBottom?: number) => {
         let [updatedTop, updatedLeft] = [get().inspectorPositonTop, get().inspectorPositonLeft]
         if(top)
             updatedTop = top;
 
         if(left)
             updatedLeft = left;
+
+        if(minBottom)
+            updatedTop -= minBottom;
         
         set(() => {
             return {
@@ -112,4 +118,9 @@ export const useHomeStore = create<homeStatusProps>((set, get) => ({
             return {mode : mode}
         })
     },
+    updateSidebarHeight: (height: number) => {
+        set(() => {
+            return {currentSidebarHeight: height}
+        });
+    }
 }));

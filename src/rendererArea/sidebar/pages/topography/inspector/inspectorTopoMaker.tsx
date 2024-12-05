@@ -123,8 +123,9 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
             <div className="flex flex-row items-center p-2 gap-2">
                 <div className="flex-grow">높이 지정</div>
                 <div className="">일괄 선택</div>
-                <select className="border w-[120px]" onChange={onSelectAllLayers}>
+                <select className="border w-[132px]" onChange={onSelectAllLayers}>
                     <option>선택하지 않음</option>
+                    <option>지하수위</option>
                     {allLayerNames.map(name => {
                         return (<option>{name}</option>)
                     })}

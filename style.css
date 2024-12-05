@@ -32,3 +32,22 @@ body {
   .drag-disable {
     -webkit-user-select:none
   }
+
+  /* Scroll bar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #555;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #f3f4f6;
+}

@@ -63,6 +63,8 @@ export class DXFWriter {
             '2', 'HEADER',
             '9', '$DWGCODEPAGE',
             '3', ansiCode,
+            '9', '$INSUNITS',
+            '70', '6',
             '0', 'ENDSEC'
         ].join('\n');
     }
@@ -88,7 +90,6 @@ export class DXFWriter {
         tables.push('0', 'TABLE', '2', 'STYLE');
 
         // Add each style's serialization
-        console.log(this.styles);
         for (const style of this.styles) {
             if(style.styleType == StyleType.TextStyle) {
                 tables.push(style.serialize());

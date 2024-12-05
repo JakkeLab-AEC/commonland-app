@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { DefaultDimensions } from '../defaultConfigs/DefaultDimensionConfigs';
-import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
+import { Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { LayerColorConfig } from '../../../../mainArea/models/uimodels/layerColorConfig';
 import { Boring } from '../../../../mainArea/models/serviceModels/boring/boring';
@@ -11,8 +11,36 @@ import { useVisibilityOptionStore } from '@/rendererArea/homescreenitems/visibil
 
 
 export class ThreeBoringPost {
-    static async createPostFromModel(boring: Boring, layerColorConfig: LayerColorConfig):Promise<THREE.Object3D|undefined> {
+    private font: Font;
 
+    constructor() {}
+
+    async init() {
+        const fontLoader = new FontLoader();
+        this.font = await fontLoader.loadAsync('./src/fontjson/font_default.json');
+    }
+
+    isReady(): boolean {
+        return this.font !== null;
+    }
+
+    createTextGeometry(text: string, fontSize: number):TextGeometry|undefined {
+        if(!this.isReady())
+            return;
+
+        const textGeometry = new TextGeometry(text, {
+            font: this.font,
+            size: fontSize,
+            depth: 0.0,
+            bevelEnabled: false,
+        });
+
+        textGeometry.computeBoundingBox();
+
+        return textGeometry;
+    }
+
+    async createPostFromModel(boring: Boring, layerColorConfig: LayerColorConfig):Promise<THREE.Object3D|undefined> {
         const layers = boring.getLayers().map(r => { 
             const layerName = r.getName();
             const layerColor = layerColorConfig.getLayerColor(layerName);
@@ -25,11 +53,12 @@ export class ThreeBoringPost {
 
         const sptValues = boring.getSPTResultSet().getAllResults();
 
-        const threeItems = await ThreeBoringPost.createPost(
+        const threeItems = await this.createPost(
             boring.getName(),
             boring.getTopoTop(),
             layers,
-            sptValues
+            sptValues,
+            boring.getTopoTop() - boring.getUndergroundWater()
         );
 
         const moveMatrix = new THREE.Matrix4()
@@ -76,6 +105,7 @@ export class ThreeBoringPost {
             });
             const segmentMesh = new THREE.Mesh(obj.postGeometry, realMat);
             segmentMesh.userData = {
+                modelCreatedFrom: 'CommonLandApp',
                 type: ModelType.PostSegment,
                 layerName: obj.layerName,
             }
@@ -123,6 +153,23 @@ export class ThreeBoringPost {
         }));
 
         threeObjs.push(boringEndTextObject);
+        //#endregion
+
+        //#region Underground water leader
+        if(!threeItems.undergroundWaterLeader) return;
+        threeItems.undergroundWaterLeader.textGeometry.applyMatrix4(moveMatrix);
+        threeItems.undergroundWaterLeader.leaderLine.applyMatrix4(moveMatrix);
+        threeObjs.push(threeItems.undergroundWaterLeader.leaderLine);
+
+        // For real object
+        const undergroundWaterTextObject = new THREE.Mesh(threeItems.undergroundWaterLeader.textGeometry, new THREE.MeshBasicMaterial({
+            color: 0x000000,
+            side: THREE.DoubleSide,
+        }));
+
+        threeObjs.push(undergroundWaterTextObject);
+
+        //#endregion
 
 
         // Merge all wrapping objects
@@ -136,12 +183,10 @@ export class ThreeBoringPost {
         const parentObject = new THREE.Mesh(mergedGeometry, wrappingMaterial);
         parentObject.add(...threeObjs);
 
-        //#endregion
-        console.log(parentObject);
         return parentObject;
     }
     
-    static async createPost(boringName: string, topoTop: number, layers:{name: string, thickness:number, color: number}[], sptValues: {depth: number, hitCount: number, distance: number}[]) {
+    async createPost(boringName: string, topoTop: number, layers:{name: string, thickness:number, color: number}[], sptValues: {depth: number, hitCount: number, distance: number}[], undergroundWaterLevel: number) {
         const dims = DefaultDimensions.getInstance().getDims();
         const radius = dims.shoringPostRadius;
         const offsetText = 0.2;
@@ -219,17 +264,32 @@ export class ThreeBoringPost {
             -1
         );
 
+        // Create SPTResults
         const sptObjects = await this.createSPTResults(sptValues, topoTop);
+        
+        // Create underground water level leader
+        const undergroundWaterLeader = await this.createLeader(
+            `지하수위 : ${undergroundWaterLevel.toFixed(2)}`,
+            0.5,
+            {curved: false, leaderLength: 12},
+            radius,
+            0.2,
+            undergroundWaterLevel,
+            0x000000,
+            1
+        );
+
 
         return {
             postNameLeader: postNameLeader,
             postSegments: postSegments,
             boringEndLeader: boringEndLedaer,
-            sptObjects: sptObjects
+            sptObjects: sptObjects,
+            undergroundWaterLeader: undergroundWaterLeader
         };
     }
 
-    private static async createPostSegmenet(
+    private async createPostSegmenet(
         name: string, 
         levelDescription: string, 
         thickness: number, 
@@ -274,7 +334,7 @@ export class ThreeBoringPost {
         return {postGeometry: geometry, textGeometry: leaderSet.textGeometry, leaderLine: leaderSet.leaderLine, color: postColor, layerName: name}
     }
 
-    private static async createLeader(
+    private async createLeader(
         text: string,
         fontSize = 0.5,
         leaderOption: { curved: boolean, leaderLength?: number, leaderSegmentLength?: number[]}, 
@@ -366,7 +426,7 @@ export class ThreeBoringPost {
         }
     }
 
-    static async createSPTResults(
+    async createSPTResults(
         sptValues: {depth: number, hitCount: number, distance: number}[], 
         topLevel: number, 
         directionFactor = -1, 
@@ -413,33 +473,5 @@ export class ThreeBoringPost {
         }
 
         return threeObjects;
-    }
-
-    private static async createTextGeometry(
-        text: string,
-        fontSize: number,
-        textColor = 0x000000
-    ): Promise<TextGeometry|undefined> {
-        return new Promise((resolve, reject) => {
-            // Load font and create text geometry
-            const fontLoader = new FontLoader();
-            fontLoader.load('./src/fontjson/font_default.json', (font) => {
-                const textGeometry = new TextGeometry(text, {
-                    font: font,
-                    size: fontSize,
-                    height: 0.0,
-                    curveSegments: 12,
-                    bevelEnabled: false,
-                });
-    
-                // Compute the bounding box of the text
-                textGeometry.computeBoundingBox();
-    
-                // Resolve the promise with the created objects
-                resolve(textGeometry);
-            }, undefined, (error) => {
-                reject(error);  // Reject the promise if font loading fails
-            });
-        })
     }
 }

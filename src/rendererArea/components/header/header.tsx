@@ -1,11 +1,13 @@
 import ServiceLogo from "./logo/servicelogo";
 import { ButtonPositive } from "../buttons/buttonPositive";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ContextMenu, ContextMenuProp } from "../contextmenu/contextMenu";
 import { useHomeStore } from "../../commonStatus/homeStatusModel";
 import { useSidebarStore } from "../../../rendererArea/sidebar/sidebarStore";
 import { ThreeExporter } from "@/rendererArea/api/three/exporters/threeExporter";
 import './headerStyle.css';
+import { useModalOveralyStore } from "@/rendererArea/homescreenitems/modalOverlayStore";
+import {ModalDxfExporter} from './exporter/modalDxfExporter';
 
 export default function Header({appName}:{appName: string}) {
     const [menuVisibility, setMenuVisibility] = useState<boolean>(false);
@@ -13,6 +15,11 @@ export default function Header({appName}:{appName: string}) {
         updateHomeId,
         osName
     } = useHomeStore();
+
+    const {
+        toggleMode,
+        updateModalContent
+    } = useModalOveralyStore();
 
     const {
         navigationIndex,
@@ -38,14 +45,16 @@ export default function Header({appName}:{appName: string}) {
             displayString: '시추공 DXF 내보내기',
             isActionIdBased: false,
             action: async () => {
-                ThreeExporter.exportBoringsDXF('KOR');
+                updateModalContent(<ModalDxfExporter mode={"boring"} />);
+                toggleMode(true);
             },
             closeHandler: () => setMenuVisibility(false),
         }, {
             displayString: '지형 DXF 내보내기',
             isActionIdBased: false,
             action: async () => {
-                ThreeExporter.exportToposDXF();
+                updateModalContent(<ModalDxfExporter mode={"topo"} />);
+                toggleMode(true);
             },
             closeHandler: () => setMenuVisibility(false),
         },
@@ -53,6 +62,10 @@ export default function Header({appName}:{appName: string}) {
         width: 180,
         onClose: () => setMenuVisibility(false)
     }
+
+    useEffect(() => {
+        
+    }, []);
 
     return (
         <div className={`w-full flex key-color-main h-[48px] items-center ${osName == 'win32' ? 'pl-4' : 'pl-20'} pr-4`} style={{borderBottomWidth: 2, borderColor: "silver", userSelect: 'none'}}>

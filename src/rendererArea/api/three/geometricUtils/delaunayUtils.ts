@@ -10,7 +10,7 @@ type Point3d = { x: number; y: number; z: number; index: number };
 export function createDelaunatedMesh(topo: Topo) {
     // Extract topo's points
     const pts = topo.getAllPoints();
-            
+    
     // Convert as Point3d
     const convertedPts: Point3d[] = pts.map((pt, index) => {
         return {
@@ -62,6 +62,7 @@ export function createDelaunatedMesh(topo: Topo) {
 
     const mesh = new THREE.Mesh(geometry, material);
     mesh.userData = {
+        modelCreatedFrom: 'CommonLandApp',
         type : ModelType.Topo,
         createdFrom: topo.serialize(),
     }

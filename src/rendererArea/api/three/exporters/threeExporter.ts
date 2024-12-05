@@ -6,6 +6,7 @@ import { Circle, Cylinder, DXFLayer, DXFWriter, Line, Polyline, Text, Text3d, Te
 import { TopoDTO } from '@/dto/serviceModel/topoDto';
 import { BoringDTO } from '@/dto/serviceModel/BoringDTO';
 import { UnicodeConverter } from '../../dxfwriter/unicodeConverter';
+import { Boring } from '@/mainArea/models/serviceModels/boring/boring';
 
 interface MeshProp {
     createdFrom: TopoDTO,
@@ -17,7 +18,13 @@ interface MeshProp {
 const radius = 1;
 
 export class ThreeExporter {
-    static downloadFile(fileName: string, content: string) {
+    private zAxisMode: 'camera'|'euclidean';
+
+    constructor(zAxisMode:'camera'|'euclidean' = 'euclidean') {
+        this.zAxisMode = zAxisMode;
+    }
+    
+    downloadFile(fileName: string, content: string) {
         const blob = new Blob([content], { type: 'text/plain' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
@@ -26,7 +33,9 @@ export class ThreeExporter {
         URL.revokeObjectURL(link.href);
     }
 
-    static exportToposDXF() {
+    exportToposDXF(language: 'ENG'|'KOR'|'JPN', moveCoordinate?: {dx: number, dy: number}) {
+        const [dx, dy] = moveCoordinate ? [moveCoordinate.dx, moveCoordinate.dy] : [0, 0];
+
         // Create DXFWriter
         const dxfWriter = new DXFWriter();
         
@@ -34,91 +43,82 @@ export class ThreeExporter {
         const scene = SceneController.getInstance().getScene();
         const targetObjects:THREE.Object3D[] = [];
         scene.traverse((obj) => {
-            if(obj.userData['type'] == ModelType.Topo) {
-                // Remove children (LineSegments)
+            if (obj.userData['type'] === ModelType.Topo) {
+                // Clone object and remove children to avoid exporting them
                 const clonedObj = obj.clone();
-                clonedObj.remove(...clonedObj.children)
+                clonedObj.remove(...clonedObj.children);
                 targetObjects.push(clonedObj);
             }
         });
+    
 
         // Parse as mesh face datas
-        const exporter = new OBJExporter();
-        const meshProps: MeshProp[] = []
-        
-        targetObjects.forEach(obj => {
-            const data = exporter.parse(obj);
-            const lines = data.split('\n');
-            
-            let vIndex = 1;
-            let vnIndex = 1;
-            let fIndex = 1;
-            const newMeshProp: MeshProp = {
+        const meshProps: MeshProp[] = targetObjects.map(obj => {
+            const geometry = (obj as THREE.Mesh).geometry;
+            const meshProp = {
                 createdFrom: obj.userData['createdFrom'],
                 vertices: new Map(),
                 vertexNormals: new Map(),
-                faces: new Map()
+                faces: new Map(),
             };
 
-            lines.forEach(line => {
-                if(line.length != 0) {
-                    const splitedLine = line.split(' ');
-                    switch(splitedLine[0]) {
-                        case 'v': {
-                            const slicedLine = line.slice(1);
-                            const values = slicedLine.split(' ');
-                            newMeshProp.vertices.set(vIndex++, {
-                                x: parseFloat(values[1]),
-                                y: parseFloat(values[3]),
-                                z: parseFloat(values[2])
-                            })
-                            break;
-                        }
-
-                        case 'vn': {
-                            const slicedLine = line.slice(1);
-                            const values = slicedLine.split(' ');
-                            newMeshProp.vertexNormals.set(vnIndex++, {
-                                x: parseFloat(values[1]),
-                                y: parseFloat(values[3]),
-                                z: parseFloat(values[2])
-                            })
-                            break;
-                        }
-
-                        case 'f': {
-                            const slicedLine = line.slice(1);
-                            const values = slicedLine.split(' ');
-                            newMeshProp.faces.set(fIndex++, {
-                                v1: parseInt(values[1][0]),
-                                v2: parseInt(values[2][0]),
-                                v3: parseInt(values[3][0])
-                            })
-                            break;
-                        }
-                    }
+            // Extract vertices
+            geometry.attributes.position.array.forEach((_, i) => {
+                const x = geometry.attributes.position.getX(i);
+                const y = geometry.attributes.position.getY(i);
+                const z = geometry.attributes.position.getZ(i);
+                if(this.zAxisMode == 'camera') {
+                    meshProp.vertices.set(i + 1, { x: x+dx , y: y+dy, z: z });
+                } else {
+                    meshProp.vertices.set(i + 1, { x: x+dx, y: z, z: y+dy });
                 }
             });
 
-            meshProps.push(newMeshProp);
+            // Extract vertex normals if they exist
+            if (geometry.attributes.normal) {
+                geometry.attributes.normal.array.forEach((_, i) => {
+                    const x = geometry.attributes.normal.getX(i);
+                    const y = geometry.attributes.normal.getY(i);
+                    const z = geometry.attributes.normal.getZ(i);
+                    if(this.zAxisMode == 'camera') {
+                        meshProp.vertexNormals.set(i + 1, { x: x+dx, y: y+dy, z: z });
+                    } else {
+                        meshProp.vertexNormals.set(i + 1, { x: x+dx, y: z, z: y+dy });
+                    }
+                });
+            }
+
+            // Extract faces from index data
+            if (geometry.index) {
+                const index = geometry.index.array;
+                for (let i = 0; i < index.length; i += 3) {
+                    meshProp.faces.set(i / 3 + 1, {
+                        v1: index[i] + 1,
+                        v2: index[i + 1] + 1,
+                        v3: index[i + 2] + 1,
+                    });
+                }
+            }
+            
+            return meshProp;
         });
 
-        // Create Layer map
+        // Create and register layers in the DXF file
         const layerMap:Map<string, DXFLayer> = new Map();
-        meshProps.forEach((r, index) => {
-            const convertedLayerName = UnicodeConverter.convertStringToUnicode(r.createdFrom.name);
-            layerMap.set(r.createdFrom.name, new DXFLayer(convertedLayerName, r.createdFrom.colorIndex));
+        meshProps.forEach((ly) => {
+            const convertedLayerName = UnicodeConverter.convertStringToUnicode(ly.createdFrom.name);
+            layerMap.set(ly.createdFrom.name, new DXFLayer(convertedLayerName, ly.createdFrom.colorIndex));
         });
         
         // DXF Writing
-        // RegisterLayers
+        // Register Layers
         layerMap.forEach((value) => {
             dxfWriter.registerLayer(value);
         });
 
         meshProps.forEach(prop => {
             const layer = layerMap.get(prop.createdFrom.name);
-            prop.faces.forEach((value, key) => {
+            prop.faces.forEach((value) => {
                 const triangle3d = new Triangle3d({
                         v1: prop.vertices.get(value.v1),
                         v2: prop.vertices.get(value.v2),
@@ -126,27 +126,30 @@ export class ThreeExporter {
                     }, 
                     layer
                 );
+                console.log(triangle3d);
                 dxfWriter.addComponent(triangle3d);
             });
         })
 
-        dxfWriter.exportAsDXFFile('KOR');
+        dxfWriter.exportAsDXFFile(language);
     }
 
-    static async exportBoringsDXF(language: 'ENG'|'KOR'|'JPN') {
+    async exportBoringsDXF(language: 'ENG'|'KOR'|'JPN', moveCoordinate?: {dx: number, dy: number}) {
         const dxfWriter = new DXFWriter();
 
+        const [dx, dy] = moveCoordinate ? [moveCoordinate.dx, moveCoordinate.dy] : [0, 0];
+        
         // Load boring datas;
-        const boringDatas = await window.electronBoringDataAPI.fetchAllBorings();
-        const layerDatas = await window.electronBoringDataAPI.getAllLayerColors();
-        if(!boringDatas || !boringDatas.result || !layerDatas || !layerDatas.result) {
+        const boringFetch = await window.electronBoringDataAPI.fetchAllBorings();
+        const layerFetch = await window.electronBoringDataAPI.getAllLayerColors();
+        if(!boringFetch || !boringFetch.result || !layerFetch || !layerFetch.result) {
             alert('내보내기 오류.');
             return;
         }
 
         // Register layers
         const layerMap: Map<string, DXFLayer> = new Map();
-        layerDatas.layerColors.forEach((layerInfo, index) => {
+        layerFetch.layerColors.forEach((layerInfo, index) => {
             const convertedLayerName = UnicodeConverter.convertStringToUnicode(layerInfo[0]);
             layerMap.set(layerInfo[0], new DXFLayer(convertedLayerName, layerInfo[1]));
         });
@@ -163,14 +166,21 @@ export class ThreeExporter {
         const textSmallStyle = new TextStyle('TextSmall', 'malgun', 'malgun.ttf', 0.5);
         dxfWriter.registerTextStyle(textNormalStyle);
         dxfWriter.registerTextStyle(textSmallStyle);
-        const boringEnds = boringDatas.fetchedBorings.flatMap(boring => 
+        const boringDatas = boringFetch.fetchedBorings.map(data => {
+            data.location.x += dx;
+            data.location.y += dy;
+
+            return data;
+        })
+
+        const boringEnds = boringDatas.flatMap(boring => 
             boring.topoTop - boring.layers.flatMap(ly => ly.thickness).reduce((thickness, sum) => sum += thickness, 0)
         );
 
         const zMin = Math.min(...boringEnds);
 
         // Create boring shapes
-        boringDatas.fetchedBorings.forEach(boring => {
+        boringDatas.forEach(boring => {
             this.addBoringShape(boring, dxfWriter, layerMap, textLayer, textNormalStyle, textSmallStyle, zMin-2);
         });
 
@@ -178,7 +188,7 @@ export class ThreeExporter {
         dxfWriter.exportAsDXFFile(language);
     }
 
-    private static addBoringShape(boring: BoringDTO, dxfWriter: DXFWriter, postLayers: Map<string, DXFLayer>, textLayer: DXFLayer, layerTextStyle: TextStyle, sptTextStyle: TextStyle, zMin = 0) {
+    private addBoringShape(boring: BoringDTO, dxfWriter: DXFWriter, postLayers: Map<string, DXFLayer>, textLayer: DXFLayer, layerTextStyle: TextStyle, sptTextStyle: TextStyle, zMin = 0) {
         let layerTop = boring.topoTop;
         const {x, y} = boring.location;
 
@@ -209,16 +219,19 @@ export class ThreeExporter {
 
         // Post and layers
         boring.layers.forEach(layer => {
-
             // Create cylinder
             const postLayer = postLayers.get(layer.name);
+
+            const borderCircle = new Circle(x, y, layerTop, radius, textLayer);
+            dxfWriter.addComponent(borderCircle);
+
             const cylinder = new Cylinder({x: x, y: y, z: layerTop - layer.thickness}, radius, layer.thickness, 64, postLayer, -1);
             dxfWriter.addComponent(cylinder);
 
             // Create leader
             const line = new Line(
                 {x: x+radius, y: y, z: layerTop},
-                {x: x+radius+8, y: y, z: layerTop},
+                {x: x+radius+2, y: y, z: layerTop},
                 textLayer,
             );
             dxfWriter.addComponent(line);
@@ -228,7 +241,7 @@ export class ThreeExporter {
             const text = new Text3d(
                 `${convertedLayerName} (${layerTop.toFixed(2)})`,
                 'XZ',
-                {x: x+radius+9, y: y, z: layerTop},
+                {x: x+radius+2.5, y: y, z: layerTop},
                 0.5,
                 textLayer,
                 -1,
@@ -273,7 +286,7 @@ export class ThreeExporter {
         const boringEndText = new Text3d(
             convertedContent,
             "XZ",
-            {x: x+radius+9, y: y, z: layerTop},
+            {x: x+radius+8.5, y: y, z: layerTop},
             0.5,
             textLayer,
             -1,
@@ -322,5 +335,34 @@ export class ThreeExporter {
             );
             dxfWriter.addComponent(sptResultText);
         });
+
+        //#region Create Underground Water
+        const ungdWaterLevel = boring.topoTop - boring.undergroundWater
+        if(!Number.isNaN(ungdWaterLevel)){
+            const borderCircle = new Circle(x, y, ungdWaterLevel, radius, textLayer);
+            dxfWriter.addComponent(borderCircle);
+
+            const line = new Line(
+                {x: x+radius,   y: y, z: ungdWaterLevel},
+                {x: x+radius+8, y: y, z: ungdWaterLevel},
+                textLayer,
+            );
+            dxfWriter.addComponent(line);
+    
+            const convertedContent = UnicodeConverter.convertStringToUnicode(`지하수위 : (${ungdWaterLevel.toFixed(2)})`);
+            const ungdWaterLevelText = new Text3d(
+                convertedContent,
+                "XZ",
+                {x: x+radius+8.5, y: y, z: ungdWaterLevel},
+                0.5,
+                textLayer,
+                -1,
+                "left",
+                "middle",
+                layerTextStyle
+            )
+            dxfWriter.addComponent(ungdWaterLevelText);
+        }
+        //#endregion
     }
 }
