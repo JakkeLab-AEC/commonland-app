@@ -8,8 +8,30 @@ import './headerStyle.css';
 import { useModalOveralyStore } from "@/rendererArea/homescreenitems/modalOverlayStore";
 import {ModalDxfExporter} from './exporter/modalDxfExporter';
 import { SceneController } from "@/rendererArea/api/three/SceneController";
+import { InspectorHeadless } from "../inspector/inspectorHeadless";
+import { useModalOveralyUtils } from "@/rendererArea/homescreenitems/modalOverlayUtils";
+
+
+const ModalLoadingProject:React.FC = () => {
+    const progress = useModalOveralyStore((state) => state.progress);
+
+    return (
+        <InspectorHeadless width={160} height={120}>
+            <div className="flex flex-col">
+                <div className="">
+                    프로젝트 로드 중
+                </div>
+                <div>
+                    {progress.toFixed(2)}%
+                </div>
+            </div>
+        </InspectorHeadless>
+    )
+}
+
 
 export default function Header({appName}:{appName: string}) {
+    const { withModalOverlay } = useModalOveralyUtils();
     const [menuVisibility, setMenuVisibility] = useState<boolean>(false);
     const {
         updateHomeId,
@@ -18,13 +40,19 @@ export default function Header({appName}:{appName: string}) {
 
     const {
         toggleMode,
-        updateModalContent
+        updateModalContent,
+        updateProgress,
+        progress,
     } = useModalOveralyStore();
 
     const {
         navigationIndex,
         setNaviationIndex
     } = useSidebarStore();
+
+    const loadingListner = (e: number) => {
+        updateProgress(e);
+    }
     
     const contextMenuProp:ContextMenuProp = {
         menuItemProps: [{
@@ -36,10 +64,18 @@ export default function Header({appName}:{appName: string}) {
             displayString: '파일 불러오기',
             isActionIdBased: false,
             action: async () => {
-                await window.electronProjectIOAPI.openProject();
-                updateHomeId();
-                setNaviationIndex(navigationIndex == 1 ? 0 : 1);
-                await SceneController.getInstance().getDataMangeService().refreshBoringPosts();
+                await withModalOverlay(async () => {
+                    const loadProject = await window.electronProjectIOAPI.openProject();
+                    if(loadProject.result) {
+                        updateModalContent(<ModalLoadingProject/>)
+                        updateHomeId();
+                        setNaviationIndex(navigationIndex == 1 ? 0 : 1);
+                        await SceneController
+                            .getInstance()
+                            .getDataMangeService()
+                            .refreshBoringPosts(loadingListner);
+                    }
+                })
             },
             closeHandler: () => setMenuVisibility(false),
         }, {
