@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import { ContextMenu, ContextMenuProp } from "../contextmenu/contextMenu";
 import { useHomeStore } from "../../commonStatus/homeStatusModel";
 import { useSidebarStore } from "../../../rendererArea/sidebar/sidebarStore";
-import { ThreeExporter } from "@/rendererArea/api/three/exporters/threeExporter";
 import './headerStyle.css';
 import { useModalOveralyStore } from "@/rendererArea/homescreenitems/modalOverlayStore";
 import {ModalDxfExporter} from './exporter/modalDxfExporter';
+import { SceneController } from "@/rendererArea/api/three/SceneController";
 
 export default function Header({appName}:{appName: string}) {
     const [menuVisibility, setMenuVisibility] = useState<boolean>(false);
@@ -39,6 +39,7 @@ export default function Header({appName}:{appName: string}) {
                 await window.electronProjectIOAPI.openProject();
                 updateHomeId();
                 setNaviationIndex(navigationIndex == 1 ? 0 : 1);
+                await SceneController.getInstance().getDataMangeService().refreshBoringPosts();
             },
             closeHandler: () => setMenuVisibility(false),
         }, {

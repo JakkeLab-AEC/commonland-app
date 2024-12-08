@@ -76,6 +76,7 @@ const createMainWindow = () => {
 
   if(!app.isPackaged) {
     submenus.push({role: 'toggleDevTools'});
+    submenus.push({role: 'reload'});
   }
 
   const template:MenuItemConstructorOptions[] = [menuOption];

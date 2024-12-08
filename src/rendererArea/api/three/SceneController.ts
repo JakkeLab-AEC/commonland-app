@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { DefaultDimensions } from './defaultConfigs/DefaultDimensionConfigs';
 import { ViewportControlService } from './services/viewportControlService';
+import { ViewportDataManageService } from './services/dataManageService';
 
 export class SceneController {
 
@@ -23,9 +24,14 @@ export class SceneController {
     
     /* Services */
     private viewportControl: ViewportControlService;
+    private dataManageService: ViewportDataManageService;
 
     public getViewportControl() {
         return this.viewportControl;
+    }
+
+    public getDataMangeService() {
+        return this.dataManageService
     }
 
     /* Default Configs */
@@ -40,6 +46,7 @@ export class SceneController {
         this.controls.update();
         this.drawingPlaneXZ = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
         this.viewportControl = new ViewportControlService(this);
+        this.dataManageService = new ViewportDataManageService(this);
     }
 
     public static getInstance(): SceneController {
