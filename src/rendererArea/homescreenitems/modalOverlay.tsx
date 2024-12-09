@@ -1,10 +1,6 @@
 import React, { ReactNode, useEffect } from "react"
 import { useModalOveralyStore } from "./modalOverlayStore";
 
-interface ModalOverlayProps {
-    mode?: 'modal'|'loading'
-}
-
 const modalStyles: Map<string, React.CSSProperties> = new Map([
     [
         'modal', {
@@ -14,7 +10,7 @@ const modalStyles: Map<string, React.CSSProperties> = new Map([
         width: '100%', 
         height: '100%', 
         zIndex: 1, 
-        background: 'rgba(1, 1, 1, 0.5)',
+        background: 'rgba(0, 0, 0, 0.5)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
@@ -27,18 +23,19 @@ const modalStyles: Map<string, React.CSSProperties> = new Map([
         width: '100%', 
         height: '100%', 
         zIndex: 1, 
-        background: 'rgba(0, 0, 0, 0.5)',
+        background: 'rgba(255, 255, 255, 0.7)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
     }],
 ]);
 
-export const ModalOverlay:React.FC<ModalOverlayProps> = ({mode='modal'}) => {
+export const ModalOverlay:React.FC = () => {
     const {
         isOpened,
         modalContent,
         resetProps,
+        mode
     } = useModalOveralyStore();
 
     useEffect(() => {

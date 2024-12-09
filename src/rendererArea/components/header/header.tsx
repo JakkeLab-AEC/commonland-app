@@ -10,20 +10,19 @@ import {ModalDxfExporter} from './exporter/modalDxfExporter';
 import { SceneController } from "@/rendererArea/api/three/SceneController";
 import { InspectorHeadless } from "../inspector/inspectorHeadless";
 import { useModalOveralyUtils } from "@/rendererArea/homescreenitems/modalOverlayUtils";
+import {ProgressBar} from '@/rendererArea/components/progressbar/progressbar';
 
 
-const ModalLoadingProject:React.FC = () => {
+export const ModalLoadingProject:React.FC = () => {
     const progress = useModalOveralyStore((state) => state.progress);
 
     return (
         <InspectorHeadless width={160} height={120}>
-            <div className="flex flex-col">
-                <div className="">
+            <div className="flex flex-col items-center h-full p-2">
+                <div className="flex h-full self-center">
                     프로젝트 로드 중
                 </div>
-                <div>
-                    {progress.toFixed(2)}%
-                </div>
+                <ProgressBar value={progress} />
             </div>
         </InspectorHeadless>
     )
@@ -42,7 +41,6 @@ export default function Header({appName}:{appName: string}) {
         toggleMode,
         updateModalContent,
         updateProgress,
-        progress,
     } = useModalOveralyStore();
 
     const {
@@ -64,7 +62,7 @@ export default function Header({appName}:{appName: string}) {
             displayString: '파일 불러오기',
             isActionIdBased: false,
             action: async () => {
-                await withModalOverlay(async () => {
+                await withModalOverlay('loading', async () => {
                     const loadProject = await window.electronProjectIOAPI.openProject();
                     if(loadProject.result) {
                         updateModalContent(<ModalLoadingProject/>)
@@ -94,8 +92,7 @@ export default function Header({appName}:{appName: string}) {
                 toggleMode(true);
             },
             closeHandler: () => setMenuVisibility(false),
-        },
-        ],
+        }],
         width: 180,
         onClose: () => setMenuVisibility(false)
     }

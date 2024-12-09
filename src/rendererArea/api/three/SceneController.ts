@@ -59,38 +59,6 @@ export class SceneController {
     public static setInstance(config: { renderer: THREE.Renderer, scene: THREE.Scene, camera: THREE.Camera, control: OrbitControls }): void {
         const sceneController = new SceneController(config);
         sceneController.addGridHelper();
-
-        // // Define updateCameraPlane function
-        // function updateCameraPlane() {
-        //     const boundingBox = new THREE.Box3();
-
-        //      // Calculate bounding box for the scene
-        //     boundingBox.setFromObject(sceneController.getScene());
-
-        //     const min = boundingBox.min;
-        //     const max = boundingBox.max;
-
-        //     // Calculate the direction vector from min to max
-        //     const directionMinToMax = max.clone().sub(min).normalize();
-
-        //     // Load scene, camera, renderer
-        //     const scene = sceneController.getScene();
-        //     const camera = sceneController.getCamera() as THREE.OrthographicCamera;
-        //     const renderer = sceneController.getRenderer();
-            
-        //     const cameraCenter = camera.position.clone(); // Keep the current camera position
-        //     const cameraLookAt = max.clone().sub(directionMinToMax.clone().multiplyScalar(10));
-
-        //     console.log(cameraCenter);
-
-        //     camera.near = 0.1;
-        //     camera.far = cameraCenter.distanceTo(cameraLookAt)+2000;
-        //     camera.updateProjectionMatrix();
-
-        //     renderer.render(scene, camera);
-        //     sceneController.setCamera(camera);
-        //     console.log(camera.position);
-        // }
     
         // Add event listener to update near/far planes on control change
         sceneController.controls.addEventListener('change', sceneController.viewportControl.updateCameraPlane);
