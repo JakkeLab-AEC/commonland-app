@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { DefaultDimensions } from './defaultConfigs/DefaultDimensionConfigs';
 import { ViewportControlService } from './services/viewportControlService';
+import { ViewportDataManageService } from './services/dataManageService';
 
 export class SceneController {
 
@@ -23,9 +24,14 @@ export class SceneController {
     
     /* Services */
     private viewportControl: ViewportControlService;
+    private dataManageService: ViewportDataManageService;
 
     public getViewportControl() {
         return this.viewportControl;
+    }
+
+    public getDataMangeService() {
+        return this.dataManageService
     }
 
     /* Default Configs */
@@ -40,6 +46,7 @@ export class SceneController {
         this.controls.update();
         this.drawingPlaneXZ = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
         this.viewportControl = new ViewportControlService(this);
+        this.dataManageService = new ViewportDataManageService(this);
     }
 
     public static getInstance(): SceneController {
@@ -52,38 +59,6 @@ export class SceneController {
     public static setInstance(config: { renderer: THREE.Renderer, scene: THREE.Scene, camera: THREE.Camera, control: OrbitControls }): void {
         const sceneController = new SceneController(config);
         sceneController.addGridHelper();
-
-        // // Define updateCameraPlane function
-        // function updateCameraPlane() {
-        //     const boundingBox = new THREE.Box3();
-
-        //      // Calculate bounding box for the scene
-        //     boundingBox.setFromObject(sceneController.getScene());
-
-        //     const min = boundingBox.min;
-        //     const max = boundingBox.max;
-
-        //     // Calculate the direction vector from min to max
-        //     const directionMinToMax = max.clone().sub(min).normalize();
-
-        //     // Load scene, camera, renderer
-        //     const scene = sceneController.getScene();
-        //     const camera = sceneController.getCamera() as THREE.OrthographicCamera;
-        //     const renderer = sceneController.getRenderer();
-            
-        //     const cameraCenter = camera.position.clone(); // Keep the current camera position
-        //     const cameraLookAt = max.clone().sub(directionMinToMax.clone().multiplyScalar(10));
-
-        //     console.log(cameraCenter);
-
-        //     camera.near = 0.1;
-        //     camera.far = cameraCenter.distanceTo(cameraLookAt)+2000;
-        //     camera.updateProjectionMatrix();
-
-        //     renderer.render(scene, camera);
-        //     sceneController.setCamera(camera);
-        //     console.log(camera.position);
-        // }
     
         // Add event listener to update near/far planes on control change
         sceneController.controls.addEventListener('change', sceneController.viewportControl.updateCameraPlane);
