@@ -10,7 +10,7 @@ import { ModelType } from '@/mainArea/models/modelType';
 import { useVisibilityOptionStore } from '@/rendererArea/homescreenitems/visibilityOptionsStore';
 
 
-export class ThreeBoringPost {
+export class ThreeBoringPost {    
     private font: Font;
 
     constructor() {}
@@ -34,6 +34,8 @@ export class ThreeBoringPost {
             depth: 0.0,
             bevelEnabled: false,
         });
+
+        textGeometry.rotateX(Math.PI/2);
 
         textGeometry.computeBoundingBox();
 
@@ -62,7 +64,7 @@ export class ThreeBoringPost {
         );
 
         const moveMatrix = new THREE.Matrix4()
-        moveMatrix.makeTranslation(boring.getLocationX(), 0, boring.getLocationY());
+        moveMatrix.makeTranslation(boring.getLocationX(), boring.getLocationY(), 0);
         
         const threeObjs: THREE.Object3D[] = [];
         const threeGeometryWrapping = [];
@@ -209,8 +211,8 @@ export class ThreeBoringPost {
         for(let i = 0; i < layers.length; i++) {
             const {name, thickness, color} = layers[i];
             if(i == 0) {
-                const moveMatrix = new THREE.Matrix4();
-                moveMatrix.makeTranslation(0, topoLevel - thickness*0.5, 0);
+                const cylinderMoveMatrix = new THREE.Matrix4();
+                cylinderMoveMatrix.makeTranslation(0, 0, topoLevel - thickness*0.5);
                 const postSegment = await this.createPostSegmenet(
                     name,
                     `EL ${topoLevel.toFixed(2)}`,
@@ -221,14 +223,17 @@ export class ThreeBoringPost {
                     color
                 );
 
-                postSegment.leaderLine.applyMatrix4(moveMatrix);
-                postSegment.postGeometry.applyMatrix4(moveMatrix);
-                postSegment.textGeometry.applyMatrix4(moveMatrix);
+                const annotMoveMatrix = new THREE.Matrix4();
+                annotMoveMatrix.makeTranslation(0, 0, topoLevel);
+
+                postSegment.leaderLine.applyMatrix4(annotMoveMatrix);
+                postSegment.postGeometry.applyMatrix4(cylinderMoveMatrix);
+                postSegment.textGeometry.applyMatrix4(annotMoveMatrix);
 
                 postSegments.push(postSegment);
             } else {
-                const moveMatrix = new THREE.Matrix4();
-                moveMatrix.makeTranslation(0, topoLevel - thickness*0.5, 0);
+                const cylinderMoveMatrix = new THREE.Matrix4();
+                cylinderMoveMatrix.makeTranslation(0, 0, topoLevel - thickness*0.5);
 
                 const postSegment = await this.createPostSegmenet(
                     name,
@@ -240,9 +245,12 @@ export class ThreeBoringPost {
                     color
                 );
 
-                postSegment.leaderLine.applyMatrix4(moveMatrix);
-                postSegment.postGeometry.applyMatrix4(moveMatrix);
-                postSegment.textGeometry.applyMatrix4(moveMatrix);
+                const annotMoveMatrix = new THREE.Matrix4();
+                annotMoveMatrix.makeTranslation(0, 0, topoLevel);
+
+                postSegment.leaderLine.applyMatrix4(annotMoveMatrix);
+                postSegment.postGeometry.applyMatrix4(cylinderMoveMatrix);
+                postSegment.textGeometry.applyMatrix4(annotMoveMatrix);
 
                 postSegments.push(postSegment);
             }
@@ -279,7 +287,6 @@ export class ThreeBoringPost {
             1
         );
 
-
         return {
             postNameLeader: postNameLeader,
             postSegments: postSegments,
@@ -301,6 +308,8 @@ export class ThreeBoringPost {
         // Create post
         const geometry = new THREE.CylinderGeometry(radius, radius, thickness, 64);
 
+        geometry.rotateX(Math.PI/2);
+        
         geometry.computeBoundingBox();
         
         // Create leader
@@ -308,26 +317,20 @@ export class ThreeBoringPost {
         if(curvedLeader) {
             leaderSet = await this.createLeader(
                 `${name} (${levelDescription})`, 
-                0.5, 
-                {
-                curved: curvedLeader,
-                leaderSegmentLength: [2, 2, 2],
-                }, 
+                0.5,
+                { curved: curvedLeader,leaderSegmentLength: [2, 2, 2] }, 
                 radius,
                 offsetText,
-                geometry.boundingBox.max.y
+                0
             );
         } else {
             leaderSet = await this.createLeader(
                 `${name} (${levelDescription})`,
                 0.5,
-                {
-                    curved: curvedLeader,
-                    leaderLength: 4,
-                },
+                { curved: curvedLeader, leaderLength: 4, },
                 radius,
                 offsetText,
-                geometry.boundingBox.max.y
+                0
             );
         }
 
@@ -340,7 +343,7 @@ export class ThreeBoringPost {
         leaderOption: { curved: boolean, leaderLength?: number, leaderSegmentLength?: number[]}, 
         offset: number,
         offsetText: number,
-        coordY: number,
+        coordZ: number,
         leaderColor = 0x000000,
         directionFactor = 1
     ): Promise<{ leaderLine: THREE.Line, textGeometry: TextGeometry }|undefined> {
@@ -378,16 +381,16 @@ export class ThreeBoringPost {
         // Leader lines
         let line: THREE.Line;
         if (curved && leaderSegmentLength) {
-            const pt1 = new THREE.Vector3(directionFactor*offset, coordY, 0);
-            const pt2 = new THREE.Vector3(directionFactor*(offset + leaderSegmentLength[0]), coordY, 0);
-            const pt3 = new THREE.Vector3(directionFactor*(offset + leaderSegmentLength[0]), coordY - leaderSegmentLength[1], 0);
-            const pt4 = new THREE.Vector3(directionFactor*(offset + leaderSegmentLength[0] + leaderSegmentLength[2]), coordY - leaderSegmentLength[1], 0);
+            const pt1 = new THREE.Vector3(directionFactor*offset, 0, coordZ);
+            const pt2 = new THREE.Vector3(directionFactor*(offset + leaderSegmentLength[0]), 0, coordZ);
+            const pt3 = new THREE.Vector3(directionFactor*(offset + leaderSegmentLength[0]), 0, coordZ - leaderSegmentLength[1]);
+            const pt4 = new THREE.Vector3(directionFactor*(offset + leaderSegmentLength[0] + leaderSegmentLength[2]), 0, coordZ - leaderSegmentLength[1]);
             const segmentPts = [pt1, pt2, pt3, pt4];
             const geometry = new THREE.BufferGeometry().setFromPoints(segmentPts);
             line = new THREE.Line(geometry, material);
         } else if(leaderLength) {
-            const pt1 = new THREE.Vector3(directionFactor*offset, coordY, 0);
-            const pt2 = new THREE.Vector3(directionFactor*(offset + leaderLength), coordY, 0);
+            const pt1 = new THREE.Vector3(directionFactor*offset, 0, coordZ);
+            const pt2 = new THREE.Vector3(directionFactor*(offset + leaderLength), 0, coordZ);
             const segmentPts = [pt1, pt2];
             const geometry = new THREE.BufferGeometry().setFromPoints(segmentPts);
             line = new THREE.Line(geometry, material);
@@ -409,8 +412,8 @@ export class ThreeBoringPost {
         const matrixCoord: {x: number, y: number, z: number} = {
             x: directionFactor == 1 ? directionFactor * (offset + (curved ? leaderSegmentLength[0] + leaderSegmentLength[2] : leaderLength) + offsetText) :
                                       directionFactor * (offset + (curved ? leaderSegmentLength[0] + leaderSegmentLength[2] : leaderLength) + offsetText + horLength),
-            y: coordY - (curved ? leaderSegmentLength[1] : 0) - verLength*0.5,
-            z: 0,
+            y: 0,
+            z: coordZ - (curved ? leaderSegmentLength[1] : 0) - verLength*0.5,
         };
         const textTranslationMatrix = new THREE.Matrix4();
         textTranslationMatrix.makeTranslation(
@@ -447,21 +450,23 @@ export class ThreeBoringPost {
                 directionFactor
             );
 
+            leaderObjects.textGeometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, -0.15));
+
             const hitCountTextLength = Math.abs(leaderObjects.textGeometry.boundingBox.max.x - leaderObjects.textGeometry.boundingBox.min.x);
-            
+
 
             // Create depth geomtery
             const textGeometry = await this.createTextGeometry(spt.depth.toFixed(1).toString(), 0.3);
             if(!textGeometry || !textGeometry.boundingBox) return;
 
             const horLength = Math.abs(textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x);
-            const verLength = Math.abs(textGeometry.boundingBox.max.y - textGeometry.boundingBox.min.y);
+            const verLength = Math.abs(textGeometry.boundingBox.max.z - textGeometry.boundingBox.min.z);
 
             const matrix = new THREE.Matrix4();
             matrix.makeTranslation(
                 directionFactor == 1 ? directionFactor*(leaderLength + offsetText) : directionFactor*(leaderLength + offsetText + horLength + hitCountTextLength + 2),
-                topLevel - spt.depth - verLength*0.5,
-                0
+                0,
+                topLevel - spt.depth - verLength*0.5
             );
             textGeometry.applyMatrix4(matrix);
 

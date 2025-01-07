@@ -134,60 +134,6 @@ export class SceneController {
         return SceneController.registeredInstances.get(id);
     }
 
-    // public static serializeCamera(currentCamera: THREE.Camera): ThreeViewJSON | undefined {
-    //     const cameraCommonProps = {
-    //         id: uuidv4(),
-    //         viewName: "New View",
-    //         viewType: currentCamera.type,
-    //         cameraPosition: {
-    //             x: currentCamera.position.x,
-    //             y: currentCamera.position.y,
-    //             z: currentCamera.position.z,
-    //         },
-    //         cameraRotation: {
-    //             x: currentCamera.quaternion.x,
-    //             y: currentCamera.quaternion.y,
-    //             z: currentCamera.quaternion.z,
-    //             w: currentCamera.quaternion.w,
-    //         },
-    //         up: {
-    //             x: currentCamera.up.x,
-    //             y: currentCamera.up.y,
-    //             z: currentCamera.up.z,
-    //         },
-    //     };
-    
-    //     if (currentCamera.type === 'PerspectiveCamera') {
-    //         const camera = currentCamera as THREE.PerspectiveCamera;
-    //         const cameraProps = {
-    //             fov: camera.fov,
-    //             near: camera.near,
-    //             far: camera.far,
-    //         };
-    //         return {
-    //             ...cameraCommonProps,
-    //             viewType: 'PerspectiveCamera',
-    //             PerspectiveViewProps: cameraProps,
-    //         } as ThreePerspectiveViewJSON;
-    //     } else if (currentCamera.type === 'OrthographicCamera') {
-    //         const camera = currentCamera as THREE.OrthographicCamera;
-    //         const cameraProps = {
-    //             zoom: camera.zoom,
-    //             left: camera.left,
-    //             right: camera.right,
-    //             top: camera.top,
-    //             bottom: camera.bottom,
-    //         };
-    //         return {
-    //             ...cameraCommonProps,
-    //             viewType: 'OrthographicCamera',
-    //             OrthographicViewProps: cameraProps,
-    //         } as ThreeOrthographicViewJSON;
-    //     } else {
-    //         return undefined;
-    //     }
-    // }
-
     /**
      * Set size of Viewport.
      * The type of camera has two values : PerspectiveCamera, OrthographicCamera
@@ -218,78 +164,9 @@ export class SceneController {
         this.render();
     }
 
-    // public updateCameraFromView(view: ThreeView): void {
-    //     if (view instanceof ThreePerspectiveView) {
-    //         const camera = this.camera as THREE.PerspectiveCamera;
-    //         camera.position.set(view.cameraPosition.x, view.cameraPosition.y, view.cameraPosition.z);
-    //         camera.quaternion.set(view.cameraRotation.x, view.cameraRotation.y, view.cameraRotation.z, view.cameraRotation.w);
-    //         camera.fov = view.fov;
-    //         camera.near = view.near;
-    //         camera.far = view.far;
-    //         camera.updateProjectionMatrix();
-    //     } else if (view instanceof ThreeOrthographicView) {
-    //         const camera = this.camera as THREE.OrthographicCamera;
-    //         camera.position.set(view.cameraPosition.x, view.cameraPosition.y, view.cameraPosition.z);
-    //         camera.setRotationFromQuaternion(new THREE.Quaternion(view.cameraRotation.x, view.cameraRotation.y, view.cameraRotation.z, view.cameraRotation.w));
-    //         camera.zoom = view.zoom;
-    //         camera.left = view.left;
-    //         camera.right = view.right;
-    //         camera.top = view.top;
-    //         camera.bottom = view.bottom;
-    //         camera.updateProjectionMatrix();
-    //     }
-
-    //     this.controls.update();
-    //     this.render();
-    // }
-
-    
-    // public setTopView(): void {
-    //     const boundingBox = this.getBoundingBoxOfObjects();
-    //     const boundingCenter = new THREE.Vector3();
-    //     boundingBox.getCenter(boundingCenter);
-    
-    //     if (this.camera.type === 'PerspectiveCamera') {
-    //         const perspectiveCamera = this.camera as THREE.PerspectiveCamera;
-    //         const cameraY = boundingBox.max.y + 10; // Adding some offset for better visibility
-    //         perspectiveCamera.position.set(boundingCenter.x, cameraY, boundingCenter.z);
-    //         perspectiveCamera.lookAt(boundingCenter.x, boundingCenter.y, boundingCenter.z);
-    //     } else if (this.camera.type === 'OrthographicCamera') {
-    //         const orthographicCamera = this.camera as THREE.OrthographicCamera;
-    //         const canvasWidth = this.renderer.domElement.clientWidth;
-    //         const canvasHeight = this.renderer.domElement.clientHeight;
-    //         const aspect = canvasWidth / canvasHeight;
-    //         const frustumSize = 100; // Adjust frustum size as needed
-
-    //         orthographicCamera.left = -frustumSize * aspect / 2;
-    //         orthographicCamera.right = frustumSize * aspect / 2;
-    //         orthographicCamera.top = frustumSize / 2;
-    //         orthographicCamera.bottom = -frustumSize / 2;
-
-    //         orthographicCamera.quaternion.set(0, 0, 0, 0);
-    //         orthographicCamera.position.set(0, 100, 0); // Adding offset for visibility
-            
-    //         orthographicCamera.lookAt(0, 0, 0);
-    //         orthographicCamera.near = 0.1;
-    //         orthographicCamera.far = 1000;
-    //         orthographicCamera.zoom = 1; // Adjust zoom as needed
-    //         orthographicCamera.updateProjectionMatrix();
-
-    //         console.log(orthographicCamera);
-
-    //         // Update the camera instance in SceneController
-    //         this.camera = orthographicCamera;
-    //         this.controls.object = orthographicCamera;
-    //         this.controls.update();
-    //     }
-    
-    //     // Ensure the controls are updated
-    //     this.controls.update();
-    //     this.render();
-    // }
-
     public addGridHelper() {
         const gridHelper = new THREE.GridHelper();
+        gridHelper.rotation.x = Math.PI/2;
         this.gridHelper = gridHelper;
         this.scene.add(gridHelper);
         this.render();
@@ -339,6 +216,8 @@ export class SceneController {
             frustumSize / 2, -frustumSize / 2,
             0.1, 10000
         );
+
+        targetCamera.up.set(0, 0, 1);
         
         targetCamera.position.set(50, 50, 50);
         targetCamera.zoom = 100;
