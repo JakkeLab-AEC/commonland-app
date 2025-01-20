@@ -32,10 +32,10 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
         reset,
     } = useTopoMakerStore();
 
-    const onSubmit = () => {
+    const onSubmit = async () => {
         const topoName = nameRef.current.value;
         if(topoName.length == 0) {
-            alert('이름은 공백으로 설정할 수 없습니다.');
+            await window.electronSystemAPI.callDialogError('시추공 이름 오류', '이름은 공백으로 설정할 수 없습니다.');
             return;
         }
 
@@ -53,7 +53,7 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
             if(onSubmitTopo) onSubmitTopo(topo);
             toggleMode(false);
         } else {
-            alert('모든 시추공에서 레이어를 선택헤 주세요');
+            await window.electronSystemAPI.callDialogError('지형면 생성 오류', '모든 시추공에서 레이어를 선택헤 주세요');
         }
     };
 

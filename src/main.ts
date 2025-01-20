@@ -7,6 +7,7 @@ import { setIpcBoringRepository } from './mainArea/ipcHandlers/ipcBoringReposito
 import { setIpcProjectIOHandler } from './mainArea/ipcHandlers/ipcProjectFile';
 import { setIpcTopoRepository } from './mainArea/ipcHandlers/ipcTopoRepository';
 import { UIController } from './mainArea/appController/uicontroller/uicontroller';
+import { setIpcModalControl } from './mainArea/ipcHandlers/ipcModalHandlers';
 
 if (require('electron-squirrel-startup')) app.quit();
 
@@ -100,6 +101,8 @@ app.on('ready', () => {
   setIpcProjectIOHandler(ipcMain);
 
   setIpcTopoRepository(ipcMain);
+
+  setIpcModalControl(ipcMain);
 });
 
 app.on('window-all-closed', () => {
