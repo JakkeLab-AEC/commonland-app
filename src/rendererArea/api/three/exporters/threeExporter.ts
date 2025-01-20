@@ -67,7 +67,7 @@ export class ThreeExporter {
                 const x = geometry.attributes.position.getX(i);
                 const y = geometry.attributes.position.getY(i);
                 const z = geometry.attributes.position.getZ(i);
-                if(this.zAxisMode == 'camera') {
+                if(this.zAxisMode == 'euclidean') {
                     meshProp.vertices.set(i + 1, { x: x+dx , y: y+dy, z: z });
                 } else {
                     meshProp.vertices.set(i + 1, { x: x+dx, y: z, z: y+dy });
@@ -80,7 +80,7 @@ export class ThreeExporter {
                     const x = geometry.attributes.normal.getX(i);
                     const y = geometry.attributes.normal.getY(i);
                     const z = geometry.attributes.normal.getZ(i);
-                    if(this.zAxisMode == 'camera') {
+                    if(this.zAxisMode == 'euclidean') {
                         meshProp.vertexNormals.set(i + 1, { x: x+dx, y: y+dy, z: z });
                     } else {
                         meshProp.vertexNormals.set(i + 1, { x: x+dx, y: z, z: y+dy });
@@ -92,7 +92,7 @@ export class ThreeExporter {
             if (geometry.index) {
                 const index = geometry.index.array;
                 for (let i = 0; i < index.length; i += 3) {
-                    meshProp.faces.set(i / 3 + 1, {
+                    meshProp.faces.set((i / 3) + 1, {
                         v1: index[i] + 1,
                         v2: index[i + 1] + 1,
                         v3: index[i + 2] + 1,
