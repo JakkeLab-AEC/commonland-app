@@ -189,7 +189,7 @@ export const SPTSheet:React.FC<SPTSheetProps> = ({SPTResultSet, onClickSetDepth,
                 }
             });
             const alertValueJoined = alertValue.join();
-            alert(`일부 값의 형식이 잘못되었습니다.\n0 이상의 정수/정수 형태로 입력해주세요\n${alertValueJoined}`);
+            window.electronSystemAPI.callDialogError('SPT 값 입력 오류', `일부 값의 형식이 잘못되었습니다.\n0 이상의 정수/정수 형태로 입력해주세요\n${alertValueJoined}`);
             return;
         }
         const result: Map<number, {hitCount: number, distance: number}> = new Map()
