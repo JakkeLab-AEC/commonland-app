@@ -36,4 +36,5 @@ contextBridge.exposeInMainWorld('electronTopoLayerAPI', {
 
 contextBridge.exposeInMainWorld('electronSystemAPI', {
     receiveOSInfo: (callback) => ipcRenderer.on('os-info', (_event, osInfo) => callback(osInfo)),
+    callDialogError: (title: string, message: string) => ipcRenderer.invoke('call-dialog-error', title, message),
 });

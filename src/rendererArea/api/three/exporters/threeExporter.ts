@@ -143,7 +143,7 @@ export class ThreeExporter {
         const boringFetch = await window.electronBoringDataAPI.fetchAllBorings();
         const layerFetch = await window.electronBoringDataAPI.getAllLayerColors();
         if(!boringFetch || !boringFetch.result || !layerFetch || !layerFetch.result) {
-            alert('내보내기 오류.');
+            await window.electronSystemAPI.callDialogError('DXF 내보내기 오류', '내보내기 오류.');
             return;
         }
 

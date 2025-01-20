@@ -121,7 +121,7 @@ export const useEditorPageStore = create<EditorPageStore>((set, get) => ({
 
         const updateJob = await window.electronBoringDataAPI.updateBoring(boring.serialize());
         if(updateJob.updateError) {
-            alert(updateJob.updateError.message);
+            window.electronSystemAPI.callDialogError('시추공 수정 오류', updateJob.updateError.message);
             set(() => {
                 return {updateEventListners: []}
             });
