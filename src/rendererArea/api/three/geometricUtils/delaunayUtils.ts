@@ -31,7 +31,7 @@ export function createDelaunatedMesh(topo: Topo) {
     const indices: number[] = [];
 
     convertedPts.forEach(point => {
-        vertices.push(point.x, point.z, point.y); // 3D 좌표를 vertices 배열에 추가
+        vertices.push(point.x, point.y, point.z); // 3D 좌표를 vertices 배열에 추가
     });
 
 

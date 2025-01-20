@@ -9,7 +9,7 @@ export const TestPage = () => {
 
     const testPosts = async () => {
         const testApi = new TestAPI();
-        testApi.createTestBorings(30);
+        testApi.createTestBorings(1);
     }
 
     const testOnSelectColor = (index: number) => {
