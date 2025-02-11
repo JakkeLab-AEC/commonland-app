@@ -8,6 +8,7 @@ import { setIpcProjectIOHandler } from './mainArea/ipcHandlers/ipcProjectFile';
 import { setIpcTopoRepository } from './mainArea/ipcHandlers/ipcTopoRepository';
 import { UIController } from './mainArea/appController/uicontroller/uicontroller';
 import { setIpcModalControl } from './mainArea/ipcHandlers/ipcModalHandlers';
+import { setIPCPythonPipe } from './mainArea/ipcHandlers/ipcPythonPipe';
 
 if (require('electron-squirrel-startup')) app.quit();
 
@@ -92,17 +93,27 @@ const createMainWindow = () => {
 app.on('ready', () => {
   createMainWindow();
 
-  AppController.InitiateAppController();
+  const osInfo = os.platform();
+  if(osInfo === 'win32' || osInfo === 'darwin') {
+    const osCode = osInfo === 'win32' ? 'win' : 'mac';
+    const pythonDirectory = path.resolve(__dirname, './pythonEnv');
+    AppController.InitiateAppController(osCode, pythonDirectory, __dirname);
 
-  setIpcWindowControl(ipcMain);
+    setIpcWindowControl(ipcMain);
 
-  setIpcBoringRepository(ipcMain);
+    setIpcBoringRepository(ipcMain);
 
-  setIpcProjectIOHandler(ipcMain);
+    setIpcProjectIOHandler(ipcMain);
 
-  setIpcTopoRepository(ipcMain);
+    setIpcTopoRepository(ipcMain);
 
-  setIpcModalControl(ipcMain);
+    setIpcModalControl(ipcMain);
+
+    setIPCPythonPipe(ipcMain);
+    
+  } else {
+    
+  }
 });
 
 app.on('window-all-closed', () => {

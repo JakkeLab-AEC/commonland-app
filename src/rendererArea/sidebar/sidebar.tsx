@@ -46,14 +46,14 @@ export default function Sidebar() {
         }, 
     ];
 
-    if(mode == 'dev') [
+    if(mode == 'dev') {
         menuNavigations.push({
             menuName: "TEST", 
             menuPage: (<TestPage />), 
             displayHeader: 'Test',
             menuClickHandler: navigateMenu
         })
-    ]
+    }
 
     useEffect(() => {
         setHomeId(homeId);
