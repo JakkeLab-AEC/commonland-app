@@ -1,6 +1,5 @@
-import { ChildProcessWithoutNullStreams, spawn } from "node:child_process";
+import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import path from 'path';
-import { AppController } from "../appController";
 import { dialog } from "electron";
 import { UIController } from "../uicontroller/uicontroller";
 
