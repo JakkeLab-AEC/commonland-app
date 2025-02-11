@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import { resolve } from 'path';
 import { builtinModules } from 'module';
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
+import copyFilesPlugin from "./vite.plugins.own";
 
 export default defineConfig({
   base: './',
@@ -52,5 +53,12 @@ export default defineConfig({
       const fontContent = readFileSync('src/fontjson/font_default.json');
       writeFileSync('.vite/src/fontjson/font_default.json', fontContent);
     }
-  }]
+  }, copyFilesPlugin({
+    src: 'envs/commonland_python_env_win',
+    dest: "dist/pythonEnv",
+    watch: false
+  }), copyFilesPlugin({
+    src: "src/mainPython",
+    dest: "dist/mainPython"
+  })]
 });

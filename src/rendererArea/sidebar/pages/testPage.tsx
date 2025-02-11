@@ -21,11 +21,16 @@ export const TestPage = () => {
         
     }
 
+    const testPython = async () => {
+        await window.electronIPCPythonBridge.test();
+    }
+
     
     return (
         <div className="flex flex-col gap-2">
             <ButtonPositive text={"Create Test Borings"} isEnabled={true} onClickHandler={testPosts}/>
             <ModalLoadingProject />
+            <ButtonPositive text={"Test Python"} isEnabled={true} onClickHandler={testPython} />
         </div>
     )
 }
