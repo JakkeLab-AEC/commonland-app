@@ -1,13 +1,20 @@
 import sys, json
 
+from src.mainPython.gateway.api_gateway import APIGateway
+
+
 def process_message(message: str) -> dict:
     try:
         request = json.loads(message)
+        gateway = APIGateway()
+
+        gateway.handle_gateway(action=message['action'], args=message['args'])
         response = {
             "result": True,
             "message": "Received successfully",
             "data": request
         }
+
     except json.JSONDecodeError as e:
         response = {
             "result": False,

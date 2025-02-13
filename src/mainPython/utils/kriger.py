@@ -1,6 +1,9 @@
 from pykrige.ok import OrdinaryKriging
 import numpy as np
 
+def calculate_topo_from_points(obb, points):
+
+
 data = np.array(
     [
         [0.3, 1.2, 0.47],
