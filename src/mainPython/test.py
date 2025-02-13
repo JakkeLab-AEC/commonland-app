@@ -1,4 +1,4 @@
-import sys;
+import sys
 
 print("Hello")
 print(sys.version)

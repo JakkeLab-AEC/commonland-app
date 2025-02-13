@@ -14,10 +14,17 @@ interface InspectorTopoMakerProp {
     onClickClose?: () => void;
 }
 
+enum TopoCreationType {
+    DelaunayMesh = 'DelaunayMesh',
+    OrdinaryKrige = 'OrdinaryKrige',
+    NotDefined = 'NotDefined',
+}
+
 export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTopo, onClickClose}) => {
     const nameRef = useRef<HTMLInputElement>(null);
     const [isPlatteOpened, setPaletteState] = useState<boolean>(false);
     const [topoColorIndex, setTopoColorIndex] = useState<number>(1);
+    const [topoCreationMode, setTopoCreationMode] = useState<TopoCreationType>(TopoCreationType.NotDefined)
     const {
         toggleMode,
         resetProps
@@ -84,6 +91,12 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
         setTopoColorIndex(index);
         setPaletteState(false);
     }
+
+    const onChangeCreationMode = (e: ChangeEvent<HTMLSelectElement>) => {
+        const topoCreationType = e.target.value as TopoCreationType;
+        setTopoCreationMode(topoCreationType);
+        console.log(topoCreationType);
+    }
     
     useEffect(() => {
         fetchAllDepths();
@@ -117,6 +130,17 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                         </div>
                     </Inspector>
                 </div>}
+                <div className="flex flex-row gap-2">
+                    <div>
+                        생성 방식
+                    </div>
+                    <div>
+                        <select className="border w-[180px]" onChange={onChangeCreationMode}>
+                            <option value={TopoCreationType.DelaunayMesh}>Delaunay Mesh</option>
+                            <option value={TopoCreationType.OrdinaryKrige}>Ordinary Krige</option>
+                        </select>
+                    </div>
+                </div>
             </div>
             <hr/>
             {/* Layer selector */}
