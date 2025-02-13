@@ -1,29 +1,33 @@
-from pykrige.ok import OrdinaryKriging
-import numpy as np
+import sys, json
 
-data = np.array(
-    [
-        [0.3, 1.2, 0.47],
-        [1.9, 0.6, 0.56],
-        [1.1, 3.2, 0.74],
-        [3.3, 4.4, 1.47],
-        [4.7, 3.8, 1.74],
-    ]
-)
+def process_message(message: str) -> dict:
+    try:
+        request = json.loads(message)
+        response = {
+            "result": True,
+            "message": "Received successfully",
+            "data": request
+        }
+    except json.JSONDecodeError as e:
+        response = {
+            "result": False,
+            "message": f"JSON Decode Error: {str(e)}"
+        }
 
-OK = OrdinaryKriging(
-    x=data[:, 0],
-    y=data[:, 1],
-    z=data[:, 2],
-    variogram_model="exponential",
-    verbose = False,
-    enable_plotting=False,
-)
+    return response
 
-target_x = np.arange(0, 5 + 0.1, 0.1)
-target_y = np.arange(0, 5 + 0.1, 0.1)
+def message_loop():
+    while True:
+        line = sys.stdin.readline().strip()
+        if not line:
+            continue
+        
+        response = process_message(line)
+        
+        # Python에서 stdout으로 JSON 응답을 전송
+        sys.stdout.write(json.dumps(response) + "\n")
+        sys.stdout.flush()  # 버퍼를 비워서 즉시 Node.js에서 받을 수 있도록 함
 
-z_pred, ss_pred = OK.execute(style="points", xpoints=target_x, ypoints=target_y)
+        sys.exit(0)
 
-print(f"Predicted z-value : {z_pred}")
-print(f"Predicted variance : {ss_pred}")
+message_loop()

@@ -2,6 +2,7 @@ import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import path from 'path';
 import { dialog } from "electron";
 import { UIController } from "../uicontroller/uicontroller";
+import { PipeMessageSend } from "@/dto/pipeMessage";
 
 export class PythonBridge {
     private embeddedPath: string | null;
@@ -14,6 +15,7 @@ export class PythonBridge {
         this.embeddedPath = embeddedPath;
         this.platform = platform;
         this.appRootPath = appRootPath;
+        console.log(`RootPath: ${appRootPath}`);
     }
 
     ready(): void {
@@ -36,9 +38,16 @@ export class PythonBridge {
         console.log('Python Executable Path:', pythonExecutable);
     }
 
-    start(scriptPath: string): void {
-         try {
-            this.pyProcess = spawn(this.pythonExecutable, [scriptPath], {
+    start(scriptPath?: string): void {
+        let checkedPath: string;
+        if(!scriptPath) {
+            checkedPath = path.resolve(this.appRootPath, './mainPython/main.py');
+        } else {
+            checkedPath = scriptPath;
+        }
+
+        try {
+            this.pyProcess = spawn(this.pythonExecutable, [checkedPath], {
                 stdio: 'pipe'
             });
 
@@ -61,6 +70,7 @@ export class PythonBridge {
 
     test(): void {
         const scriptPath = path.resolve(this.appRootPath, './mainPython/test.py')
+
         this.start(scriptPath);
     }
     
@@ -74,28 +84,56 @@ export class PythonBridge {
         }
     }
 
-    async send(data: object): Promise<any> {
-        const mainWindow = UIController.instance.getWindow('main-window')
-        if(!mainWindow) {
-            dialog.showErrorBox("Error", "Application is not running.");
+    async send(message: PipeMessageSend): Promise<any> {        
+        const mainWindow = UIController.instance.getWindow('main-window');
+        if (!mainWindow) {
+            dialog.showMessageBoxSync(mainWindow, {
+                title: "System Error",
+                message: "Main window is not found.",
+                buttons: ["Ok"]
+            });
+            return;
         }
-
-        if(!this.pyProcess) {
-            dialog.showMessageBox(mainWindow, {
+    
+        if (!this.pyProcess) {
+            dialog.showMessageBoxSync(mainWindow, {
                 title: "System Error",
                 message: "Python process is not running.",
                 buttons: ["Ok"]
             });
             return;
         }
-
+    
         return new Promise((resolve, reject) => {
-            const message = JSON.stringify(data) + '\n';
+            console.log('Sending message to Python process...\n');
+    
+            const data = JSON.stringify(message) + '\n';
             const [stdin, stdout] = [this.pyProcess.stdin, this.pyProcess.stdout];
-
-            if(!stdin || !stdout) {
+    
+            if (!stdin || !stdout) {
                 return reject('Python process stdin or stdout is not available.');
             }
+    
+            stdout.removeAllListeners('data');
+    
+            const onData = (chunk: Buffer) => {
+                try {
+                    const response = JSON.parse(chunk.toString().trim());
+                    console.log('Received response from Python:', response);
+                    stdout.removeListener('data', onData);
+
+                    this.stop();
+                    
+                    resolve(response);
+                } catch (error) {
+                    reject(`Failed to parse response: ${error}`);
+                }
+            };
+    
+            stdout.on('data', onData);
+    
+            stdin.write(data);
+            stdin.end();  // 데이터 입력을 완료했음을 알림
         });
-    }
+    }    
 }

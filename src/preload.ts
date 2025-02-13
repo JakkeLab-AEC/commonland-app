@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { BoringDTO } from "./dto/serviceModel/BoringDTO";
 import { TopoDTO } from "./dto/serviceModel/topoDto";
+import { PipeMessageSend } from "./dto/pipeMessage";
 
 contextBridge.exposeInMainWorld('electronWindowControlAPI', {
     minimize: () => ipcRenderer.invoke('window-control-minimize'),
@@ -41,4 +42,7 @@ contextBridge.exposeInMainWorld('electronSystemAPI', {
 
 contextBridge.exposeInMainWorld('electronIPCPythonBridge', {
     test:() => ipcRenderer.invoke('test-python-pipe'),
+    start:() => ipcRenderer.invoke('start-python-loop'),
+    stop:() => ipcRenderer.invoke('stop-python-loop'),
+    send:(message: PipeMessageSend) => ipcRenderer.invoke('send-message', message),
 });
