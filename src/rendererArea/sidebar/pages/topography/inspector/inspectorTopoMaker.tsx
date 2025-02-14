@@ -8,23 +8,19 @@ import { useTopoMakerStore } from "./inspectorTopoMakerStore";
 import { Topo } from "@/mainArea/models/serviceModels/topo/Topo";
 import { ColorIndexPalette, ColorSquare } from "@/rendererArea/components/palette/colorIndexPalette";
 import { Inspector } from "@/rendererArea/components/inspector/inspector";
+import { TopoType } from "@/mainArea/models/topoType";
 
 interface InspectorTopoMakerProp {
     onSubmitTopo?: (topo: Topo) => void;
     onClickClose?: () => void;
 }
 
-enum TopoCreationType {
-    DelaunayMesh = 'DelaunayMesh',
-    OrdinaryKrige = 'OrdinaryKrige',
-    NotDefined = 'NotDefined',
-}
-
 export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTopo, onClickClose}) => {
     const nameRef = useRef<HTMLInputElement>(null);
+    const resolutionRef = useRef<HTMLInputElement>(null);
     const [isPlatteOpened, setPaletteState] = useState<boolean>(false);
     const [topoColorIndex, setTopoColorIndex] = useState<number>(1);
-    const [topoCreationMode, setTopoCreationMode] = useState<TopoCreationType>(TopoCreationType.NotDefined)
+    const [topoCreationMode, setTopoCreationMode] = useState<TopoType>(TopoType.NotDefined)
     const {
         toggleMode,
         resetProps
@@ -42,12 +38,12 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
     const onSubmit = async () => {
         const topoName = nameRef.current.value;
         if(topoName.length == 0) {
-            await window.electronSystemAPI.callDialogError('시추공 이름 오류', '이름은 공백으로 설정할 수 없습니다.');
+            await window.electronSystemAPI.callDialogError('지형면 생성 오류', '지형면 이름은 공백으로 설정할 수 없습니다.');
             return;
         }
 
         if(selectedValues.size == Array.from(selectedValues.values()).filter(value => value != null).length) {
-            const topo = new Topo(false, topoName);
+            const topo = new Topo({isBatched: false, name: topoName, topoType: topoCreationMode});
             topo.setColorIndex(topoColorIndex);
             selectedValues.forEach((value, key) => {
                 const targetBoring = allDepths.find(depth => depth.boringId == key);
@@ -93,7 +89,7 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
     }
 
     const onChangeCreationMode = (e: ChangeEvent<HTMLSelectElement>) => {
-        const topoCreationType = e.target.value as TopoCreationType;
+        const topoCreationType = e.target.value as TopoType;
         setTopoCreationMode(topoCreationType);
         console.log(topoCreationType);
     }
@@ -136,11 +132,20 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                     </div>
                     <div>
                         <select className="border w-[180px]" onChange={onChangeCreationMode}>
-                            <option value={TopoCreationType.DelaunayMesh}>Delaunay Mesh</option>
-                            <option value={TopoCreationType.OrdinaryKrige}>Ordinary Krige</option>
+                            <option value={TopoType.DelaunayMesh}>Delaunay Mesh</option>
+                            <option value={TopoType.OrdinaryKriging}>Ordinary Krige</option>
                         </select>
                     </div>
                 </div>
+                {(topoCreationMode !== TopoType.DelaunayMesh && topoCreationMode !== TopoType.NotDefined) && 
+                <div className="flex flex-row gap-2">
+                    <div>
+                        해상도 (m)
+                    </div>
+                    <div className="border">
+                        <input type="number" step={0.25} min={0.25} max={20} ref={resolutionRef}/>
+                    </div>
+                </div>}
             </div>
             <hr/>
             {/* Layer selector */}

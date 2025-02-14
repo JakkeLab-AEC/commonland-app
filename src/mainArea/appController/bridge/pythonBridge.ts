@@ -110,6 +110,7 @@ export class PythonBridge {
         const convertedMessage:PipeMessageSend = {
             ...message, runtimePath: this.appRuntimePath
         }
+
         return new Promise((resolve, reject) => {
             console.log('Sending message to Python process...\n');
     
