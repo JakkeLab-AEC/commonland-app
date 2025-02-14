@@ -17,7 +17,7 @@ class APIGateway:
             end_time = time.time()
 
             return {
-                "duration": end_time - start_time,
+                "duration": round(end_time - start_time, 3),
                 "points": calculated_points,
                 "count": len(calculated_points)
             }

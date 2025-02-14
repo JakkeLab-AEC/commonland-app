@@ -5,7 +5,7 @@ import {MultilineTextbox} from '../../components/multilineTextbox/multilineTextB
 import { ThreeExporter } from "@/rendererArea/api/three/exporters/threeExporter";
 import { ModalLoadingProject } from "@/rendererArea/components/header/header";
 import { useRef } from "react";
-import { PipeMessageSend } from "@/dto/pipeMessage";
+import { PipeMessageSend, PipeMessageSendRenderer } from "@/dto/pipeMessage";
 
 export const TestPage = () => {
     const textBoxRef = useRef<HTMLInputElement>(null);
@@ -21,7 +21,7 @@ export const TestPage = () => {
     }
 
     const testSendingText = async () => {
-        const message: PipeMessageSend = {
+        const message: PipeMessageSendRenderer = {
             action: "Test",
             args: {
                 message: textBoxRef.current.value,

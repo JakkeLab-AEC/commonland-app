@@ -5,6 +5,7 @@ import { BoringRepository } from "../repository/boringRepository";
 import { TopoRepository } from "../repository/topoRepository";
 import { PythonBridge } from "./bridge/pythonBridge";
 import path from 'path';
+import { app } from "electron";
 
 type RepositoryTypes = 'Boring'|'LandInfo'|'Topo'
 
@@ -27,7 +28,12 @@ export class AppController {
         this.osInfo = osInfo;
 
         this.appRootPath = appRootPath;
-        this.pythonBridge = new PythonBridge(pythonPath, osInfo, appRootPath);
+        this.pythonBridge = new PythonBridge({
+            embeddedPath: pythonPath, 
+            platform: osInfo, 
+            appRootPath: appRootPath, 
+            appRuntimePath: app.getPath('userData')
+        });
         this.pythonBridge.ready();
         console.log(`Python Directory : ${pythonPath}`);
     }

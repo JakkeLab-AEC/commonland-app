@@ -232,3 +232,6 @@ $RECYCLE.BIN/
 
 # python embedding
 /envs
+
+# python cache
+*.pyc

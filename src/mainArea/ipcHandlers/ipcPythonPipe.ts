@@ -1,6 +1,6 @@
 import { IpcMain } from "electron"
 import { AppController } from "../appController/appController";
-import { PipeMessageSend } from "@/dto/pipeMessage";
+import { PipeMessageSend, PipeMessageSendRenderer } from "@/dto/pipeMessage";
 
 export const setIPCPythonPipe = (ipcMain: IpcMain) => {
     ipcMain.handle('test-python-pipe', (_) => {
@@ -11,7 +11,7 @@ export const setIPCPythonPipe = (ipcMain: IpcMain) => {
         AppController.getInstance().pythonBridge.start();
     });
 
-    ipcMain.handle('send-message', async (_, message: PipeMessageSend) => {
+    ipcMain.handle('send-message', async (_, message: PipeMessageSendRenderer) => {
         await AppController.getInstance().pythonBridge.send(message);
     });
 }

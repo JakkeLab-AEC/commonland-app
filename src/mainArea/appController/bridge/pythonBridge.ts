@@ -2,7 +2,7 @@ import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import path from 'path';
 import { dialog } from "electron";
 import { UIController } from "../uicontroller/uicontroller";
-import { PipeMessageSend } from "@/dto/pipeMessage";
+import { PipeMessageSend, PipeMessageSendRenderer } from "@/dto/pipeMessage";
 
 export class PythonBridge {
     private embeddedPath: string | null;
@@ -10,12 +10,15 @@ export class PythonBridge {
     private pythonExecutable: string | null;
     private readonly platform: string
     private readonly appRootPath: string;
+    private readonly appRuntimePath: string;
     
-    constructor(embeddedPath: string, platform: "win"|"mac", appRootPath: string) {
+    constructor({embeddedPath, platform, appRootPath, appRuntimePath}:{embeddedPath: string, platform: "win"|"mac", appRootPath: string, appRuntimePath: string}) {
         this.embeddedPath = embeddedPath;
         this.platform = platform;
         this.appRootPath = appRootPath;
+        this.appRuntimePath = appRuntimePath;
         console.log(`RootPath: ${appRootPath}`);
+        console.log(`RuntimePath: ${appRuntimePath}`);
     }
 
     ready(): void {
@@ -84,7 +87,7 @@ export class PythonBridge {
         }
     }
 
-    async send(message: PipeMessageSend): Promise<any> {        
+    async send(message: PipeMessageSendRenderer): Promise<any> {        
         const mainWindow = UIController.instance.getWindow('main-window');
         if (!mainWindow) {
             dialog.showMessageBoxSync(mainWindow, {
@@ -103,11 +106,14 @@ export class PythonBridge {
             });
             return;
         }
-    
+        
+        const convertedMessage:PipeMessageSend = {
+            ...message, runtimePath: this.appRuntimePath
+        }
         return new Promise((resolve, reject) => {
             console.log('Sending message to Python process...\n');
     
-            const data = JSON.stringify(message) + '\n';
+            const data = JSON.stringify(convertedMessage) + '\n';
             const [stdin, stdout] = [this.pyProcess.stdin, this.pyProcess.stdout];
     
             if (!stdin || !stdout) {
