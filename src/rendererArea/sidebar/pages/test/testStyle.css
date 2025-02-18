@@ -1,0 +1,11 @@
+.point-label {
+    position: absolute;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 4px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    pointer-events: none; /* 클릭 방지 */
+    transform: translate(-50%, -100%);
+    white-space: nowrap;
+}

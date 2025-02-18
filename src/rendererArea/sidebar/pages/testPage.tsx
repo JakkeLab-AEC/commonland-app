@@ -6,6 +6,14 @@ import { ThreeExporter } from "@/rendererArea/api/three/exporters/threeExporter"
 import { ModalLoadingProject } from "@/rendererArea/components/header/header";
 import { useRef } from "react";
 import { PipeMessageSend, PipeMessageSendRenderer } from "@/dto/pipeMessage";
+import { getConvexHull } from "@/mainArea/utils/convexHullUtils";
+import { Vector2d, Vector3d } from "@/mainArea/types/vector";
+import { createConvexHullGeometry, createTextOverlay } from "@/rendererArea/api/three/utils/createConvexHull";
+import { SceneController } from "@/rendererArea/api/three/SceneController";
+import * as THREE from 'three'; 
+import './test/testStyle.css';
+
+const TEST_POINT_COUNT = 30;
 
 export const TestPage = () => {
     const textBoxRef = useRef<HTMLInputElement>(null);
@@ -35,20 +43,45 @@ export const TestPage = () => {
         await window.electronIPCPythonBridge.test();
     }
 
+    const testConvexHull = () => {
+        const points: Vector2d[] = [];
+        for(let i = 0; i < TEST_POINT_COUNT; i++) {
+            points.push({
+                x: Math.random()*100,
+                y: Math.random()*100,
+            });
+        }
+
+        const {originalPts, hullPts, lines, hullPtValues} = createConvexHullGeometry(points);
+        SceneController.getInstance().addObjects([originalPts, lines, hullPts]);
+
+        hullPtValues.forEach((pt, index) => {
+            createTextOverlay(
+                SceneController.getInstance().getRenderer(), 
+                SceneController.getInstance().getCamera(),
+                new THREE.Vector3(pt.x, pt.y, 0),
+                index.toString(),
+            );
+        })
+    }
+
     
     return (
         <div className="flex flex-col gap-2">
-            <ButtonPositive text={"Create Test Borings"} isEnabled={true} onClickHandler={testPosts}/>
-            <ModalLoadingProject />
-            <ButtonPositive text={"Test Python"} isEnabled={true} onClickHandler={testPython} /> 
-            <hr/>
+            {/* <ButtonPositive text={"Create Test Borings"} isEnabled={true} onClickHandler={testPosts}/> */}
+            {/* <ModalLoadingProject /> */}
+            {/* <ButtonPositive text={"Test Python"} isEnabled={true} onClickHandler={testPython} />  */}
+            {/* <hr/> */}
             <div>
-                Send Message Test
+                Embedded Python Bridge Test
             </div>
             <div>
                 <input className="border w-full" ref={textBoxRef}/>
             </div>
             <ButtonPositive text={"Send Message"} isEnabled={true} onClickHandler={testSendingText} width={'100%'}/>
+            <hr/>
+            <label>Graphics Test</label>
+            <ButtonPositive text={"Test ConvexHull"} isEnabled={true} onClickHandler={testConvexHull} width={'100%'}/>
         </div>
     )
 }

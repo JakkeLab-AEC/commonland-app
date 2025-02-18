@@ -1,97 +1,83 @@
-import { Vector2d, Vector3d } from "../types/vector";
+import { Vector2d } from "../types/vector";
 
-export function computeConvexHull(points: Vector3d[]): Vector3d[] {
-    if (points.length < 3) return points;
+export function getConvexHull(points: Vector2d[]): Vector2d[] {
+    if (points.length < 3) {
+        throw new Error("Convex Hull requires at least 3 points.");
+    }
 
-    // const sortedPts = [...points].sort((a, b) => a.x - b.x || a.y - b.y);
-    // const p0 = sortedPts[0];
-    // const hull: Vector3d[] = [p0];
+    // 가장 왼쪽 아래 점 찾기 (시작점)
+    const start = points.reduce((min, p) => (p.x < min.x || (p.x === min.x && p.y < min.y)) ? p : min, points[0]);
 
-    // let current = sortedPts[1];
-    // let previous = { x: p0.x, y: p0.y, z: p0.z };
-
-    // const usedPoints = new Set<string>();
-    // usedPoints.add(`${p0.x},${p0.y}`);
-    // usedPoints.add(`${current.x},${current.y}`); // ⭐ 현재 점도 등록
-
-    // while (true) {
-    //     const next = findNextPoint(sortedPts, current, previous, usedPoints);
-
-    //     if (!next || usedPoints.has(`${next.x},${next.y}`)) {
-    //         break;
-    //     }
-
-    //     hull.push(next);
-    //     usedPoints.add(`${next.x},${next.y}`);
-
-    //     previous = current;
-    //     current = next;
-
-    //     if (next === p0) break;
-    // }
-
-    // return hull;
+    return computeConvexHull(points, start, start);
 }
 
+// Compute Convex Hull using Gift Wrapping
+export function computeConvexHull(
+    points: Vector2d[],
+    current: Vector2d,
+    start: Vector2d,
+    hull: Vector2d[] = []
+): Vector2d[] {
+    hull.push(current);
+
+    const { next, nextPts } = findNextPoint(points, current);
+    if (next === start) return hull; // 최초 점으로 돌아오면 종료
+
+    return computeConvexHull(nextPts, next, start, hull);
+}
 
 // Get cross-product for CCW
 export function getCrossProduct(p1: Vector2d, p2: Vector2d): number {
     return p1.x * p2.y - p1.y * p2.x;
 }
 
-// CCW determinations
-export function getCCW(p0: Vector2d, p1: Vector2d, p2: Vector2d): number {
-    return (p1.x - p0.x) * (p2.y - p0.y) - (p1.y - p0.y) * (p2.x - p0.x);
+export function getVector(p1: Vector2d, p2: Vector2d): Vector2d {
+    return { x: p2.x - p1.x, y: p2.y - p1.y };
 }
 
-// Calculate the angle between two vectors (For determinating which one is closer to left-side.)
-export function angleBetweenVectors(p0: Vector2d, p1: Vector2d, p2: Vector2d): number {
-    const v1: Vector2d = {
-        x: p1.x - p0.x,
-        y: p1.y - p0.y
-    };
-
-    const v2: Vector2d = {
-        x: p2.x - p1.x,
-        y: p2.y - p1.y
-    };
-
-    const cross = getCrossProduct(v1, v2);
-
-    const v1Magnitude = Math.hypot(v1.x, v1.y);
-    const v2Magnitude = Math.hypot(v2.x, v2.y);
-
-    if (v1Magnitude === 0 || v2Magnitude === 0) return 0;
-
-    const sinTheta = cross / (v1Magnitude * v2Magnitude);
-    return Math.asin(sinTheta);
+export function getSquaredDistance(p1: Vector2d, p2: Vector2d): number {
+    return (p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2;
 }
 
-// Find the next point (CCW determination, Getting the point closer to left side)
+// Find the next point in Gift Wrapping algorithm
 export function findNextPoint(
-    pts: Vector3d[],
-    current: Vector3d,
-    previous: Vector3d,
-    usedPoints: Set<string> // 추가된 인자
-): Vector3d {
-    let next: Vector3d | null = null;
+    pts: Vector2d[],
+    current: Vector2d
+): { next: Vector2d; nextPts: Vector2d[] } {
+    if (pts.length < 2) {
+        throw new Error("At least two points are required.");
+    }
 
-    for (const pt of pts) {
-        if (usedPoints.has(`${pt.x},${pt.y}`)) {
-            continue; // 이미 사용한 점이면 건너뜀
-        }
+    let ptNext = pts[0];
+    const ptsDropped: Vector2d[] = [];
 
-        if (!next) {
-            next = pt;
-            continue;
-        }
+    for (const ptCompare of pts) {
+        if (ptCompare === current) continue;
 
-        const cross = getCCW(previous, current, pt);
+        const v1 = getVector(current, ptNext);
+        const v2 = getVector(current, ptCompare);
+        const cross = getCrossProduct(v1, v2);
 
-        if (cross > 0 || (cross === 0 && angleBetweenVectors(previous, current, pt) > angleBetweenVectors(previous, current, next))) {
-            next = pt;
+        if (cross < 0) {
+            ptNext = ptCompare;
+            ptsDropped.length = 0; // 새 점이 선택되면 dropped 리스트 초기화
+        } else if (cross === 0) {
+            if (getSquaredDistance(current, ptCompare) > getSquaredDistance(current, ptNext)) {
+                ptsDropped.push(ptNext); // 기존 점을 dropped에 추가
+                ptNext = ptCompare;
+            } else {
+                ptsDropped.push(ptCompare); // 새로운 점을 dropped에 추가
+            }
         }
     }
 
-    return next!;
+    // nextPts에서 ptNext만 제거하고 나머지는 유지 (불필요한 점 제거 방지)
+    let nextPts = pts.filter(pt => pt !== ptNext);
+
+    // nextPts가 비어버리는 것을 방지하기 위해 최소한 1개는 유지
+    if (nextPts.length === 0) {
+        nextPts = [ptNext]; // 마지막 남은 점이라도 유지
+    }
+
+    return { next: ptNext, nextPts };
 }
