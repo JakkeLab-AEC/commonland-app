@@ -71,8 +71,8 @@ export const TestPage = () => {
         const points: Vector2d[] = [];
         for(let i = 0; i < TEST_POINT_COUNT; i++) {
             points.push({
-                x: Math.random()*100 - 50,
-                y: Math.random()*100 - 50,
+                x: Math.random()*50 - 25,
+                y: Math.random()*50 - 25,
             });
         }
 
