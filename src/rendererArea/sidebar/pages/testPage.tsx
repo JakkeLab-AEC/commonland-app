@@ -37,7 +37,6 @@ export const TestPage = () => {
                 message: textBoxRef.current.value,
             }
         }
-        await window.electronIPCPythonBridge.start();
         await window.electronIPCPythonBridge.send(message);
     }
 
@@ -91,8 +90,6 @@ export const TestPage = () => {
         const obb = computeOBB(points);
         if(!obb) return;
         
-        console.log(obb);
-
         const obbObjects = createOBBShape(obb);
         SceneController.getInstance().addObjects(obbObjects);
     }

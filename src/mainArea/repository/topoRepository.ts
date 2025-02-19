@@ -84,7 +84,8 @@ export class TopoRepository implements TopoCRUDMethods {
                     isBatched: topo.is_batched,
                     threeObjId: topo.three_id,
                     points: [],
-                    topoType: TopoType.DelaunayMesh
+                    topoType: TopoType.DelaunayMesh,
+                    resolution: 1,
                 }
                 topoMap.set(topo.topo_id, dto);
             });

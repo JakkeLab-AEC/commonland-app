@@ -6,8 +6,16 @@ import { ThreeViewPort } from "./components/threeViewport/threeViewport";
 import { InspectorWrapper } from "./components/inspector/inspectorWrapper";
 import { VisibilityOptions } from "./homescreenitems/visibilityOptions"
 import { ModalOverlay } from './homescreenitems/modalOverlay'
+import { useEffect } from "react";
 
 export default function HomeScreen() {    
+    useEffect(() => {
+        const runPython = async () => {
+            await window.electronIPCPythonBridge.start();
+        }
+
+        runPython();
+    }, []);
     
     return (
         <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'clip' }}>

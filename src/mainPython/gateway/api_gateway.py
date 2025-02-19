@@ -9,15 +9,15 @@ class APIGateway:
 
     def handle_gateway(self, action: str, args: any) -> object:
         if action == APINames.TEST.value:
-            print("test")
+            return {
+                "print": "Test"
+            }
         elif action == APINames.CalculateTopo.value:
             start_time = time.time()
-            print("run calculate topo")
             calculated_points = calculate_topo_from_points(obb=args['obb'], points=args['points'], resolution=args['resolution'])
             end_time = time.time()
 
             return {
                 "duration": round(end_time - start_time, 3),
-                "points": calculated_points,
                 "count": len(calculated_points)
             }

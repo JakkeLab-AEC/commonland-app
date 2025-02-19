@@ -29,11 +29,11 @@ export const TopographyManage = () => {
         removeTopos
     } = useTopoMakerStore();
 
-    const onSubmitTopo = async (topo: Topo) => {
+    const onSubmitTopo = async (topo: Topo, resolution?: number) => {
         if(topo.topoType === TopoType.DelaunayMesh) {
             await insertTopo(topo);
         } else {
-            
+            await insertTopo(topo, resolution);
         }
         
         await fetchAllTopos();

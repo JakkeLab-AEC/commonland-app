@@ -98,15 +98,12 @@ export class PythonBridge {
             return;
         }
     
-        if (!this.pyProcess) {
-            dialog.showMessageBoxSync(mainWindow, {
-                title: "System Error",
-                message: "Python process is not running.",
-                buttons: ["Ok"]
-            });
-            return;
+        if(!this.pyProcess) {
+            this.start();
         }
         
+        console.log(message);
+
         const convertedMessage:PipeMessageSend = {
             ...message, runtimePath: this.appRuntimePath
         }
@@ -115,6 +112,8 @@ export class PythonBridge {
             console.log('Sending message to Python process...\n');
     
             const data = JSON.stringify(convertedMessage) + '\n';
+            // console.log(data);
+
             const [stdin, stdout] = [this.pyProcess.stdin, this.pyProcess.stdout];
     
             if (!stdin || !stdout) {
@@ -124,6 +123,7 @@ export class PythonBridge {
             stdout.removeAllListeners('data');
     
             const onData = (chunk: Buffer) => {
+                console.log(chunk.toString());
                 try {
                     const response = JSON.parse(chunk.toString().trim());
                     console.log('Received response from Python:', response);

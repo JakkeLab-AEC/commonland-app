@@ -16,14 +16,16 @@ export class Topo extends ServiceModel {
     }>;
     private colorIndex: number;
     private isBatched: boolean;
+    private resolution: number;
     
-    constructor({isBatched = false, name, key, topoType}:{isBatched:boolean, name: string, key?: string, topoType: TopoType}) {
+    constructor({isBatched = false, name, key, topoType, resolution = 1}:{isBatched:boolean, name: string, key?: string, topoType: TopoType, resolution?: number}) {
         super(key);
         this.points = new Map();
         this.name = name;
         this.isBatched = isBatched;
         this.colorIndex = 1;
         this.topoType = topoType;
+        this.resolution = resolution
     }
 
     getColorIndex() {
@@ -69,6 +71,7 @@ export class Topo extends ServiceModel {
             colorIndex: this.colorIndex,
             isBatched: this.isBatched ? 1 : 0,
             threeObjId: this.getThreeObjId(),
+            resolution: this.resolution
         }
 
         return dto;

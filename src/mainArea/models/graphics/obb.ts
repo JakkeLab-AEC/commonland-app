@@ -1,48 +1,55 @@
-import { Vector2d, Vector3d } from "@/mainArea/types/vector";
-import { computeConvexHull } from "@/mainArea/utils/convexHullUtils";
+import { Vector2d } from "@/mainArea/types/vector";
+import { getConvexHull } from "@/mainArea/utils/convexHullUtils";
+import { computeOBB } from "@/mainArea/utils/obbUtils";
 
-type OBBProps = {
+export interface OBBDto {
     domainX: number,
     domainY: number,
-    centroid: {
-        x: number,
-        y: number,
-        z: number,
-    },
-    xAxis: {
-        x: number,
-        y: number
-    }
+    centroid: Vector2d,
+    xAxis: Vector2d,
 }
 
 
 export class OBB {
     private domainX: number;
     private domainY: number;
-    private centroid: Vector3d;
-    private xAxis: Vector2d;
-    private points: Vector3d[];
+    private centroid: Vector2d;
+    private angleDegree: number;
+    private points: Vector2d[];
 
-    constructor(points: Vector3d[] = []) {
+    constructor(points: Vector2d[] = []) {
         this.points = points;
+        this.computeOBB();
     }
 
     private computeOBB() {
-        // computeConvexHull(this.points, )
+        const hull = getConvexHull(this.points);
+        const {center, size, angle} = computeOBB(hull);
+        
+        this.domainX = size.x;
+        this.domainY = size.y;
+        this.centroid = {x: center.x, y: center.y};
+        this.angleDegree = angle;
     }
 
-    addPoint() {
-        // 
+    addPoint(point: Vector2d) {
+        // Add point
+        this.points.push(point);
         
         // Re-compute OBB
         this.computeOBB();
     }
 
+    addPoints(points: Vector2d[]) {
+        this.points.push(...points);
+        this.computeOBB();
+    }
+
     
-    removePoint(point: Vector3d): void;
+    removePoint(point: Vector2d): void;
     removePoint(index: number): void;
 
-    removePoint(pointOrIndex?: Vector3d | number): void {
+    removePoint(pointOrIndex?: Vector2d | number): void {
         if (typeof pointOrIndex === 'number') {
             this.points.splice(pointOrIndex, 1);
         } else if (pointOrIndex) {
@@ -59,12 +66,12 @@ export class OBB {
         return this.points;
     }
 
-    serialize():OBBProps {
+    serialize():OBBDto {
         return {
             domainX: this.domainX,
             domainY: this.domainY,
             centroid: this.centroid,
-            xAxis: this.xAxis,
+            xAxis: {x: Math.cos(this.angleDegree), y: Math.sin(this.angleDegree)},
         }
     }
 }

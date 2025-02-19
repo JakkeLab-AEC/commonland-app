@@ -9,6 +9,7 @@ import { Topo } from "@/mainArea/models/serviceModels/topo/Topo";
 import { ColorIndexPalette, ColorSquare } from "@/rendererArea/components/palette/colorIndexPalette";
 import { Inspector } from "@/rendererArea/components/inspector/inspector";
 import { TopoType } from "@/mainArea/models/topoType";
+import { OBB } from "@/mainArea/models/graphics/obb";
 
 interface InspectorTopoMakerProp {
     onSubmitTopo?: (topo: Topo) => void;
@@ -43,7 +44,12 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
         }
 
         if(selectedValues.size == Array.from(selectedValues.values()).filter(value => value != null).length) {
-            const topo = new Topo({isBatched: false, name: topoName, topoType: topoCreationMode});
+            const topo = new Topo({
+                isBatched: false, 
+                name: topoName, 
+                topoType: topoCreationMode, 
+                resolution: topoCreationMode === TopoType.DelaunayMesh || topoCreationMode === TopoType.NotDefined ? -1 : parseFloat(resolutionRef.current.value)
+            });
             topo.setColorIndex(topoColorIndex);
             selectedValues.forEach((value, key) => {
                 const targetBoring = allDepths.find(depth => depth.boringId == key);
@@ -53,7 +59,9 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                     z: targetBoring.layers.find(layer => layer.layerId == value).layerDepth
                 });
             });
-            if(onSubmitTopo) onSubmitTopo(topo);
+            if(onSubmitTopo) {
+                onSubmitTopo(topo);
+            }
             toggleMode(false);
         } else {
             await window.electronSystemAPI.callDialogError('지형면 생성 오류', '모든 시추공에서 레이어를 선택헤 주세요');
@@ -91,7 +99,6 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
     const onChangeCreationMode = (e: ChangeEvent<HTMLSelectElement>) => {
         const topoCreationType = e.target.value as TopoType;
         setTopoCreationMode(topoCreationType);
-        console.log(topoCreationType);
     }
     
     useEffect(() => {
@@ -143,7 +150,7 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                         해상도 (m)
                     </div>
                     <div className="border">
-                        <input type="number" step={0.25} min={0.25} max={20} ref={resolutionRef}/>
+                        <input type="number" step={0.25} min={0.25} max={20} ref={resolutionRef} defaultValue={1}/>
                     </div>
                 </div>}
             </div>

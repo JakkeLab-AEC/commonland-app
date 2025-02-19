@@ -16,4 +16,5 @@ export interface TopoDTO extends DTOBase {
     threeObjId: string,
     colorIndex: number,
     isBatched: 0 | 1,
+    resolution: number;
 }

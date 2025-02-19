@@ -44,9 +44,9 @@ export function findNextPoint(
     pts: Vector2d[],
     current: Vector2d
 ): { next: Vector2d; nextPts: Vector2d[] } {
-    if (pts.length < 2) {
-        throw new Error("At least two points are required.");
-    }
+    // if (pts.length < 2) {
+    //     throw new Error("At least two points are required.");
+    // }
 
     let ptNext = pts[0];
     const ptsDropped: Vector2d[] = [];
