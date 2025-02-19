@@ -21,10 +21,16 @@ function createConvexHullLines(hull: Vector2d[], color: number) {
 }
 
 export function createTextOverlay(renderer: THREE.Renderer, camera: THREE.Camera, position: THREE.Vector3, text: string) {
+    const viewport = document.getElementById("three-viewport");
+    if (!viewport) {
+        console.error("#three-viewport 요소를 찾을 수 없습니다!");
+        return;
+    }
+    
     const label = document.createElement("div");
     label.className = "point-label";
     label.textContent = text;
-    document.body.appendChild(label);
+    viewport.appendChild(label);
 
     function updatePosition() {
         const canvas = renderer.domElement;

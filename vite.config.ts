@@ -22,6 +22,7 @@ export default defineConfig({
       },
       external: [
         'electron',
+        'deasync',
         ...builtinModules,
       ],
       output: {

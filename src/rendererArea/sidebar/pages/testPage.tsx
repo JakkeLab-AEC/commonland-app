@@ -12,8 +12,10 @@ import { createConvexHullGeometry, createTextOverlay } from "@/rendererArea/api/
 import { SceneController } from "@/rendererArea/api/three/SceneController";
 import * as THREE from 'three'; 
 import './test/testStyle.css';
+import { computeOBB } from "@/mainArea/utils/obbUtils";
+import { createOBBShape } from "@/rendererArea/api/three/utils/createOBBShape";
 
-const TEST_POINT_COUNT = 30;
+const TEST_POINT_COUNT = 50;
 
 export const TestPage = () => {
     const textBoxRef = useRef<HTMLInputElement>(null);
@@ -47,8 +49,8 @@ export const TestPage = () => {
         const points: Vector2d[] = [];
         for(let i = 0; i < TEST_POINT_COUNT; i++) {
             points.push({
-                x: Math.random()*100,
-                y: Math.random()*100,
+                x: Math.random()*100 - 50,
+                y: Math.random()*100 - 50,
             });
         }
 
@@ -62,7 +64,37 @@ export const TestPage = () => {
                 new THREE.Vector3(pt.x, pt.y, 0),
                 index.toString(),
             );
-        })
+        });
+    }
+
+    const testOBB = () => {
+        const points: Vector2d[] = [];
+        for(let i = 0; i < TEST_POINT_COUNT; i++) {
+            points.push({
+                x: Math.random()*100 - 50,
+                y: Math.random()*100 - 50,
+            });
+        }
+
+        const {originalPts, hullPts, lines, hullPtValues} = createConvexHullGeometry(points);
+        SceneController.getInstance().addObjects([originalPts, lines, hullPts]);
+
+        hullPtValues.forEach((pt, index) => {
+            createTextOverlay(
+                SceneController.getInstance().getRenderer(), 
+                SceneController.getInstance().getCamera(),
+                new THREE.Vector3(pt.x, pt.y, 0),
+                index.toString(),
+            );
+        });
+        
+        const obb = computeOBB(points);
+        if(!obb) return;
+        
+        console.log(obb);
+
+        const obbObjects = createOBBShape(obb);
+        SceneController.getInstance().addObjects(obbObjects);
     }
 
     
@@ -82,6 +114,7 @@ export const TestPage = () => {
             <hr/>
             <label>Graphics Test</label>
             <ButtonPositive text={"Test ConvexHull"} isEnabled={true} onClickHandler={testConvexHull} width={'100%'}/>
+            <ButtonPositive text={"Test OBB"} isEnabled={true} onClickHandler={testOBB} width={'100%'}/>
         </div>
     )
 }
