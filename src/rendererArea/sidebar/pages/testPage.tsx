@@ -5,7 +5,7 @@ import {MultilineTextbox} from '../../components/multilineTextbox/multilineTextB
 import { ThreeExporter } from "@/rendererArea/api/three/exporters/threeExporter";
 import { ModalLoadingProject } from "@/rendererArea/components/header/header";
 import { useRef } from "react";
-import { PipeMessageSend, PipeMessageSendRenderer } from "@/dto/pipeMessage";
+import { PipeMessageSendRenderer } from "@/dto/pipeMessage";
 import { getConvexHull } from "@/mainArea/utils/convexHullUtils";
 import { Vector2d, Vector3d } from "@/mainArea/types/vector";
 import { createConvexHullGeometry, createTextOverlay } from "@/rendererArea/api/three/utils/createConvexHull";

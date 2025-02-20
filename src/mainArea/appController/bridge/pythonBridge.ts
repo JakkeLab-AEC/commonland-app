@@ -2,7 +2,7 @@ import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import path from 'path';
 import { dialog } from "electron";
 import { UIController } from "../uicontroller/uicontroller";
-import { PipeMessageSend, PipeMessageSendRenderer } from "@/dto/pipeMessage";
+import { PipeMessageSendRenderer } from "@/dto/pipeMessage";
 
 export class PythonBridge {
     private embeddedPath: string | null;
@@ -104,9 +104,11 @@ export class PythonBridge {
         
         console.log(message);
 
-        const convertedMessage:PipeMessageSend = {
-            ...message, runtimePath: this.appRuntimePath
+        const convertedMessage:PipeMessageSendRenderer = {
+            ...message
         }
+
+        convertedMessage.args.runtimePath = this.appRuntimePath;
 
         return new Promise((resolve, reject) => {
             console.log('Sending message to Python process...\n');

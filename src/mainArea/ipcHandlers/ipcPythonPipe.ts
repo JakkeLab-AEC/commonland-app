@@ -1,6 +1,6 @@
 import { IpcMain } from "electron"
 import { AppController } from "../appController/appController";
-import { PipeMessageSend, PipeMessageSendRenderer } from "@/dto/pipeMessage";
+import { PipeMessageSendRenderer } from "@/dto/pipeMessage";
 
 export const setIPCPythonPipe = (ipcMain: IpcMain) => {
     ipcMain.handle('test-python-pipe', (_) => {

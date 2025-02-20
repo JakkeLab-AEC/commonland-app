@@ -1,4 +1,4 @@
-import { PipeMessageSend, PipeMessageSendRenderer } from "@/dto/pipeMessage";
+import { PipeMessageSendRenderer } from "@/dto/pipeMessage";
 
 export interface IElectronIPCPythonBridge {
     test:() => Promise<void>;
