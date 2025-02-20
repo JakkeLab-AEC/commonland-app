@@ -7,6 +7,9 @@ import { setIpcBoringRepository } from './mainArea/ipcHandlers/ipcBoringReposito
 import { setIpcProjectIOHandler } from './mainArea/ipcHandlers/ipcProjectFile';
 import { setIpcTopoRepository } from './mainArea/ipcHandlers/ipcTopoRepository';
 import { UIController } from './mainArea/appController/uicontroller/uicontroller';
+import { setIpcModalControl } from './mainArea/ipcHandlers/ipcModalHandlers';
+import { setIPCPythonPipe } from './mainArea/ipcHandlers/ipcPythonPipe';
+import fs from 'fs';
 
 if (require('electron-squirrel-startup')) app.quit();
 
@@ -91,15 +94,27 @@ const createMainWindow = () => {
 app.on('ready', () => {
   createMainWindow();
 
-  AppController.InitiateAppController();
+  const osInfo = os.platform();
+  if(osInfo === 'win32' || osInfo === 'darwin') {
+    const osCode = osInfo === 'win32' ? 'win' : 'mac';
+    const pythonDirectory = path.resolve(__dirname, './pythonEnv');
+    AppController.InitiateAppController(osCode, pythonDirectory, __dirname);
 
-  setIpcWindowControl(ipcMain);
+    setIpcWindowControl(ipcMain);
 
-  setIpcBoringRepository(ipcMain);
+    setIpcBoringRepository(ipcMain);
 
-  setIpcProjectIOHandler(ipcMain);
+    setIpcProjectIOHandler(ipcMain);
 
-  setIpcTopoRepository(ipcMain);
+    setIpcTopoRepository(ipcMain);
+
+    setIpcModalControl(ipcMain);
+
+    setIPCPythonPipe(ipcMain);
+    
+  } else {
+    
+  }
 });
 
 app.on('window-all-closed', () => {
@@ -113,5 +128,26 @@ app.on('activate', () => {
   // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) {
     createMainWindow();
+  }
+});
+
+app.on('quit', async () => {
+  const responseDataPath = path.resolve(app.getPath('userData'), "responses");
+  try {
+    // responses 폴더 내부의 폴더만 삭제
+    const files = await fs.promises.readdir(responseDataPath);
+    
+    for (const file of files) {
+      const filePath = path.join(responseDataPath, file);
+      const stat = await fs.promises.stat(filePath);
+
+      if (stat.isDirectory()) {
+        await fs.promises.rm(filePath, { recursive: true, force: true });
+      }
+    }
+    
+    console.log("responses 폴더 내부의 모든 폴더가 삭제되었습니다.");
+  } catch (error) {
+    console.error("폴더 삭제 중 오류 발생:", error);
   }
 });
