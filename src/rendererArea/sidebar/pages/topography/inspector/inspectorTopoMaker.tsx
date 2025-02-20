@@ -8,6 +8,8 @@ import { useTopoMakerStore } from "./inspectorTopoMakerStore";
 import { Topo } from "@/mainArea/models/serviceModels/topo/Topo";
 import { ColorIndexPalette, ColorSquare } from "@/rendererArea/components/palette/colorIndexPalette";
 import { Inspector } from "@/rendererArea/components/inspector/inspector";
+import { TopoType } from "@/mainArea/models/topoType";
+import { OBB } from "@/mainArea/models/graphics/obb";
 
 interface InspectorTopoMakerProp {
     onSubmitTopo?: (topo: Topo) => void;
@@ -16,8 +18,10 @@ interface InspectorTopoMakerProp {
 
 export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTopo, onClickClose}) => {
     const nameRef = useRef<HTMLInputElement>(null);
+    const resolutionRef = useRef<HTMLInputElement>(null);
     const [isPlatteOpened, setPaletteState] = useState<boolean>(false);
     const [topoColorIndex, setTopoColorIndex] = useState<number>(1);
+    const [topoCreationMode, setTopoCreationMode] = useState<TopoType>(TopoType.NotDefined)
     const {
         toggleMode,
         resetProps
@@ -35,12 +39,17 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
     const onSubmit = async () => {
         const topoName = nameRef.current.value;
         if(topoName.length == 0) {
-            await window.electronSystemAPI.callDialogError('시추공 이름 오류', '이름은 공백으로 설정할 수 없습니다.');
+            await window.electronSystemAPI.callDialogError('지형면 생성 오류', '지형면 이름은 공백으로 설정할 수 없습니다.');
             return;
         }
 
         if(selectedValues.size == Array.from(selectedValues.values()).filter(value => value != null).length) {
-            const topo = new Topo(false, topoName);
+            const topo = new Topo({
+                isBatched: false, 
+                name: topoName, 
+                topoType: topoCreationMode, 
+                resolution: topoCreationMode === TopoType.DelaunayMesh || topoCreationMode === TopoType.NotDefined ? -1 : parseFloat(resolutionRef.current.value)
+            });
             topo.setColorIndex(topoColorIndex);
             selectedValues.forEach((value, key) => {
                 const targetBoring = allDepths.find(depth => depth.boringId == key);
@@ -50,7 +59,9 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                     z: targetBoring.layers.find(layer => layer.layerId == value).layerDepth
                 });
             });
-            if(onSubmitTopo) onSubmitTopo(topo);
+            if(onSubmitTopo) {
+                onSubmitTopo(topo);
+            }
             toggleMode(false);
         } else {
             await window.electronSystemAPI.callDialogError('지형면 생성 오류', '모든 시추공에서 레이어를 선택헤 주세요');
@@ -84,6 +95,11 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
         setTopoColorIndex(index);
         setPaletteState(false);
     }
+
+    const onChangeCreationMode = (e: ChangeEvent<HTMLSelectElement>) => {
+        const topoCreationType = e.target.value as TopoType;
+        setTopoCreationMode(topoCreationType);
+    }
     
     useEffect(() => {
         fetchAllDepths();
@@ -116,6 +132,26 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                             <ColorIndexPalette width={'full'} height={200} onClickHandler={onClickSelectColor} />
                         </div>
                     </Inspector>
+                </div>}
+                <div className="flex flex-row gap-2">
+                    <div>
+                        생성 방식
+                    </div>
+                    <div>
+                        <select className="border w-[180px]" onChange={onChangeCreationMode}>
+                            <option value={TopoType.DelaunayMesh}>Delaunay Mesh</option>
+                            <option value={TopoType.OrdinaryKriging}>Ordinary Krige</option>
+                        </select>
+                    </div>
+                </div>
+                {(topoCreationMode !== TopoType.DelaunayMesh && topoCreationMode !== TopoType.NotDefined) && 
+                <div className="flex flex-row gap-2">
+                    <div>
+                        해상도 (m)
+                    </div>
+                    <div className="border">
+                        <input type="number" step={0.25} min={0.25} max={20} ref={resolutionRef} defaultValue={1}/>
+                    </div>
                 </div>}
             </div>
             <hr/>

@@ -126,7 +126,6 @@ export class ThreeExporter {
                     }, 
                     layer
                 );
-                console.log(triangle3d);
                 dxfWriter.addComponent(triangle3d);
             });
         })

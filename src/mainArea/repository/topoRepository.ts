@@ -3,6 +3,7 @@ import { Database } from "sqlite";
 import { RepositryQueryBuilder } from "./utils/queryBuilder";
 import { DB_TABLENAMES } from "../../public/databaseProps";
 import { ModelType } from "../models/modelType";
+import { TopoType } from "../models/topoType";
 
 interface TopoCRUDMethods {
     insertTopo(topoDto: TopoDTO): Promise<{result: boolean, message?: string}>;
@@ -82,7 +83,9 @@ export class TopoRepository implements TopoCRUDMethods {
                     colorIndex: topo.color_index,
                     isBatched: topo.is_batched,
                     threeObjId: topo.three_id,
-                    points: []
+                    points: [],
+                    topoType: TopoType.DelaunayMesh,
+                    resolution: 1,
                 }
                 topoMap.set(topo.topo_id, dto);
             });

@@ -1,6 +1,8 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { BoringDTO } from "./dto/serviceModel/BoringDTO";
 import { TopoDTO } from "./dto/serviceModel/topoDto";
+import { PipeMessageSendRenderer } from "./dto/pipeMessage";
+import { OBBDto } from "./mainArea/models/graphics/obb";
 
 contextBridge.exposeInMainWorld('electronWindowControlAPI', {
     minimize: () => ipcRenderer.invoke('window-control-minimize'),
@@ -27,7 +29,7 @@ contextBridge.exposeInMainWorld('electronProjectIOAPI', {
 })
 
 contextBridge.exposeInMainWorld('electronTopoLayerAPI', {
-    insertTopo: (topoDto: TopoDTO) => ipcRenderer.invoke('topolayer-insert', topoDto),
+    insertTopo: (topoDto: TopoDTO, obb?: OBBDto) => ipcRenderer.invoke('topolayer-insert', topoDto, obb),
     fetchAllTopos: () => ipcRenderer.invoke('topolayer-fetch-all'),
     updateTopoColor: (id:string, index: number) => ipcRenderer.invoke('topolayer-update-color', id, index),
     updateTopoThreeObjId: (ids: {id: string, threeObjId: string}[]) => ipcRenderer.invoke('topolayer-update-threeobjid', ids),
@@ -41,4 +43,7 @@ contextBridge.exposeInMainWorld('electronSystemAPI', {
 
 contextBridge.exposeInMainWorld('electronIPCPythonBridge', {
     test:() => ipcRenderer.invoke('test-python-pipe'),
+    start:() => ipcRenderer.invoke('start-python-loop'),
+    stop:() => ipcRenderer.invoke('stop-python-loop'),
+    send:(message: PipeMessageSendRenderer) => ipcRenderer.invoke('send-message', message),
 });

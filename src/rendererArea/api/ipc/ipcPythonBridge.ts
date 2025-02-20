@@ -1,5 +1,10 @@
+import { PipeMessageSendRenderer } from "@/dto/pipeMessage";
+
 export interface IElectronIPCPythonBridge {
-    test:() => Promise<void>
+    test:() => Promise<void>;
+    start:() => Promise<void>;
+    stop:() => Promise<void>;
+    send:(message: PipeMessageSendRenderer) => Promise<void>;
 }
 
 declare global {

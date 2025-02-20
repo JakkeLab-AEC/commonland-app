@@ -8,6 +8,7 @@ import { Topo } from "@/mainArea/models/serviceModels/topo/Topo";
 import {ListBoxColorPicker} from "@/rendererArea/components/listbox/listBoxColorPicker"
 import { useTopoMakerStore } from "./inspector/inspectorTopoMakerStore";
 import { SceneController } from "@/rendererArea/api/three/SceneController";
+import { TopoType } from "@/mainArea/models/topoType";
 
 export const TopographyManage = () => {
     const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
@@ -28,8 +29,12 @@ export const TopographyManage = () => {
         removeTopos
     } = useTopoMakerStore();
 
-    const onSubmitTopo = async (topo: Topo) => {
-        await insertTopo(topo);
+    const onSubmitTopo = async (topo: Topo, resolution?: number) => {
+        if(topo.topoType === TopoType.DelaunayMesh) {
+            await insertTopo(topo);
+        } else {
+            await insertTopo(topo, resolution);
+        }
         
         await fetchAllTopos();
     }

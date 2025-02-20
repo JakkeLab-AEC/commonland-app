@@ -1,4 +1,7 @@
+import { OBB } from "@/mainArea/models/graphics/obb";
 import { Topo } from "@/mainArea/models/serviceModels/topo/Topo";
+import { TopoType } from "@/mainArea/models/topoType";
+import { Vector2d } from "@/mainArea/types/vector";
 import { createDelaunatedMesh } from "@/rendererArea/api/three/geometricUtils/delaunayUtils";
 import { SceneController } from "@/rendererArea/api/three/SceneController";
 import { generateUUID } from "three/src/math/MathUtils";
@@ -11,7 +14,7 @@ interface TopoMakerProp {
     topoDisplayItems: Map<string, {displayString: string, checked: boolean, colorIndex: number}>,
     selectedValues: Map<string, string|null>,
     fetchAllDepths:() => void;
-    insertTopo: (topo: Topo) => Promise<void>;
+    insertTopo: (topo: Topo, resolution?: number) => Promise<void>;
     fetchAllTopos: () => Promise<void>,
     selectValue: (boringId: string, layerId: string) => void,
     selectOnce: (layerName: string) => void,
@@ -95,10 +98,26 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
         }
     },
     insertTopo: async (topo: Topo) => {
-        console.log(topo.getAllPoints());
         const createdMesh = createDelaunatedMesh(topo);
         topo.setThreeObjId(createdMesh.uuid);
-        const insertJob = await window.electronTopoLayerAPI.insertTopo(topo.serialize());
+        
+        let insertJob: {result: boolean; message?: string;};
+        if(topo.topoType === TopoType.DelaunayMesh) {
+            insertJob = await window.electronTopoLayerAPI.insertTopo(topo.serialize());
+        } else {
+            const pts: Vector2d[] = topo.getAllPoints().map(pt => {
+                return {
+                    x: pt.x,
+                    y: pt.y,
+                }
+            }); 
+
+            const obb = new OBB(pts);
+            
+            const topoDto = topo.serialize();
+            insertJob = await window.electronTopoLayerAPI.insertTopo(topo.serialize(), obb.serialize());
+        }
+        
         if(insertJob.result) {
             SceneController.getInstance().addObject(createdMesh);
         }

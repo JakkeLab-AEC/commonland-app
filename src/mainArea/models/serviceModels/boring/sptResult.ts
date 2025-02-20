@@ -52,7 +52,6 @@ export class SPTResultSet extends ServiceModel {
     }
 
     buildByMultipleValues(map: Map<number, {hitCount: number; distance: number}>) {
-        console.log(map);
         this.results = new Map();
         map.forEach((value, key) => {
             this.results.set(key, new SPTResult(key, value.hitCount, value.distance));
