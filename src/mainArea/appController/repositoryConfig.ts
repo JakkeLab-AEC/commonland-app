@@ -154,9 +154,9 @@ async function initializeDB(db: Database) {
 
         CREATE TABLE ${DB_TABLENAMES.TOPO_POINTS} (
             topo_id TEXT NOT NULL,
-            coord_x NUMERIC NOT NULL,
-            coord_y NUMERIC NOT NULL,
-            coord_z NUMERIC NOT NULL,
+            coord_x REAL NOT NULL,
+            coord_y REAL NOT NULL,
+            coord_z REAL NOT NULL,
             FOREIGN KEY (topo_id) REFERENCES ${DB_TABLENAMES.TOPOS} ON DELETE CASCADE
             UNIQUE (topo_id, coord_x, coord_y, coord_z)
         );

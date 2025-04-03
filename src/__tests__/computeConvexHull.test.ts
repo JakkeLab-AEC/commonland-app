@@ -3,53 +3,119 @@ import { Vector3d } from "../mainArea/types/vector";
 import { exec } from "child_process";
 import path from "path";
 import fs from 'fs';
+import WS from 'ws';
+import { computeOBB } from "../mainArea/utils/obbUtils";
 
-describe('Convex Hull Algorithm - Gift Wrapping (Jarvis March)', () => {
-    // test('Convex Hull should correctly compute for 20 points', async () => {
-    //     const points: Vector3d[] = [
-    //         { x: -2.51, y: 9.01, z: 4.64 },
-    //         { x: 1.97, y: -6.88, z: -6.88 },
-    //         { x: -8.84, y: 7.32, z: 2.02 },
-    //         { x: 4.16, y: -9.59, z: 9.4 },
-    //         { x: 6.65, y: -5.75, z: -6.36 },
-    //         { x: -6.33, y: -3.92, z: 0.5 },
-    //         { x: -1.36, y: -4.18, z: 2.24 },
-    //         { x: -7.21, y: -4.16, z: -2.67 },
-    //         { x: -0.88, y: 5.7, z: -6.01 },
-    //         { x: 0.28, y: 1.85, z: -9.07 },
-    //         { x: 2.15, y: -6.59, z: -8.7 },
-    //         { x: 8.98, y: 9.31, z: 6.17 },
-    //         { x: -3.91, y: -8.05, z: 3.68 },
-    //         { x: -1.2, y: -7.56, z: -0.1 },
-    //         { x: -9.31, y: 8.19, z: -4.82 },
-    //         { x: 3.25, y: -3.77, z: 0.4 },
-    //         { x: 0.93, y: -6.3, z: 9.39 },
-    //         { x: 5.5, y: 8.79, z: 7.9 },
-    //         { x: 1.96, y: 8.44, z: -8.23 },
-    //         { x: -6.08, y: -9.1, z: -3.49 },
-    //         { x: -2.23, y: -4.57, z: 6.57 },
-    //         { x: -2.86, y: -4.38, z: 0.85 },
-    //         { x: -7.18, y: 6.04, z: -8.51 },
-    //         { x: 9.74, y: 5.44, z: -6.03 },
-    //         { x: -9.89, y: 6.31, z: 4.14 },
-    //         { x: 4.58, y: 5.43, z: -8.52 },
-    //         { x: -2.83, y: -7.68, z: 7.26 },
-    //         { x: 2.47, y: -3.38, z: -8.73 },
-    //         { x: -3.78, y: -3.5, z: 4.59 },
-    //         { x: 2.75, y: 7.74, z: -0.56 }
-    //     ];
+const TESTER_PORT = 3355;
+const TESTER_ADDRESS = 'ws://localhost';
 
-    //     // ✅ Convex Hull 계산
-    //     const hull = getConvexHull(points);
+type Line = {p1: {x: number, y: number, z: number}, p2: {x: number, y: number, z: number}}
 
-    //     // ✅ JSON 데이터 저장 (API에서 제공)
-    //     const testData = { points, hull };
-    //     const filePath = path.resolve(__dirname, "testData.json");
-    //     fs.writeFileSync(filePath, JSON.stringify(testData, null, 2));
+function connectToTester(port: number) {
+    return new WS.WebSocket(`${TESTER_ADDRESS}:${port}`);
+}
 
-    //     // ✅ 웹 브라우저에서 시각화 페이지 열기
-    //     // exec(`start http://localhost:3000/visualizer.html`);
+function convertPointData(pts: {x: number, y: number, z: number}[], color = 0x000000) {
+    return {
+        geometry: "point",
+        args: pts,
+        color: color
+    }
+}
 
-    //     console.log("✅ Convex Hull 시각적 테스트 실행됨! 브라우저에서 결과를 확인하세요.");
-    // });
+function convertLineData(lines: {p1: {x: number, y: number, z: number}, p2: {x: number, y: number, z: number}}[], color = 0x000000) {
+    return {
+        geometry: "line",
+        args: lines,
+        color: color
+    }
+}
+
+function generateRandomPoints(length: number, digits: number):Vector3d[] {
+    const pts:Vector3d[] = [];
+
+    for(let i = 0; i < length; i++) {
+        const x = (Math.random() * 2 - 1) * Math.pow(10, digits);
+        const y = (Math.random() * 4 - 1) * Math.pow(20, digits);
+        const z = (Math.random() * 2 - 1) * Math.pow(10, digits);
+
+        pts.push({x, y, z});
+    }
+
+    return pts;
+}
+
+const TEST_PTS: Vector3d[] = [
+    {x: -2, y: 0, z: 0},
+    {x: 0, y: 2, z: 0},
+    {x: 2, y:0, z: 0},
+    {x: 0, y: -2, z: 0},
+]
+
+describe('Get OBB Test', () => {
+    test('Create OBB with 20 pts', async () => {
+        const points: Vector3d[] = generateRandomPoints(20, 2);
+        // const points: Vector3d[] = TEST_PTS;
+
+        const pt3d = points.map(h => {
+            return {
+                x: h.x,
+                y: h.y,
+                z: 0
+            }
+        });
+
+        const hull = getConvexHull(points);
+        const hullPts = hull.map(h => {
+            return {
+                x: h.x,
+                y: h.y,
+                z: 0
+            }
+        });
+        
+        const hullLines: Line[] = [];
+        for(let i = 0; i< hullPts.length; i++) {
+            if(i === hullPts.length - 1) {
+                hullLines.push({
+                    p1: {x: hullPts[i].x, y: hullPts[i].y, z: 0},
+                    p2: {x: hullPts[0].x, y: hullPts[0].y, z: 0}
+                });
+            } else {
+                hullLines.push({
+                    p1: {x: hullPts[i].x, y: hullPts[i].y, z: 0},
+                    p2: {x: hullPts[i+1].x, y: hullPts[i+1].y, z: 0}
+                });
+            }
+        }
+        
+        const obb = computeOBB(hullPts);
+        const obbPts = [
+            {x: obb.p0.x ,y: obb.p0.y, z: 0},
+            {x: obb.p1.x ,y: obb.p1.y, z: 0},
+            {x: obb.p2.x ,y: obb.p2.y, z: 0},
+            {x: obb.p3.x ,y: obb.p3.y, z: 0},
+        ]
+
+        const obbLines:Line[] = [
+            {p1: {x: obb.p0.x ,y: obb.p0.y, z: 0}, p2: {x: obb.p1.x ,y: obb.p1.y, z: 0}},
+            {p1: {x: obb.p1.x ,y: obb.p1.y, z: 0}, p2: {x: obb.p2.x ,y: obb.p2.y, z: 0}},
+            {p1: {x: obb.p2.x ,y: obb.p2.y, z: 0}, p2: {x: obb.p3.x ,y: obb.p3.y, z: 0}},
+            {p1: {x: obb.p3.x ,y: obb.p3.y, z: 0}, p2: {x: obb.p0.x ,y: obb.p0.y, z: 0}},
+        ]
+
+        const ptMessage = convertPointData(pt3d);
+        const liMessage = convertLineData(hullLines);
+        const obbPtMessage = convertPointData(obbPts, 0x00ff44)
+        const obbLiMessage = convertLineData(obbLines, 0xff0000)
+
+        const client = connectToTester(TESTER_PORT);
+        client.on("open", () => {
+            client.send(JSON.stringify(ptMessage));
+            client.send(JSON.stringify(liMessage));
+            client.send(JSON.stringify(obbPtMessage));
+            client.send(JSON.stringify(obbLiMessage));
+        });
+
+    });
 });

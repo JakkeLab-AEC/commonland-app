@@ -2,19 +2,12 @@ import { Matrix } from "ml-matrix";
 import { Vector2d } from "../types/vector";
 import { getConvexHull } from "./convexHullUtils";
 
-export function computeOBB(points: Vector2d[]): { center: Vector2d; size: Vector2d; angle: number } | null {
-
+export function computeOBB(points: Vector2d[]): { p0: Vector2d, p1: Vector2d, p2: Vector2d, p3: Vector2d } | null {
     const hull = getConvexHull(points);
-    if (hull.length < 2) return null;
+    const comparables: {area: number, p0: Vector2d, p1: Vector2d, rotation: number, pts: Vector2d[]}[] = [];
 
-    let obb: { center: Vector2d; size: Vector2d; angle: number } | null = null;
-    let minArea = Infinity;
-
-    let p0: Vector2d;
-    let p1: Vector2d;
-    
-    const areas: number[] = [];
-    for (let i = 0; i < hull.length; i++) {
+    for(let i = 0; i < hull.length; i++) {
+        let p0: Vector2d, p1: Vector2d;
         if(i === hull.length - 1) {
             p0 = hull[i];
             p1 = hull[0];
@@ -23,87 +16,100 @@ export function computeOBB(points: Vector2d[]): { center: Vector2d; size: Vector
             p1 = hull[i+1];
         }
 
-        let xAxis: Vector2d;
-        let origin: Vector2d;
-        const vec = { x: p1.x - p0.x, y: p1.y - p0.y };
-        if(vec.x < 0) {
-            xAxis = { x: -vec.x, y: -vec.y }
-            origin = { x: p1.x, y: p1.y }
-        } else {
-            xAxis = { x: vec.x, y: vec.y }
-            origin = { x: p0.x, y: p0.y }
-        }
+        const matrixP0 = getPointMatrix(p0.x, p0.y, 0);
+        const matrixP1 = getPointMatrix(p1.x, p1.y, 0);
 
-        // Handle zero-length edges
-        const edgeLengthSquared = xAxis.x * xAxis.x + xAxis.y * xAxis.y;
-        if (edgeLengthSquared === 0) continue;
+        const moveMatrix = getMatrixTranslate(-p0.x, -p0.y, 0);
 
-        const theta = Math.asin(xAxis.y / Math.hypot(xAxis.x, xAxis.y));
-        const cosTheta = Math.cos(theta);
-        const sinTheta = Math.sin(theta);
+        const origin = moveMatrix.mmul(matrixP0);
+        const p1Moved = moveMatrix.mmul(matrixP1);
 
-        const matrixT = new Matrix([
-            [1, 0, 0, -origin.x],
-            [0, 1, 0, -origin.y],
-            [0, 0, 1, 0],
-            [0, 0, 0, 1],
-        ]);
+        console.log(`Origin - X: ${origin.get(0,0)}, Y: ${origin.get(1, 0)}`);
+        console.log(`P1 Moved - X: ${p1Moved.get(0,0)}, Y: ${p1Moved.get(1, 0)}`);
+        
+        const p1Direction = Math.atan2(p1Moved.get(1, 0), p1Moved.get(0, 0));
+        const rotateMatrix = getMatrixRotationXY(-p1Direction);
 
-        const matrixR = new Matrix([
-            [cosTheta, -sinTheta, 0, 0],
-            [sinTheta, cosTheta, 0, 0],
-            [0, 0, 1, 0],
-            [0, 0, 0, 1],
-        ]);
+        const ptsTransformed: Vector2d[] = hull.map((pt) => {
+            const ptMoved = moveMatrix.mmul(getPointMatrix(pt.x, pt.y, 0));
+            const ptTransformed = rotateMatrix.mmul(ptMoved);
+            return {x: ptTransformed.get(0, 0), y: ptTransformed.get(1, 0)}
+        });
 
-        let minX = Infinity, minY = Infinity;
-        let maxX = -Infinity, maxY = -Infinity;
+        console.log(`i : ${i}`);
+        console.log(ptsTransformed);
 
-        for (const pt of hull) {
-            const ptArr = new Matrix([[pt.x], [pt.y], [0], [1]]);
-            const ptTranslated = matrixT.mmul(ptArr);
-            const ptRotated = matrixR.mmul(ptTranslated);
-            const transformedX = ptRotated.get(0, 0);
-            const transformedY = ptRotated.get(1, 0);
+        const bb = getBoundingBox(ptsTransformed);
 
-            minX = Math.min(minX, transformedX);
-            minY = Math.min(minY, transformedY);
-            maxX = Math.max(maxX, transformedX);
-            maxY = Math.max(maxY, transformedY);
-        }
-
-        const area = (maxX - minX) * (maxY - minY);
-        areas.push(area);
-        if (obb === null || area < minArea) {
-            minArea = area;
-            const centerLocal = new Matrix([[(minX + maxX) / 2], [(minY + maxY) / 2], [0], [1]]);
-
-            const matrixR_inv = new Matrix([
-                [cosTheta, sinTheta, 0, 0],
-                [-sinTheta, cosTheta, 0, 0],
-                [0, 0, 1, 0],
-                [0, 0, 0, 1],
-            ]);
-
-            const matrixT_inv = new Matrix([
-                [1, 0, 0, origin.x],
-                [0, 1, 0, origin.y],
-                [0, 0, 1, 0],
-                [0, 0, 0, 1],
-            ]);
-
-            const ptInvRotated = matrixR_inv.mmul(centerLocal);
-            const ptInvTranslated = matrixT_inv.mmul(ptInvRotated);
-
-            const center = { x: ptInvTranslated.get(0, 0), y: ptInvTranslated.get(1, 0) };
-
-            obb = {
-                center,
-                size: { x: maxX - minX, y: maxY - minY },
-                angle: theta * (180 / Math.PI),
-            };
-        }
+        comparables.push({area: bb.area, p0, p1, rotation: p1Direction, pts: bb.pts});
     }
 
-    return obb;
+    const sortedBoundingBoxes = comparables.sort((a, b) => a.area - b.area);
+
+    const minBB = sortedBoundingBoxes[0];
+
+    const resetMatrixRotation = getMatrixRotationXY(minBB.rotation);
+    const resetMatrixMove = getMatrixTranslate(minBB.p0.x, minBB.p0.y, 0);
+
+    const restoredPts:Vector2d[] = minBB.pts.map(p => {
+        const ptMatrix = getPointMatrix(p.x, p.y, 0);
+        const restoredMovedPt = resetMatrixRotation.mmul(ptMatrix);
+        const restoredPt = resetMatrixMove.mmul(restoredMovedPt);
+
+        return {x: restoredPt.get(0, 0), y: restoredPt.get(1, 0)}
+    });
+
+    return {
+        p0: restoredPts[0],
+        p1: restoredPts[1],
+        p2: restoredPts[2],
+        p3: restoredPts[3],
+    }
+}
+
+function getPointMatrix(x: number, y: number, z: number) {
+    return new Matrix([
+        [x],
+        [y],
+        [z],
+        [1]
+    ])
+}
+
+function getMatrixTranslate(dx: number, dy: number, dz: number):Matrix {
+    return new Matrix([
+        [1, 0, 0, dx],
+        [0, 1, 0, dy],
+        [0, 0, 1, dz],
+        [0, 0, 0, 1]
+    ]);
+}
+
+function getMatrixRotationXY(theta: number): Matrix {
+    return new Matrix([
+        [Math.cos(theta), -Math.sin(theta), 0, 0],
+        [Math.sin(theta), Math.cos(theta), 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1],
+    ]);
+}
+
+function getBoundingBox(pts: Vector2d[]):{area: number, pts: Vector2d[]} {
+    const xMin = Math.min(...pts.map(p => p.x));
+    const yMin = Math.min(...pts.map(p => p.y));
+    const xMax = Math.max(...pts.map(p => p.x));
+    const yMax = Math.max(...pts.map(p => p.y));
+
+    const dx = Math.abs(xMax - xMin);
+    const dy = Math.abs(yMax - yMin);
+
+    return {
+        area: dx*dy, 
+        pts: [
+            {x: xMin, y: yMin},
+            {x: xMax, y: yMin},
+            {x: xMax, y: yMax},
+            {x: xMin, y: yMax},
+        ]
+    };
 }
