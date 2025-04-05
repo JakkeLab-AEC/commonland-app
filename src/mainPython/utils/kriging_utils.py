@@ -3,41 +3,44 @@ import numpy as np
 from pykrige.ok import OrdinaryKriging
 
 def calculate_topo_from_points(obb, points, resolution):
-    domain_x = obb['domainX']
-    domain_y = obb['domainY']
-    centroid = obb['centroid']
-    vec_x_axis = obb['xAxis']
-
-    # 📌 1️⃣ OBB 회전 각도 계산
-    vec_dot = vec_x_axis['x'] * 1 + vec_x_axis['y'] * 0
-    vec_multiply = math.sqrt(float(vec_x_axis['x'])**2 + float(vec_x_axis['y'])**2)
-    theta = math.acos(vec_dot / vec_multiply)
-
-    if vec_x_axis['y'] < 0:
-        theta = -theta
-
-    # 📌 2️⃣ 좌표 변환 (OBB 기준 좌표계로 이동)
+    points = obb['pts']
+    
+    # Axis points
+    p0 = points['p0']
+    p1 = points['p1']
+    p3 = points['p3']
+    
+    # Given datas
     arr_points = []
     for point in points:
-        point_vector_original = [point['x'], point['y'], point['z']]
-        point_vector_moved = [
-            point_vector_original[0] - centroid['x'],
-            point_vector_original[1] - centroid['y'],
-            point_vector_original[2],
-        ]
-        point_vector_rotated = [
-            point_vector_moved[0] * math.cos(-theta) - point_vector_moved[1] * math.sin(-theta),
-            point_vector_moved[0] * math.sin(-theta) + point_vector_moved[1] * math.cos(-theta),
-            point_vector_moved[2]
-        ]
-        point_moved_after_rotation = [
-            point_vector_rotated[0] + domain_x * 0.5,
-            point_vector_rotated[1] + domain_y * 0.5,
-            point_vector_rotated[2],
-        ]
-        arr_points.append(point_moved_after_rotation)
+        converted_point = [point['x'], point['y'], point['z']]
+        arr_points.append(converted_point)
 
-    # 📌 3️⃣ Kriging 수행
+    # Set axis
+    vec_p0 = (p0['x'], p0['y'])
+    vec_p1 = (p1['x'], p1['y'])
+    vec_p3 = (p3['x'], p3['y'])
+
+    v1 = np.array(vec_p1) - np.array(vec_p0)
+    v2 = np.array(vec_p3) - np.array(vec_p0)
+
+    len_v1 = np.linalg.norm(v1)
+    len_v2 = np.linalg.norm(v2)
+
+    u1 = v1 / len_v1
+    u2 = v2 / len_v2
+
+    n1 = int(len_v1 / resolution)
+    n2 = int(len_v2 / resolution)
+
+    grid_points = []
+    for i in range(n1 + 1):
+        for j in range(n2 + 1):
+            pt = np.array(p0) + u1 * i * resolution + u2 * j * resolution
+            grid_points.append(pt)
+
+    grid_points = np.array(grid_points)
+
     data = np.array(arr_points)
 
     OK = OrdinaryKriging(

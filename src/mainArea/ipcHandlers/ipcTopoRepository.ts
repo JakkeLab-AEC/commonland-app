@@ -27,13 +27,7 @@ export const setIpcTopoRepository = (ipcMain: IpcMain) => {
                 action: "CalculateTopo",
                 args: {
                     obb: {
-                        domainX: obb.domainX,
-                        domainY: obb.domainY,
-                        centroid: obb.centroid,
-                        xAxis: {
-                            x: obb.xAxis.x,
-                            y: obb.xAxis.x,
-                        },
+                        pts: obb.pts
                     },
                     points: pts,
                     resolution: topoDto.resolution

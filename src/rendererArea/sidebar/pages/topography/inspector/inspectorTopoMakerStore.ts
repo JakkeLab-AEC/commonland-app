@@ -114,7 +114,6 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
 
             const obb = new OBB(pts);
             
-            const topoDto = topo.serialize();
             insertJob = await window.electronTopoLayerAPI.insertTopo(topo.serialize(), obb.serialize());
         }
         
