@@ -3,49 +3,29 @@ import { getConvexHull } from "@/mainArea/utils/convexHullUtils";
 import { computeOBB } from "@/mainArea/utils/obbUtils";
 
 export interface OBBDto {
-    domainX: number,
-    domainY: number,
-    centroid: Vector2d,
-    xAxis: Vector2d,
+    pts: {p0: Vector2d, p1: Vector2d, p2: Vector2d, p3: Vector2d};
 }
 
 
 export class OBB {
-    private domainX: number;
-    private domainY: number;
-    private centroid: Vector2d;
-    private angleDegree: number;
     private points: Vector2d[];
+    private obbPts: {p0: Vector2d, p1: Vector2d, p2: Vector2d, p3: Vector2d};
 
     constructor(points: Vector2d[] = []) {
         this.points = points;
-        this.computeOBB();
+        this.refresh();
     }
 
-    private computeOBB() {
+    private refresh() {
         const hull = getConvexHull(this.points);
-        const {center, size, angle} = computeOBB(hull);
-        
-        this.domainX = size.x;
-        this.domainY = size.y;
-        this.centroid = {x: center.x, y: center.y};
-        this.angleDegree = angle;
-    }
-
-    addPoint(point: Vector2d) {
-        // Add point
-        this.points.push(point);
-        
-        // Re-compute OBB
-        this.computeOBB();
+        this.obbPts = computeOBB(hull);
     }
 
     addPoints(points: Vector2d[]) {
         this.points.push(...points);
-        this.computeOBB();
+        this.refresh();
     }
 
-    
     removePoint(point: Vector2d): void;
     removePoint(index: number): void;
 
@@ -59,7 +39,7 @@ export class OBB {
         }
 
         // Re-compute OBB
-        this.computeOBB();
+        this.refresh();
     }
 
     getContainedPoints() {
@@ -68,10 +48,7 @@ export class OBB {
 
     serialize():OBBDto {
         return {
-            domainX: this.domainX,
-            domainY: this.domainY,
-            centroid: this.centroid,
-            xAxis: {x: Math.cos(this.angleDegree), y: Math.sin(this.angleDegree)},
+            pts: this.obbPts
         }
     }
 }

@@ -19,7 +19,7 @@ class APIGateway:
             }
         elif action == APINames.CalculateTopo.value:
             start_time = time.time()
-            calculated_points = calculate_topo_from_points(obb=args['obb'], points=args['points'], resolution=args['resolution'])
+            calculated_points = calculate_topo_from_points(obb=args['obb'], input_pts=args['points'], resolution=args['resolution'])
             end_time = time.time()
             response_id = str(uuid.uuid4())
 

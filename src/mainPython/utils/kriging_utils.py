@@ -2,87 +2,74 @@ import math
 import numpy as np
 from pykrige.ok import OrdinaryKriging
 
-def calculate_topo_from_points(obb, points, resolution):
-    domain_x = obb['domainX']
-    domain_y = obb['domainY']
-    centroid = obb['centroid']
-    vec_x_axis = obb['xAxis']
-
-    # 📌 1️⃣ OBB 회전 각도 계산
-    vec_dot = vec_x_axis['x'] * 1 + vec_x_axis['y'] * 0
-    vec_multiply = math.sqrt(float(vec_x_axis['x'])**2 + float(vec_x_axis['y'])**2)
-    theta = math.acos(vec_dot / vec_multiply)
-
-    if vec_x_axis['y'] < 0:
-        theta = -theta
-
-    # 📌 2️⃣ 좌표 변환 (OBB 기준 좌표계로 이동)
+def calculate_topo_from_points(obb, input_pts, resolution):
+    # Generate krigging model
     arr_points = []
-    for point in points:
-        point_vector_original = [point['x'], point['y'], point['z']]
-        point_vector_moved = [
-            point_vector_original[0] - centroid['x'],
-            point_vector_original[1] - centroid['y'],
-            point_vector_original[2],
-        ]
-        point_vector_rotated = [
-            point_vector_moved[0] * math.cos(-theta) - point_vector_moved[1] * math.sin(-theta),
-            point_vector_moved[0] * math.sin(-theta) + point_vector_moved[1] * math.cos(-theta),
-            point_vector_moved[2]
-        ]
-        point_moved_after_rotation = [
-            point_vector_rotated[0] + domain_x * 0.5,
-            point_vector_rotated[1] + domain_y * 0.5,
-            point_vector_rotated[2],
-        ]
-        arr_points.append(point_moved_after_rotation)
+    for point in input_pts:
+        converted_point = [point['x'], point['y'], point['z']]
+        arr_points.append(converted_point)
 
-    # 📌 3️⃣ Kriging 수행
+
+    # Run krigging
     data = np.array(arr_points)
-
     OK = OrdinaryKriging(
         x=data[:, 0],
         y=data[:, 1],
         z=data[:, 2],
-        variogram_model="linear",  # 빠른 모델 적용
+        variogram_model="gaussian",
         verbose=False,
         enable_plotting=False,
     )
 
-    # 📌 4️⃣ 예측할 Grid 생성
-    target_x = np.arange(0, domain_x + resolution, resolution)
-    target_y = np.arange(0, domain_y + resolution, resolution)
+    points = obb['pts']
+    
+    # Axis points
+    p0 = points['p0']
+    p1 = points['p1']
+    p3 = points['p3']
 
-    # 2D Meshgrid 생성 후 1D로 변환 (이전 코드 수정)
-    grid_x, grid_y = np.meshgrid(target_x, target_y)
-    grid_x_flat = grid_x.flatten()
-    grid_y_flat = grid_y.flatten()
+    # Set axis
+    vec_p0 = (p0['x'], p0['y'])
+    vec_p1 = (p1['x'], p1['y'])
+    vec_p3 = (p3['x'], p3['y'])
 
-    # 📌 5️⃣ "points" 스타일로 Kriging 수행 (1D로 변환하여 예측)
-    z_pred, _ = OK.execute("points", grid_x_flat, grid_y_flat)
+    # Set axis vector
+    v1 = np.array(vec_p1) - np.array(vec_p0)
+    v2 = np.array(vec_p3) - np.array(vec_p0)
 
-    # 📌 6️⃣ Kriging 결과를 다시 2D로 변환
-    z_pred_reshaped = z_pred.reshape(grid_x.shape)
+    len_v1 = np.linalg.norm(v1)
+    len_v2 = np.linalg.norm(v2)
 
-    # 📌 7️⃣ 예측된 결과를 원래 좌표계로 변환 후 저장
+    u1 = v1 / len_v1
+    u2 = v2 / len_v2
+
+    n1 = int(len_v1 / resolution)
+    n2 = int(len_v2 / resolution)
+
+    grid_xy = []
+    grid_ij = []
+    for i in range(n1 + 1):
+        for j in range(n2 + 1):
+            pt = np.array(vec_p0) + u1 * i * resolution + u2 * j * resolution
+            grid_xy.append(pt)
+            grid_ij.append((i, j))
+
+    grid_xy = np.array(grid_xy)
+    grid_x = grid_xy[:, 0]
+    grid_y = grid_xy[:, 1]
+
+    # Run krigging
+    z_pred, _ = OK.execute(style="points", xpoints=grid_x, ypoints=grid_y)
+
     points_pred = []
-    for i in range(len(target_x)):
-        for j in range(len(target_y)):
-            z_value = float(z_pred_reshaped[j, i])  # `z_pred`를 올바른 위치로 매칭
-
-            # 평행이동 복원
-            x_moved_back = target_x[i] - domain_x * 0.5
-            y_moved_back = target_y[j] - domain_y * 0.5
-
-            # 원래 좌표계로 회전 복원
-            x_original = x_moved_back * math.cos(theta) - y_moved_back * math.sin(theta) + centroid['x']
-            y_original = x_moved_back * math.sin(theta) + y_moved_back * math.cos(theta) + centroid['y']
-
-            # 결과 저장
-            points_pred.append({
-                "x": x_original,
-                "y": y_original,
-                "z": z_value
-            })
+    for idx, (i, j) in enumerate(grid_ij):
+        pt = {
+            "x": float(grid_xy[idx][0]),
+            "y": float(grid_xy[idx][1]),
+            "z": float(z_pred[idx]),
+            "i": i,
+            "j": j
+        }
+        points_pred.append(pt)
 
     return points_pred

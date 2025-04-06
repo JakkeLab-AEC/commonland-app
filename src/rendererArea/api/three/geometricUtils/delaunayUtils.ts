@@ -7,7 +7,7 @@ import { useVisibilityOptionStore } from '@/rendererArea/homescreenitems/visibil
 
 type Point3d = { x: number; y: number; z: number; index: number };
 
-export function createDelaunatedMesh(topo: Topo) {
+export function createDelaunatedMesh(topo: Topo): THREE.Object3D {
     // Extract topo's points
     const pts = topo.getAllPoints();
     
