@@ -57,6 +57,7 @@ export class TopoRepository implements TopoCRUDMethods {
             return {result: false, message: error ? error.toString() : null }
         }
     }
+
     async fetchAllTopos(): Promise<{ result: boolean; message?: string; topoDatas?: TopoDTO[]; }> {
         const topoQuery = `
         SELECT
