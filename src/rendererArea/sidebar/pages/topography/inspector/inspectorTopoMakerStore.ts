@@ -1,11 +1,14 @@
 import { OBB } from "@/mainArea/models/graphics/obb";
 import { Topo } from "@/mainArea/models/serviceModels/topo/Topo";
 import { TopoType } from "@/mainArea/models/topoType";
-import { Vector2d } from "@/mainArea/types/vector";
+import { TriangleSet } from "@/mainArea/types/triangleDataSet";
+import { Vector2d, Vector3d } from "@/mainArea/types/vector";
 import { createDelaunatedMesh } from "@/rendererArea/api/three/geometricUtils/delaunayUtils";
+import { createMeshFromTriangleSet } from "@/rendererArea/api/three/geometricUtils/triangleSetUtils";
 import { SceneController } from "@/rendererArea/api/three/SceneController";
 import { generateUUID } from "three/src/math/MathUtils";
 import { create } from "zustand";
+import * as THREE from 'three';
 
 interface TopoMakerProp {
     allDepths: {boringName: string, boringId: string, location: {x: number, y: number}, layers:{layerId: string, layerName: string, layerDepth: number}[]}[],
@@ -98,11 +101,13 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
         }
     },
     insertTopo: async (topo: Topo) => {
-        const createdMesh = createDelaunatedMesh(topo);
-        topo.setThreeObjId(createdMesh.uuid);
+        let mesh: THREE.Object3D
         
-        let insertJob: {result: boolean; message?: string;};
+        
+        let insertJob: {result: boolean; message?: string; topoDataSet?: TriangleSet;};
         if(topo.topoType === TopoType.DelaunayMesh) {
+            mesh = createDelaunatedMesh(topo);
+            topo.setThreeObjId(mesh.uuid);
             insertJob = await window.electronTopoLayerAPI.insertTopo(topo.serialize());
         } else {
             const pts: Vector2d[] = topo.getAllPoints().map(pt => {
@@ -115,11 +120,16 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
             const obb = new OBB(pts);
             
             insertJob = await window.electronTopoLayerAPI.insertTopo(topo.serialize(), obb.serialize());
+
+            console.log(insertJob);
+
+            if(!insertJob || !insertJob.result) return;
+
+            mesh = createMeshFromTriangleSet(insertJob.topoDataSet, 2);
+            console.log(mesh);
         }
         
-        if(insertJob.result) {
-            SceneController.getInstance().addObject(createdMesh);
-        }
+        SceneController.getInstance().addObject(mesh);
     },
     selectValue: (boringId: string, layerId: string) => {
         const slot = get().selectedValues;

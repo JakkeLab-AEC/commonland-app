@@ -23,9 +23,6 @@ export function computeOBB(points: Vector2d[]): { p0: Vector2d, p1: Vector2d, p2
 
         const origin = moveMatrix.mmul(matrixP0);
         const p1Moved = moveMatrix.mmul(matrixP1);
-
-        console.log(`Origin - X: ${origin.get(0,0)}, Y: ${origin.get(1, 0)}`);
-        console.log(`P1 Moved - X: ${p1Moved.get(0,0)}, Y: ${p1Moved.get(1, 0)}`);
         
         const p1Direction = Math.atan2(p1Moved.get(1, 0), p1Moved.get(0, 0));
         const rotateMatrix = getMatrixRotationXY(-p1Direction);
@@ -35,9 +32,6 @@ export function computeOBB(points: Vector2d[]): { p0: Vector2d, p1: Vector2d, p2
             const ptTransformed = rotateMatrix.mmul(ptMoved);
             return {x: ptTransformed.get(0, 0), y: ptTransformed.get(1, 0)}
         });
-
-        console.log(`i : ${i}`);
-        console.log(ptsTransformed);
 
         const bb = getBoundingBox(ptsTransformed);
 

@@ -154,6 +154,9 @@ async function initializeDB(db: Database) {
 
         CREATE TABLE ${DB_TABLENAMES.TOPO_POINTS} (
             topo_id TEXT NOT NULL,
+            index_n INTEGER,
+            index_i INTEGER,
+            index_j INTEGER,
             coord_x REAL NOT NULL,
             coord_y REAL NOT NULL,
             coord_z REAL NOT NULL,
