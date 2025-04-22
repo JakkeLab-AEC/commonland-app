@@ -24,3 +24,80 @@ Tool for create topography, manage land based on borehole report.
 ---
 
 ## For developers (Underconstruction)
+
+This app uses bundled python environment by Miniconda. So before build this app, you need to create miniconda environment.
+
+Before creating miniconda environment, please install miniconda on your environment.
+> How to install: <br/>
+> https://www.anaconda.com/docs/getting-started/miniconda/install
+
+### Create miniconda environment.
+#### 1. Generate from miniconda environment config file.
+```shell
+# If your environment is macOS (Apple Sillicon):
+conda env create --prefix ./envs/commonland_python_env_mac -f miniconda_environment.yaml
+
+# If your environment is Windows:
+conda env create --prefix ./envs/commonland_python_env_win -f miniconda_environment.yaml
+```
+- python 3.12 based
+- pyKrige 1.7.2 included
+
+#### 2. Check environment
+```shell
+# macOS
+conda activate ./envs/commonland_python_env_mac
+
+# Windows
+conda activate ./envs/commonland_python_env_win
+
+# Check the packages
+conda list pykrige
+
+## If conda environment well created, this will show on your console:
+
+# Name      Version      Build                Channel
+pykrige     1.7.2        <some-build-hash>    conda-forge
+```
+
+If pykrige does not appear in the package list, activate the environment and install it manually:
+
+```shell
+# macOS
+conda activate ./envs/commonland_python_env_mac
+conda install -c conda-forge pykrige
+
+# Windows
+conda activate ./envs/commonland_python_env_win
+conda install -c conda-forge pykrige
+```
+
+Make sure you have conda-forge channel available. If not, you can add it using:
+```shell
+conda config --add channels conda-forge
+```
+Once installed, run:
+
+```shell
+conda list pykrige
+```
+to confirm that the package is successfully installed.
+
+---
+
+### Build
+
+```shell
+npm run package
+```
+
+### Run as dev mode
+```shell
+npm run dev
+```
+
+If error occurs like this, please remove dist folder and run build command again. macOS enviroment sometimes throws this error.
+```shell
+SystemError [ERR_FS_CP_EINVAL]: Invalid src or dest: cp returned EINVAL (cannot copy ~~)
+```
+---
