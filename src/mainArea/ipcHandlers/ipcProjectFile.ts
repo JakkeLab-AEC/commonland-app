@@ -1,5 +1,6 @@
 import { app, dialog, FileFilter, IpcMain } from "electron"
 import { ProjectRead, ProjectWrite } from "../appController/projectIO";
+import { AppController } from "../appController/appController";
 
 export const setIpcProjectIOHandler = (ipcMain: IpcMain) => {
     ipcMain.handle('project-file-save', async (_) => {
@@ -61,6 +62,16 @@ export const setIpcProjectIOHandler = (ipcMain: IpcMain) => {
             if(!loadJob || !loadJob.result) {
                 throw new Error('Failed to load project file.');
             }
+
+            return {result: true}
+        } catch (error) {
+            return {result: false, message: error}
+        }
+    });
+
+    ipcMain.handle('project-file-new', async (_)=> {
+        try {
+            await AppController.getInstance().truncateDatas();
 
             return {result: true}
         } catch (error) {

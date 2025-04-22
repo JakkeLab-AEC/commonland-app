@@ -7,6 +7,10 @@ export const ThreeViewPort = () => {
     const canvasWidth = window.innerWidth;
     const canvasHeight = window.innerHeight;
 
+    const refreshViewport = () => {
+        
+    }
+
     useEffect(() => {
         if(canvasRef.current) {
             const renderer = SceneController.CreateRenderer(canvasRef.current);

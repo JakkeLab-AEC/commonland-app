@@ -237,7 +237,7 @@ export async function truncateDBHard(db: Database) {
         let i = 1;
         for (const { name } of tables) {
             console.log(`Job ${i++} : Drop Table ${name}`);
-            // 테이블에 해당하는 트리거 삭제
+            // Remove triggers
             await db.run(`DROP TRIGGER IF EXISTS insert_layer_color_if_not_exists;`);
             await db.run(`DROP TRIGGER IF EXISTS delete_layer_color_if_no_layers;`);
             await db.run(`DROP TRIGGER IF EXISTS delete_layer_color_if_no_layers;`);
@@ -281,5 +281,31 @@ export async function truncateDBSoft(db: Database) {
     } catch (error) {
         console.error('Failed to truncate database:', error);
         throw error;
+    }
+}
+
+export async function flushData(db: Database) {
+    try {
+
+        console.log('Run Truncate');
+        await db.run("PRAGMA foreign_keys = OFF;");
+        
+        const tables = await db.all(`
+            SELECT name FROM sqlite_master WHERE type='table';
+        `);
+        
+        await db.run('BEGIN TRANSACTION');
+
+        for (const table of tables) {
+            await db.exec(`DELETE FROM ${table.name}`);
+        }
+
+        await db.run('COMMIT');
+
+        await db.run("PRAGMA foreign_keys = ON;");
+        
+    } catch (error) {
+        await db.run('ROLLBACK');
+        console.log(error);
     }
 }

@@ -72,7 +72,20 @@ export class SceneController {
         this.render();
     }
 
-    public addObjects(objects: THREE.Object3D[]): void {
+    public addObjects(objects: THREE.Object3D[], onRendered?: () => void): void {
+        if(!objects || objects.length === 0) return;
+        
+        if(onRendered) {
+            const once = () => {
+                onRendered();
+            };
+
+            this.scene.onAfterRender = () => {
+                once();
+                this.scene.onAfterRender = () => { }
+            }
+        }
+        
         this.scene.add(...objects);
         this.render();
     }

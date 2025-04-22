@@ -26,6 +26,7 @@ contextBridge.exposeInMainWorld('electronBoringDataAPI', {
 contextBridge.exposeInMainWorld('electronProjectIOAPI', {
     saveProject: () => ipcRenderer.invoke('project-file-save'),
     openProject: () => ipcRenderer.invoke('project-file-read'),
+    newProject: () => ipcRenderer.invoke('project-file-new'),
 })
 
 contextBridge.exposeInMainWorld('electronTopoLayerAPI', {

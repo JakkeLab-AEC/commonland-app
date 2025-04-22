@@ -54,6 +54,11 @@ export default function Header({appName}:{appName: string}) {
     
     const contextMenuProp:ContextMenuProp = {
         menuItemProps: [{
+            displayString: '새 프로젝트 생성',
+            isActionIdBased: false,
+            action: async () => await window.electronProjectIOAPI.newProject(),
+            closeHandler: () => setMenuVisibility(false),
+        }, {
             displayString: '파일 저장',
             isActionIdBased: false,
             action: async () => await window.electronProjectIOAPI.saveProject(),

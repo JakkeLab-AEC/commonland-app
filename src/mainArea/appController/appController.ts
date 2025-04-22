@@ -1,6 +1,6 @@
 import { Database } from "sqlite";
 import { UIController } from "./uicontroller/uicontroller";
-import { openDB, truncateDBSoft } from "./repositoryConfig";
+import { flushData, openDB, truncateDBSoft } from "./repositoryConfig";
 import { BoringRepository } from "../repository/boringRepository";
 import { TopoRepository } from "../repository/topoRepository";
 import { PythonBridge } from "./bridge/pythonBridge";
@@ -57,5 +57,9 @@ export class AppController {
     async truncateDBSoft() {
         if(this.db)
             await truncateDBSoft(this.db);
+    }
+
+    async truncateDatas() {
+        await flushData(this.db);
     }
 }
