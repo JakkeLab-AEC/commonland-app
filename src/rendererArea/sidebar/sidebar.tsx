@@ -3,11 +3,11 @@ import Button from "./iconButton";
 import { TestPage } from "./pages/testPage";
 import { BoringManager } from "./pages/editor/EditorPage";
 import { useLanguageStore } from "../language/languageStore";
-import { BoringBatcher } from "./pages/batchBorings/boringBatchers";
 import { useSidebarStore } from "./sidebarStore";
 import { useEffect, useRef, useState } from 'react';
 import { useHomeStore } from '../commonStatus/homeStatusModel';
 import { TopographyManage } from './pages/topography/topographyManage';
+import { Project } from './pages/project/projectPage';
 
 export default function Sidebar() {
     const siderbarRef = useRef<HTMLDivElement>(null);
@@ -33,7 +33,13 @@ export default function Sidebar() {
         setNaviationIndex(index);
     };
 
-    const menuNavigations: Array<{menuName:string, menuPage: JSX.Element, displayHeader: string, menuClickHandler: (index: number) => void}> = [{
+    const menuNavigations: Array<{menuName:string, menuPage: JSX.Element, displayHeader: string, menuClickHandler: (index: number) => void}> = [
+        {
+            menuName: "Project",
+            menuPage: (<Project />),
+            displayHeader: '프로젝트 설정',
+            menuClickHandler: navigateMenu
+        },  {
             menuName: "Editor", 
             menuPage: (<BoringManager />), 
             displayHeader: findValue('BoringManager', 'pageHeader'),
