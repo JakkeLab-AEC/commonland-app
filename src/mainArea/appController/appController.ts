@@ -1,11 +1,10 @@
 import { Database } from "sqlite";
-import { UIController } from "./uicontroller/uicontroller";
 import { flushData, openDB, truncateDBSoft } from "./repositoryConfig";
 import { BoringRepository } from "../repository/boringRepository";
 import { TopoRepository } from "../repository/topoRepository";
 import { PythonBridge } from "./bridge/pythonBridge";
-import path from 'path';
 import { app } from "electron";
+import { BoundaryRepository } from "../repository/boundaryRepository";
 
 type RepositoryTypes = 'Boring'|'LandInfo'|'Topo'
 
@@ -15,6 +14,7 @@ export class AppController {
     
     private boringRepository?: BoringRepository;
     private topoRepotisotry?: TopoRepository;
+    private boundaryRepository?: BoundaryRepository;
     readonly pythonBridge: PythonBridge;
     readonly osInfo: 'win'|'mac';
     readonly appRootPath: string;
@@ -24,6 +24,7 @@ export class AppController {
             this.db = res;
             this.boringRepository = new BoringRepository(this.db);
             this.topoRepotisotry = new TopoRepository(this.db);
+            this.boundaryRepository = new BoundaryRepository(this.db);
         });
         this.osInfo = osInfo;
 
@@ -52,6 +53,10 @@ export class AppController {
 
     getTopoRepository() {
         return this.topoRepotisotry;
+    }
+
+    getBoundaryRepository() {
+        return this.boundaryRepository;
     }
 
     async truncateDBSoft() {

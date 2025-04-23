@@ -1,6 +1,6 @@
 import { Vector2d } from "@/mainArea/types/vector";
-import { getConvexHull } from "@/mainArea/utils/convexHullUtils";
-import { computeOBB } from "@/mainArea/utils/obbUtils";
+import { getConvexHull } from "@/mainArea/utils/geometrics/convexHullUtils";
+import { getOBB } from "@/mainArea/utils/geometrics/obbUtils";
 
 export interface OBBDto {
     pts: {p0: Vector2d, p1: Vector2d, p2: Vector2d, p3: Vector2d};
@@ -18,7 +18,7 @@ export class OBB {
 
     private refresh() {
         const hull = getConvexHull(this.points);
-        this.obbPts = computeOBB(hull);
+        this.obbPts = getOBB(hull);
     }
 
     addPoints(points: Vector2d[]) {

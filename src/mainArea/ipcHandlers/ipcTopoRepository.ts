@@ -109,5 +109,4 @@ export const setIpcTopoRepository = (ipcMain: IpcMain) => {
         const updateJob = await AppController.getInstance().getTopoRepository().updateThreeObjId(ids);
         return updateJob;
     });
-    
 }

@@ -1,4 +1,4 @@
-import { Vector2d } from "../types/vector";
+import { Vector2d } from "../../types/vector";
 
 export function getConvexHull(points: Vector2d[]): Vector2d[] {
     if (points.length < 3) {
@@ -12,7 +12,7 @@ export function getConvexHull(points: Vector2d[]): Vector2d[] {
 }
 
 // Compute Convex Hull using Gift Wrapping
-export function computeConvexHull(
+function computeConvexHull(
     points: Vector2d[],
     current: Vector2d,
     start: Vector2d,
@@ -44,10 +44,6 @@ export function findNextPoint(
     pts: Vector2d[],
     current: Vector2d
 ): { next: Vector2d; nextPts: Vector2d[] } {
-    // if (pts.length < 2) {
-    //     throw new Error("At least two points are required.");
-    // }
-
     let ptNext = pts[0];
     const ptsDropped: Vector2d[] = [];
 
@@ -60,23 +56,21 @@ export function findNextPoint(
 
         if (cross < 0) {
             ptNext = ptCompare;
-            ptsDropped.length = 0; // 새 점이 선택되면 dropped 리스트 초기화
+            ptsDropped.length = 0;
         } else if (cross === 0) {
             if (getSquaredDistance(current, ptCompare) > getSquaredDistance(current, ptNext)) {
-                ptsDropped.push(ptNext); // 기존 점을 dropped에 추가
+                ptsDropped.push(ptNext);
                 ptNext = ptCompare;
             } else {
-                ptsDropped.push(ptCompare); // 새로운 점을 dropped에 추가
+                ptsDropped.push(ptCompare);
             }
         }
     }
 
-    // nextPts에서 ptNext만 제거하고 나머지는 유지 (불필요한 점 제거 방지)
     let nextPts = pts.filter(pt => pt !== ptNext);
 
-    // nextPts가 비어버리는 것을 방지하기 위해 최소한 1개는 유지
     if (nextPts.length === 0) {
-        nextPts = [ptNext]; // 마지막 남은 점이라도 유지
+        nextPts = [ptNext];
     }
 
     return { next: ptNext, nextPts };

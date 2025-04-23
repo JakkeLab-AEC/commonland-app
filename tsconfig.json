@@ -8,7 +8,7 @@
     "strict": true,
     "noImplicitAny": false,
     "outDir": "./dist",
-    "baseUrl": ".",
+    "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"],
     },

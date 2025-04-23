@@ -1,10 +1,10 @@
-import { getConvexHull } from "../mainArea/utils/convexHullUtils";
+import { getConvexHull } from "../mainArea/utils/geometrics/convexHullUtils";
 import { Vector3d } from "../mainArea/types/vector";
 import { exec } from "child_process";
 import path from "path";
 import fs from 'fs';
 import WS from 'ws';
-import { computeOBB } from "../mainArea/utils/obbUtils";
+import { getOBB } from "../mainArea/utils/geometrics/obbUtils";
 
 const TESTER_PORT = 3355;
 const TESTER_ADDRESS = 'ws://localhost';
@@ -89,7 +89,7 @@ describe('Get OBB Test', () => {
             }
         }
         
-        const obb = computeOBB(hullPts);
+        const obb = getOBB(hullPts);
         const obbPts = [
             {x: obb.p0.x ,y: obb.p0.y, z: 0},
             {x: obb.p1.x ,y: obb.p1.y, z: 0},

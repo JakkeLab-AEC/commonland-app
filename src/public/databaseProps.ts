@@ -5,7 +5,9 @@ export const DB_TABLENAMES = {
     SPT_RESULTS: 'spt_results',
     LAYER_COLORS: 'layer_colors',
     TOPOS: 'topos',
-    TOPO_POINTS: 'topo_points'
+    TOPO_POINTS: 'topo_points',
+    BOUNDARIES: 'boundaries',
+    BOUNDARY_POINTS: 'boundary_points'
 } as const;
 
 /**

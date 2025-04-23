@@ -1,5 +1,5 @@
 import { Vector2d } from "@/mainArea/types/vector";
-import { getConvexHull } from "@/mainArea/utils/convexHullUtils";
+import { getConvexHull } from "@/mainArea/utils/geometrics/convexHullUtils";
 import * as THREE from 'three';
 
 function createPointCloud(points:Vector2d[], color: number) {

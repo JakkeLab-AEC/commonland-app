@@ -6,13 +6,13 @@ import { ThreeExporter } from "@/rendererArea/api/three/exporters/threeExporter"
 import { ModalLoadingProject } from "@/rendererArea/components/header/header";
 import { useRef } from "react";
 import { PipeMessageSendRenderer } from "@/dto/pipeMessage";
-import { getConvexHull } from "@/mainArea/utils/convexHullUtils";
+import { getConvexHull } from "@/mainArea/utils/geometrics/convexHullUtils";
 import { Vector2d, Vector3d } from "@/mainArea/types/vector";
 import { createConvexHullGeometry, createTextOverlay } from "@/rendererArea/api/three/utils/createConvexHull";
 import { SceneController } from "@/rendererArea/api/three/SceneController";
 import * as THREE from 'three'; 
 import './test/testStyle.css';
-import { computeOBB } from "@/mainArea/utils/obbUtils";
+import { getOBB } from "@/mainArea/utils/geometrics/obbUtils";
 import { createOBBShape } from "@/rendererArea/api/three/utils/createOBBShape";
 
 const TEST_POINT_COUNT = 50;

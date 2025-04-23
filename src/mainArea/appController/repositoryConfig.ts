@@ -160,8 +160,23 @@ async function initializeDB(db: Database) {
             coord_x REAL NOT NULL,
             coord_y REAL NOT NULL,
             coord_z REAL NOT NULL,
-            FOREIGN KEY (topo_id) REFERENCES ${DB_TABLENAMES.TOPOS} ON DELETE CASCADE
+            FOREIGN KEY (topo_id) REFERENCES ${DB_TABLENAMES.TOPOS} ON DELETE CASCADE,
             UNIQUE (topo_id, coord_x, coord_y, coord_z)
+        );
+
+        CREATE TABLE ${DB_TABLENAMES.BOUNDARIES} (
+            boundary_id TEXT PRIMARY KEY,
+            three_obj_id TEXT NOT NULL UNIQUE,
+            boundary_name TEXT NOT NULL
+        );
+
+        CREATE TABLE ${DB_TABLENAMES.BOUNDARY_POINTS} (
+            boundary_id TEXT NOT NULL,
+            point_index INTEGER NOT NULL,
+            coord_x REAL NOT NULL,
+            coord_y REAL NOT NULL,
+            FOREIGN KEY (boundary_id) REFERENCES ${DB_TABLENAMES.BOUNDARIES} ON DELETE CASCADE,
+            UNIQUE (boundary_id, point_index)
         );
     `);
 

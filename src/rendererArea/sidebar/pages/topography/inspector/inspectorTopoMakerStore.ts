@@ -9,6 +9,7 @@ import { SceneController } from "@/rendererArea/api/three/SceneController";
 import { generateUUID } from "three/src/math/MathUtils";
 import { create } from "zustand";
 import * as THREE from 'three';
+import { Boundary } from "@/mainArea/models/serviceModels/boundary/boundary";
 
 interface TopoMakerProp {
     allDepths: {boringName: string, boringId: string, location: {x: number, y: number}, layers:{layerId: string, layerName: string, layerDepth: number}[]}[],
@@ -24,6 +25,7 @@ interface TopoMakerProp {
     updateDisplayItemCheck: (id: string, checked: boolean) => void,
     updateDisplayItemColor: (id: string, color: number) => Promise<{result: boolean, updatedTopo?: Topo}>,
     removeTopos: (ids: string[]) => Promise<{result: boolean, deletedTopos?: Topo[]}>,
+    insertBoundary: (name: string) => Promise<void>,
     reset: () => void,
 }
 
@@ -225,5 +227,8 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
         }
         
         return {result: false}
+    },
+    insertBoundary: async(name: string) => {
+        const insertJob = await window.electronTopoLayerAPI.insertBoundary(name);
     }
 }));

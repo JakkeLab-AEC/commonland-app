@@ -1,8 +1,8 @@
 import { Matrix } from "ml-matrix";
-import { Vector2d } from "../types/vector";
+import { Vector2d } from "../../types/vector";
 import { getConvexHull } from "./convexHullUtils";
 
-export function computeOBB(points: Vector2d[]): { p0: Vector2d, p1: Vector2d, p2: Vector2d, p3: Vector2d } | null {
+export function getOBB(points: Vector2d[]): { p0: Vector2d, p1: Vector2d, p2: Vector2d, p3: Vector2d } | null {
     const hull = getConvexHull(points);
     const comparables: {area: number, p0: Vector2d, p1: Vector2d, rotation: number, pts: Vector2d[]}[] = [];
 

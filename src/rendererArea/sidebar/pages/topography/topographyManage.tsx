@@ -106,6 +106,14 @@ export const TopographyManage = () => {
         }
     }
 
+    const addBoundary = () => {
+        
+    }
+
+    const removeBoundary = () => {
+
+    }
+
     useEffect(() => {
         fetchAllTopos();
 
@@ -129,11 +137,21 @@ export const TopographyManage = () => {
             </div>
             <div className="flex flex-row place-content-between">
                 <ButtonPositive text={"새로 만들기"} isEnabled={true} width={92} onClickHandler={showEditor} />
-                <ButtonNegative text={"삭제"} isEnabled={true} width={48} onClickHandler={onClickDeleteTopos}/>
+                <ButtonNegative text={"삭제"} isEnabled={true} width={48} onClickHandler={removeBoundary}/>
             </div>
             <hr/>
             <div>
-                {/* <ButtonPositive text={"지형면 새로고침"} isEnabled={true} width={'100%'} onClickHandler={refreshTopoOnView}/> */}
+                대지경계선 리스트
+            </div>
+            <div>
+                <ListBoxColorPicker 
+                    height={240} 
+                    items={new Map()} 
+                    header={"폴리라인"}/>
+            </div>
+            <div className="flex flex-row place-content-between">
+                <ButtonPositive text={"추가"} isEnabled={true} width={48} onClickHandler={addBoundary} />
+                <ButtonNegative text={"삭제"} isEnabled={true} width={48} onClickHandler={onClickDeleteTopos}/>
             </div>
         </div>
     )
