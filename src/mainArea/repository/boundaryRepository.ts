@@ -1,13 +1,15 @@
 import { Database } from "sqlite";
 import { RepositryQueryBuilder } from "./utils/queryBuilder";
 import { DB_TABLENAMES } from "@/public/databaseProps";
-import { BoundaryDto } from "@/dto/serviceModel/boundaryDto";
+import { BoundaryDto, BoundaryMetadata } from "@/dto/serviceModel/boundaryDto";
+import { ModelType } from "../models/modelType";
 
 
 type BoundarySelectResult = {
     boundary_id: string,
     three_obj_id: string,
-    boundary_name: string
+    boundary_name: string,
+    color_index: number,
 };
 
 type PtsSelectResult = {
@@ -108,10 +110,31 @@ export class BoundaryRepository {
                 id: id,
                 threeObjId: boundaryResult[0].three_obj_id,
                 name: boundaryResult[0].boundary_name,
-                pts: ptsResult.sort((a, b) => a.point_index - b.point_index).map(p => {return {x: p.coord_x, y: p.coord_y}})
+                pts: ptsResult.sort((a, b) => a.point_index - b.point_index).map(p => {return {x: p.coord_x, y: p.coord_y}}),
+                colorIndex: boundaryResult[0].color_index,
+                modelType: ModelType.Boundary
             }
 
             return {result: true, boundaries: [dto]};
+        } catch (error) {
+            return {result: false, message: String(error)};
+        }
+    }
+
+    async selectBoundaryMetadata(id: string): Promise<{result: boolean, message?: string, metadatas?: BoundaryMetadata[]}> {
+        try {
+            const boudnaryResult = await this.db.all(selectBoundaryQuery, id) as BoundarySelectResult[];
+            const metadatas: BoundaryMetadata[] = boudnaryResult.map(result => {
+                return {
+                    id: result.boundary_id,
+                    threeObjId: result.three_obj_id,
+                    name: result.boundary_name,
+                    colorIndex: result.color_index,
+                    modelType: ModelType.Boundary
+                }
+            });
+
+            return {result: true, metadatas: metadatas};
         } catch (error) {
             return {result: false, message: String(error)};
         }
@@ -121,7 +144,7 @@ export class BoundaryRepository {
         try {
             const boundaries: BoundaryDto[] = [];
 
-            const boundaryResult = await this.db.all(selectBoundaryQuery) as BoundarySelectResult[];
+            const boundaryResult = await this.db.all(selectAllBoundaryQuery) as BoundarySelectResult[];
             for(const boundary of boundaryResult) {
                 const ptsResult = await this.db.all(selectPtsQuery, boundary.boundary_id);
 
@@ -130,12 +153,33 @@ export class BoundaryRepository {
                         id: boundary.boundary_id,
                         threeObjId: boundary.three_obj_id,
                         name: boundary.boundary_name,
-                        pts: ptsResult.sort((a, b) => a.point_index - b.point_index).map(p => {return {x: p.coord_x, y: p.coord_y}})
+                        pts: ptsResult.sort((a, b) => a.point_index - b.point_index).map(p => {return {x: p.coord_x, y: p.coord_y}}),
+                        modelType: ModelType.Boundary,
+                        colorIndex: boundary.color_index
                     });
                 }
             }
 
             return {result: true, boundaries: boundaries};
+        } catch (error) {
+            return {result: false, message: String(error)};
+        }
+    }
+
+    async selectAllBoundaryMetadata(): Promise<{result: boolean, message?: string, metadatas?: BoundaryMetadata[]}> {
+        try {
+            const boudnaryResult = await this.db.all(selectAllBoundaryQuery) as BoundarySelectResult[];
+            const metadatas: BoundaryMetadata[] = boudnaryResult.map(result => {
+                return {
+                    id: result.boundary_id,
+                    threeObjId: result.three_obj_id,
+                    name: result.boundary_name,
+                    colorIndex: result.color_index,
+                    modelType: ModelType.Boundary
+                }
+            });
+
+            return {result: true, metadatas: metadatas};
         } catch (error) {
             return {result: false, message: String(error)};
         }

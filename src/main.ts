@@ -10,6 +10,7 @@ import { UIController } from './mainArea/appController/uicontroller/uicontroller
 import { setIpcModalControl } from './mainArea/ipcHandlers/ipcModalHandlers';
 import { setIPCPythonPipe } from './mainArea/ipcHandlers/ipcPythonPipe';
 import fs from 'fs';
+import { setIpcSiteBoundary } from './mainArea/ipcHandlers/ipcBoundary';
 
 if (require('electron-squirrel-startup')) app.quit();
 
@@ -110,6 +111,8 @@ app.on('ready', () => {
     setIpcModalControl(ipcMain);
 
     setIPCPythonPipe(ipcMain);
+
+    setIpcSiteBoundary(ipcMain);
     
   } else {
     

@@ -1,12 +1,19 @@
 import * as THREE from 'three';
-import { Vector2d } from "@/mainArea/types/vector";
+import { BoundaryDto } from '@/dto/serviceModel/boundaryDto';
 
-export function createBoundaryObject(pts: Vector2d[]): THREE.Object3D {
-    const threePts = pts.map(p => new THREE.Vector3(p.x, p.y, 0));
+export function createBoundaryObject(boundaryDto: BoundaryDto): THREE.Object3D {
+    const threePts = boundaryDto.pts.map(p => new THREE.Vector3(p.x, p.y, 0));
+    threePts.push(new THREE.Vector3(boundaryDto.pts[0].x, boundaryDto.pts[0].y, 0));
 
     const geometry = new THREE.BufferGeometry().setFromPoints(threePts);
-    const material = new THREE.LineBasicMaterial({color: 0x000000});
+    const material = new THREE.LineBasicMaterial({color: 0x000000, linewidth: 4});
     const polyline = new THREE.Line(geometry, material);
+
+    polyline.uuid = boundaryDto.threeObjId;
+    polyline.userData = {
+        type: "boundary",
+        instanceId: boundaryDto.id
+    }
 
     return polyline;
 }

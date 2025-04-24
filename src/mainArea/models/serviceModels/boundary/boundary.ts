@@ -1,19 +1,23 @@
 import { Vector2d } from "@/mainArea/types/vector";
 import { ServiceModel } from "../servicemodel";
 import { BoundaryDto } from "@/dto/serviceModel/boundaryDto";
+import { ModelType } from "../../modelType";
 
 type ConstructorOptions = {
     key?: string,
-    points?: Vector2d[]
+    points?: Vector2d[],
+    colorIndex?: number,
 }
 
 export class Boundary extends ServiceModel {
     private points: Vector2d[];
     private name: string;
+    private colorIndex: number;
 
-    constructor({key, points = []}: ConstructorOptions) {
+    constructor({key, points = [], colorIndex = 1}: ConstructorOptions) {
         super(key);
         this.points = points;
+        this.colorIndex = colorIndex;
     }
 
     setName(name: string) {
@@ -22,10 +26,12 @@ export class Boundary extends ServiceModel {
 
     serialize(): BoundaryDto {
         return {
+            modelType: ModelType.Boundary,
             id: this.elementId.getValue(),
             threeObjId: this.getThreeObjId(),
             name: this.name,
-            pts: this.points
+            colorIndex: this.colorIndex,
+            pts: this.points,
         }
     }
 }

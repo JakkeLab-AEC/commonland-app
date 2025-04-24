@@ -35,7 +35,12 @@ contextBridge.exposeInMainWorld('electronTopoLayerAPI', {
     updateTopoColor: (id:string, index: number) => ipcRenderer.invoke('topolayer-update-color', id, index),
     updateTopoThreeObjId: (ids: {id: string, threeObjId: string}[]) => ipcRenderer.invoke('topolayer-update-threeobjid', ids),
     removeTopos: (ids: string[]) => ipcRenderer.invoke('topolayer-remove', ids),
-    insertBoundary: (name: string) => ipcRenderer.invoke('boundary-add', name)
+    insertBoundary: (name: string) => ipcRenderer.invoke('boundary-add', name),
+    removeBoundary: (id: string) => ipcRenderer.invoke('boundary-remove', id),
+    selectBoundaryMetadata: (id: string) => ipcRenderer.invoke('boundary-fetch-metadata-by-id', id),
+    selectBoundaryMetadataAll: () => ipcRenderer.invoke('boundary-fetch-metadata-all'),
+    selectBoundary: (id: string) => ipcRenderer.invoke('boundary-fetch-by-id', id),
+    selectBoundaryAll: () => ipcRenderer.invoke('boundary-fetch-all'),
 });
 
 contextBridge.exposeInMainWorld('electronSystemAPI', {

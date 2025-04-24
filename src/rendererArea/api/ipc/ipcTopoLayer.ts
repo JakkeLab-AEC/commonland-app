@@ -1,4 +1,4 @@
-import { BoundaryDto } from "@/dto/serviceModel/boundaryDto";
+import { BoundaryDto, BoundaryMetadata } from "@/dto/serviceModel/boundaryDto";
 import { TopoDTO } from "@/dto/serviceModel/topoDto";
 import { OBBDto } from "@/mainArea/models/graphics/obb";
 import { TriangleSet } from "@/mainArea/types/triangleDataSet";
@@ -10,6 +10,11 @@ export interface IElectronIPCTopoLayer {
     updateTopoThreeObjId(ids:{id: string, threeObjId: string}[]): Promise<{result: boolean, message?: string}>;
     removeTopos(ids: string[]): Promise<{result: boolean, message?: string}>;
     insertBoundary(name: string): Promise<{result: boolean, message?: string, boundary?: BoundaryDto}>;
+    removeBoundary(id: string): Promise<{result: boolean, message?: string}>;
+    selectBoundaryMetadata(id: string): Promise<{result: boolean, message?: string, metadatas?: BoundaryMetadata[]}>;
+    selectBoundaryMetadataAll(): Promise<{result: boolean, message?: string, metadatas?: BoundaryMetadata[]}>;
+    selectBoundary(id: string): Promise<{result: boolean, message?: string, metadatas?: BoundaryDto[]}>;
+    selectBoundaryAll(): Promise<{result: boolean, message?: string, metadatas?: BoundaryDto[]}>;
 }
 
 declare global {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { ButtonPositive } from "@/rendererArea/components/buttons/buttonPositive";
 import { ButtonNegative } from "@/rendererArea/components/buttons/buttonNegative";
 import { useModalOveralyStore } from "@/rendererArea/homescreenitems/modalOverlayStore";
@@ -12,7 +12,8 @@ import { TopoType } from "@/mainArea/models/topoType";
 
 export const TopographyManage = () => {
     const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
-    
+    const boundaryNameRef = useRef<HTMLInputElement>(null);
+
     const {
         toggleMode,
         updateModalContent,
@@ -20,13 +21,16 @@ export const TopographyManage = () => {
     } = useModalOveralyStore();
 
     const {
-        insertTopo,
-        fetchAllTopos,
         topoDisplayItems,
         fetchedTopos,
+        boundaryDisplayItems,
         updateDisplayItemCheck,
         updateDisplayItemColor,
-        removeTopos
+        removeTopos,
+        insertTopo,
+        fetchAllTopos,
+        fetchAllBoundaries,
+        insertBoundary
     } = useTopoMakerStore();
 
     const onSubmitTopo = async (topo: Topo, resolution?: number) => {
@@ -106,8 +110,15 @@ export const TopographyManage = () => {
         }
     }
 
-    const addBoundary = () => {
+    const addBoundary = async () => {
+        const name = boundaryNameRef.current.value;
+        if(!name || name.length === 0) {
+            await window.electronSystemAPI.callDialogError("경계선 추가 오류", "이름을 입력 후 실행해 주세요.");
+            boundaryNameRef.current.focus();
+            return;
+        }
         
+        insertBoundary(name);
     }
 
     const removeBoundary = () => {
@@ -116,7 +127,8 @@ export const TopographyManage = () => {
 
     useEffect(() => {
         fetchAllTopos();
-
+        fetchAllBoundaries();
+        
         return () => {
             resetProps();
         }
@@ -141,17 +153,18 @@ export const TopographyManage = () => {
             </div>
             <hr/>
             <div>
-                대지경계선 리스트
+                <span>대지경계선 리스트</span>
             </div>
             <div>
                 <ListBoxColorPicker 
                     height={240} 
-                    items={new Map()} 
+                    items={boundaryDisplayItems} 
                     header={"폴리라인"}/>
             </div>
-            <div className="flex flex-row place-content-between">
-                <ButtonPositive text={"추가"} isEnabled={true} width={48} onClickHandler={addBoundary} />
-                <ButtonNegative text={"삭제"} isEnabled={true} width={48} onClickHandler={onClickDeleteTopos}/>
+            <div className="flex flex-row place-content-between gap-2">
+                <input className="border rounded-md w-full" maxLength={22} ref={boundaryNameRef}/>
+                <ButtonPositive text={"추가"} isEnabled={true} width={60} onClickHandler={addBoundary} />
+                <ButtonNegative text={"삭제"} isEnabled={true} width={60} onClickHandler={removeBoundary}/>
             </div>
         </div>
     )

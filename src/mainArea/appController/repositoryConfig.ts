@@ -167,7 +167,8 @@ async function initializeDB(db: Database) {
         CREATE TABLE ${DB_TABLENAMES.BOUNDARIES} (
             boundary_id TEXT PRIMARY KEY,
             three_obj_id TEXT NOT NULL UNIQUE,
-            boundary_name TEXT NOT NULL
+            boundary_name TEXT NOT NULL,
+            color_index INTEGER NOT NULL DEFAULT 1
         );
 
         CREATE TABLE ${DB_TABLENAMES.BOUNDARY_POINTS} (

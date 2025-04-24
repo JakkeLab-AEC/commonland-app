@@ -10,12 +10,18 @@ import { generateUUID } from "three/src/math/MathUtils";
 import { create } from "zustand";
 import * as THREE from 'three';
 import { Boundary } from "@/mainArea/models/serviceModels/boundary/boundary";
+import { createBoundaryObject } from "@/rendererArea/api/three/predefinedCreations/siteBoundary";
+import { BoundaryMetadata } from "@/dto/serviceModel/boundaryDto";
+
+type DisplayItemProps = {displayString: string, checked: boolean, colorIndex: number};
 
 interface TopoMakerProp {
     allDepths: {boringName: string, boringId: string, location: {x: number, y: number}, layers:{layerId: string, layerName: string, layerDepth: number}[]}[],
     allLayerNames: string[],
     fetchedTopos: Map<string, Topo>,
-    topoDisplayItems: Map<string, {displayString: string, checked: boolean, colorIndex: number}>,
+    fetchedBoundaries: Map<string, BoundaryMetadata>,
+    topoDisplayItems: Map<string, DisplayItemProps>,
+    boundaryDisplayItems: Map<string, DisplayItemProps>,
     selectedValues: Map<string, string|null>,
     fetchAllDepths:() => void;
     insertTopo: (topo: Topo, resolution?: number) => Promise<void>;
@@ -26,6 +32,7 @@ interface TopoMakerProp {
     updateDisplayItemColor: (id: string, color: number) => Promise<{result: boolean, updatedTopo?: Topo}>,
     removeTopos: (ids: string[]) => Promise<{result: boolean, deletedTopos?: Topo[]}>,
     insertBoundary: (name: string) => Promise<void>,
+    fetchAllBoundaries: () => Promise<void>,
     reset: () => void,
 }
 
@@ -34,7 +41,9 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
     allLayerNames: [],
     selectedValues: new Map(),
     fetchedTopos: new Map(),
+    fetchedBoundaries: new Map(),
     topoDisplayItems: new Map(),
+    boundaryDisplayItems: new Map(),
     fetchAllDepths: async () => {
         const fetchBoringJob = await window.electronBoringDataAPI.fetchAllBorings();
         const valueSlot: Map<string, string|null> = new Map();
@@ -228,7 +237,60 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
         
         return {result: false}
     },
+    fetchAllBoundaries: async() => {
+        const fetchJob = await window.electronTopoLayerAPI.selectBoundaryMetadataAll();
+        if(!fetchJob || !fetchJob.result) return;
+
+        const updatedBoundaryMetadatas: Map<string, BoundaryMetadata> = new Map();
+        const updatedBoundaryDisplayItems: Map<string, DisplayItemProps> = new Map();
+        fetchJob.metadatas.forEach(data => {
+            updatedBoundaryMetadatas.set(data.id, data);
+            updatedBoundaryDisplayItems.set(data.id, {
+                displayString: data.name,
+                checked: false,
+                colorIndex: data.colorIndex
+            });
+        });
+
+        set(() => {
+            return {
+                fetchedBoundaries: updatedBoundaryMetadatas,
+                boundaryDisplayItems: updatedBoundaryDisplayItems
+            }
+        })
+    },
     insertBoundary: async(name: string) => {
+        // Pre-check for duplication.
+        const fetchMetadataJob = await window.electronTopoLayerAPI.selectBoundaryMetadataAll();
+        if(!fetchMetadataJob || !fetchMetadataJob.result) return;
+        
+        if(fetchMetadataJob.metadatas.find(meta => meta.name === name)) {
+            await window.electronSystemAPI.callDialogError("경계선 추가 오류", "해당 이름의 경계선은 이미 등록되어 있습니다. 다른 이름을 사용해 주세요.");
+            return;
+        }
+        
+        // Insert job
         const insertJob = await window.electronTopoLayerAPI.insertBoundary(name);
+        console.log(insertJob);
+        if(!insertJob || !insertJob.result) return;
+        
+        const updatedBoundaries = new Map(get().fetchedBoundaries);
+        const updatedBoundaryDisplayItems = new Map(get().boundaryDisplayItems);
+        updatedBoundaries.set(insertJob.boundary.id, insertJob.boundary);
+        updatedBoundaryDisplayItems.set(insertJob.boundary.id, {
+            displayString: insertJob.boundary.name,
+            checked: false,
+            colorIndex: insertJob.boundary.colorIndex
+        })
+
+        const boundaryObject = createBoundaryObject(insertJob.boundary);
+        SceneController.getInstance().addObjects([boundaryObject]);
+
+        set(() => {
+            return {
+                fetchedBoundaries: updatedBoundaries,
+                boundaryDisplayItems: updatedBoundaryDisplayItems
+            }
+        })
     }
 }));

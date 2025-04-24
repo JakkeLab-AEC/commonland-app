@@ -4,6 +4,7 @@ import { SystemUtils } from "../utils/wrapper";
 import { AppController } from "../appController/appController";
 import { BoundaryDto } from "@/dto/serviceModel/boundaryDto";
 import { ElementId } from "../models/id";
+import { ModelType } from "../models/modelType";
 
 
 const POLYLNE_DIALOG_TITLE = 'Polyline 데이터 불러오기';
@@ -12,7 +13,7 @@ export const setIpcSiteBoundary = (ipcMain: IpcMain) => {
         const filters: FileFilter[] = [];
         filters.push({
             name: 'CSV file',
-            extensions: ['json'],
+            extensions: ['csv'],
         });
 
         const openFileJobResult = await SystemUtils.Modal.showFileOpenDialog(POLYLNE_DIALOG_TITLE, app.getPath('desktop'), filters);
@@ -23,7 +24,9 @@ export const setIpcSiteBoundary = (ipcMain: IpcMain) => {
             id: new ElementId().getValue(),
             threeObjId: new ElementId().getValue(),
             name: name,
-            pts: parseJob.parsedPts
+            pts: parseJob.parsedPts,
+            colorIndex: 1,
+            modelType: ModelType.Boundary
         }
 
         return await AppController.getInstance().getBoundaryRepository().insertBoundaries(data);
@@ -39,5 +42,13 @@ export const setIpcSiteBoundary = (ipcMain: IpcMain) => {
 
     ipcMain.handle('boundary-fetch-by-id', async(_, id: string) => {
         return await AppController.getInstance().getBoundaryRepository().selectBoundary(id);
+    });
+
+    ipcMain.handle('boundary-fetch-metadata-by-id', async(_, id: string) => {
+        return await AppController.getInstance().getBoundaryRepository().selectBoundaryMetadata(id);
+    });
+
+    ipcMain.handle('boundary-fetch-metadata-all', async(_, id: string) => {
+        return await AppController.getInstance().getBoundaryRepository().selectAllBoundaryMetadata();
     });
 }
