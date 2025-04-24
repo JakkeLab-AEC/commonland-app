@@ -4,11 +4,10 @@ import { ButtonNegative } from "@/rendererArea/components/buttons/buttonNegative
 import { useModalOveralyStore } from "@/rendererArea/homescreenitems/modalOverlayStore";
 import { InspectorFixed } from "@/rendererArea/components/inspector/inspectorFixed";
 import { InspectorTopoMaker } from './inspector/inspectorTopoMaker';
-import { Topo } from "@/mainArea/models/serviceModels/topo/Topo";
 import {ListBoxColorPicker} from "@/rendererArea/components/listbox/listBoxColorPicker"
 import { useTopoMakerStore } from "./inspector/inspectorTopoMakerStore";
 import { SceneController } from "@/rendererArea/api/three/SceneController";
-import { TopoType } from "@/mainArea/models/topoType";
+import { TopoCreationOptions } from "./options";
 
 export const TopographyManage = () => {
     const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
@@ -33,12 +32,8 @@ export const TopographyManage = () => {
         insertBoundary
     } = useTopoMakerStore();
 
-    const onSubmitTopo = async (topo: Topo, resolution?: number) => {
-        if(topo.topoType === TopoType.DelaunayMesh) {
-            await insertTopo(topo);
-        } else {
-            await insertTopo(topo, resolution);
-        }
+    const onSubmitTopo = async (options: TopoCreationOptions) => {
+        await insertTopo(options);
         
         await fetchAllTopos();
     }
@@ -122,7 +117,7 @@ export const TopographyManage = () => {
     }
 
     const removeBoundary = () => {
-
+        
     }
 
     useEffect(() => {

@@ -1,5 +1,6 @@
 import { getConvexHull } from "./geometrics/convexHullUtils";
 import { getOBB } from "./geometrics/obbUtils";
+import { runPykrige } from "./pythonUtils/topoPythonUtils";
 import { showFileOpenDialog } from "./systemUtils/fileDialog";
 import { showError } from "./systemUtils/showError";
 
@@ -25,5 +26,20 @@ export const GeometricUtils = {
     },
     BoundingBox: {
         getOBB
+    }
+}
+
+/**
+ * [Main, Common]
+ * This util is including generating raw source for creating topo mesh.
+ * Some actions are worked on only Main process. So please check the comment of each actions.
+ */
+export const TopoUtils = {
+    createTopoDataSet: {
+        /**
+         * [Main]
+         * Call Python API wrapping PyKrige.
+         */
+        runPykrige
     }
 }

@@ -5,14 +5,14 @@ import { ButtonPositive } from "@/rendererArea/components/buttons/buttonPositive
 import { ButtonNegative } from "@/rendererArea/components/buttons/buttonNegative";
 import { useModalOveralyStore } from "@/rendererArea/homescreenitems/modalOverlayStore";
 import { useTopoMakerStore } from "./inspectorTopoMakerStore";
-import { Topo } from "@/mainArea/models/serviceModels/topo/Topo";
 import { ColorIndexPalette, ColorSquare } from "@/rendererArea/components/palette/colorIndexPalette";
 import { Inspector } from "@/rendererArea/components/inspector/inspector";
 import { TopoType } from "@/mainArea/models/topoType";
-import { OBB } from "@/mainArea/models/graphics/obb";
+import { TopoCreationOptions } from "../options";
+import { Vector3d } from "@/mainArea/types/vector";
 
 interface InspectorTopoMakerProp {
-    onSubmitTopo?: (topo: Topo) => void;
+    onSubmitTopo?: (options: TopoCreationOptions) => void;
     onClickClose?: () => void;
 }
 
@@ -22,6 +22,7 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
     const [isPlatteOpened, setPaletteState] = useState<boolean>(false);
     const [topoColorIndex, setTopoColorIndex] = useState<number>(1);
     const [topoCreationMode, setTopoCreationMode] = useState<TopoType>(TopoType.NotDefined)
+    const [selectedBoundaryId, setBoundaryId] = useState<string>();
     const {
         toggleMode,
         resetProps
@@ -31,6 +32,7 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
         allDepths,
         allLayerNames,
         selectedValues,
+        fetchedBoundaries,
         fetchAllDepths,
         selectOnce,
         reset,
@@ -44,24 +46,29 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
         }
 
         if(selectedValues.size == Array.from(selectedValues.values()).filter(value => value != null).length) {
-            const topo = new Topo({
-                isBatched: false, 
-                name: topoName, 
-                topoType: topoCreationMode, 
-                resolution: topoCreationMode === TopoType.DelaunayMesh || topoCreationMode === TopoType.NotDefined ? -1 : parseFloat(resolutionRef.current.value)
-            });
-            topo.setColorIndex(topoColorIndex);
+            const pts: Vector3d[] = [];
             selectedValues.forEach((value, key) => {
                 const targetBoring = allDepths.find(depth => depth.boringId == key);
-                topo.registerPoint({
+                pts.push({
                     x: targetBoring.location.x,
                     y: targetBoring.location.y,
                     z: targetBoring.layers.find(layer => layer.layerId == value).layerDepth
                 });
             });
-            if(onSubmitTopo) {
-                onSubmitTopo(topo);
+
+            const option: TopoCreationOptions = {
+                name: topoName,
+                isBatched: false,
+                topoType: topoCreationMode,
+                colorIndex: topoColorIndex,
+                basePoints: pts,
+                boundary: selectedBoundaryId === "none" ? undefined : fetchedBoundaries.get(selectedBoundaryId)
             }
+
+            if(onSubmitTopo) {
+                onSubmitTopo(option);
+            }
+
             toggleMode(false);
         } else {
             await window.electronSystemAPI.callDialogError('지형면 생성 오류', '모든 시추공에서 레이어를 선택헤 주세요');
@@ -99,6 +106,11 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
     const onChangeCreationMode = (e: ChangeEvent<HTMLSelectElement>) => {
         const topoCreationType = e.target.value as TopoType;
         setTopoCreationMode(topoCreationType);
+    }
+
+    const onChangeBoundary = (e: ChangeEvent<HTMLSelectElement>) => {
+        const boundaryId = e.target.value;
+        setBoundaryId(boundaryId);
     }
     
     useEffect(() => {
@@ -152,6 +164,25 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                     <div className="border">
                         <input type="number" step={0.25} min={0.25} max={20} ref={resolutionRef} defaultValue={1}/>
                     </div>
+                </div>}
+                {(topoCreationMode !== TopoType.DelaunayMesh && topoCreationMode !== TopoType.NotDefined) &&
+                <div className="flex flex-row gap-2">
+                    <div>
+                        경계선 설정
+                    </div>
+                    <select className="border w-[180px]" onChange={onChangeBoundary}>
+                        <option value="none" key="boundary-none">선택하지 않음</option>
+                        {Array.from(fetchedBoundaries.values())
+                            .sort((a, b) => a.name.localeCompare(b.name))
+                            .map(item => {
+                                return (
+                                <option 
+                                    value={item.id} 
+                                    key={`boundary-${item.id}`}>
+                                    {item.name}
+                                </option>)
+                            })}
+                    </select>
                 </div>}
             </div>
             <hr/>

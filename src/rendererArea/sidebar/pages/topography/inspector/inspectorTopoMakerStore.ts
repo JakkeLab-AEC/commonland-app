@@ -12,6 +12,8 @@ import * as THREE from 'three';
 import { Boundary } from "@/mainArea/models/serviceModels/boundary/boundary";
 import { createBoundaryObject } from "@/rendererArea/api/three/predefinedCreations/siteBoundary";
 import { BoundaryMetadata } from "@/dto/serviceModel/boundaryDto";
+import { TopoCreationOptions } from "../options";
+import { ElementId } from "@/mainArea/models/id";
 
 type DisplayItemProps = {displayString: string, checked: boolean, colorIndex: number};
 
@@ -24,7 +26,7 @@ interface TopoMakerProp {
     boundaryDisplayItems: Map<string, DisplayItemProps>,
     selectedValues: Map<string, string|null>,
     fetchAllDepths:() => void;
-    insertTopo: (topo: Topo, resolution?: number) => Promise<void>;
+    insertTopo: (options: TopoCreationOptions) => Promise<void>;
     fetchAllTopos: () => Promise<void>,
     selectValue: (boringId: string, layerId: string) => void,
     selectOnce: (layerName: string) => void,
@@ -111,33 +113,45 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
             }});
         }
     },
-    insertTopo: async (topo: Topo) => {
+    insertTopo: async (option: TopoCreationOptions) => {
         let mesh: THREE.Object3D
         
-        
         let insertJob: {result: boolean; message?: string; topoDataSet?: TriangleSet;};
-        if(topo.topoType === TopoType.DelaunayMesh) {
-            mesh = createDelaunatedMesh(topo);
+
+        if(option.topoType === TopoType.DelaunayMesh) {
+            const topo = new Topo({
+                isBatched: option.isBatched,
+                name: option.name,
+                topoType: option.topoType,
+            });
+            
+            option.basePoints.forEach(p => topo.registerPoint(p));            
+            mesh = createDelaunatedMesh(topo, new ElementId().getValue());
+            
             topo.setThreeObjId(mesh.uuid);
             insertJob = await window.electronTopoLayerAPI.insertTopo(topo.serialize());
         } else {
-            const pts: Vector2d[] = topo.getAllPoints().map(pt => {
-                return {
-                    x: pt.x,
-                    y: pt.y,
-                }
-            }); 
+            const boundaryPts: Vector2d[] = [];
+            if(option.boundary) {
+                const boundaryFetch = await window.electronTopoLayerAPI.selectBoundary(option.boundary.id);
+                boundaryPts.push(...boundaryFetch.boundaries[0].pts);
+            } else {
+                boundaryPts.push(...option.basePoints);
+            }
+            const obb = new OBB(boundaryPts);
 
-            const obb = new OBB(pts);
-            
+            const topo = new Topo({
+                isBatched: option.isBatched,
+                name: option.name,
+                topoType: option.topoType,
+            });
+
+            option.basePoints.forEach(p => topo.registerPoint(p));
             insertJob = await window.electronTopoLayerAPI.insertTopo(topo.serialize(), obb.serialize());
-
-            console.log(insertJob);
 
             if(!insertJob || !insertJob.result) return;
 
-            mesh = createMeshFromTriangleSet(insertJob.topoDataSet, 2);
-            console.log(mesh);
+            mesh = createMeshFromTriangleSet(insertJob.topoDataSet, option.colorIndex);
         }
         
         SceneController.getInstance().addObject(mesh);

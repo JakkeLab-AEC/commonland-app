@@ -13,8 +13,8 @@ export interface IElectronIPCTopoLayer {
     removeBoundary(id: string): Promise<{result: boolean, message?: string}>;
     selectBoundaryMetadata(id: string): Promise<{result: boolean, message?: string, metadatas?: BoundaryMetadata[]}>;
     selectBoundaryMetadataAll(): Promise<{result: boolean, message?: string, metadatas?: BoundaryMetadata[]}>;
-    selectBoundary(id: string): Promise<{result: boolean, message?: string, metadatas?: BoundaryDto[]}>;
-    selectBoundaryAll(): Promise<{result: boolean, message?: string, metadatas?: BoundaryDto[]}>;
+    selectBoundary(id: string): Promise<{result: boolean, message?: string, boundaries?: BoundaryDto[]}>;
+    selectBoundaryAll(): Promise<{result: boolean, message?: string, boundaries?: BoundaryDto[]}>;
 }
 
 declare global {

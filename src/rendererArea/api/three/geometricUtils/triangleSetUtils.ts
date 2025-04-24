@@ -3,12 +3,12 @@ import { TriangleSet } from "@/mainArea/types/triangleDataSet";
 import { Vector3d } from "@/mainArea/types/vector";
 import { colorPaletteValues } from "@/public/colorPalette";
 import { useVisibilityOptionStore } from "@/rendererArea/homescreenitems/visibilityOptionsStore";
-import { zip } from "d3";
 import * as THREE from 'three';
 
 type PointIndexAttached = {index: number, point: Vector3d};
 
 export function createMeshFromTriangleSet(dataSet: TriangleSet, colorIndex: number): THREE.Object3D {
+    console.log(dataSet);
     // Set points map
     const vertices: number[] = [];
     const ptMap: Map<string, PointIndexAttached> = new Map();
