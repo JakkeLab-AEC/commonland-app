@@ -3,10 +3,6 @@ import { AppController } from "../appController/appController";
 import { TopoDTO } from "@/dto/serviceModel/topoDto";
 import { OBBDto } from "../models/graphics/obb";
 import { TopoType } from "../models/topoType";
-import { Vector3d } from "../types/vector";
-import fs from 'fs';
-import { PredictedPoint } from "../types/predictedPoint";
-import { PointHash, TriangleHash, TriangleSet } from "../types/triangleDataSet";
 import { TopoUtils } from "../utils/wrapper";
 
 export const setIpcTopoRepository = (ipcMain: IpcMain) => {
@@ -21,7 +17,7 @@ export const setIpcTopoRepository = (ipcMain: IpcMain) => {
         } else {
             const krigingResult = await TopoUtils.createTopoDataSet.runPykrige(obb, topoDto.resolution, topoDto.points);
             if(!krigingResult.result) return {result: false, message: krigingResult.message};
-            
+
             insertJob = await AppController.getInstance().getTopoRepository().insertTopoKrigged(topoDto, krigingResult.topoDataSet);
         }
         

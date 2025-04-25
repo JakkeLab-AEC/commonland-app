@@ -1,6 +1,14 @@
-import { Vector3d } from "./vector";
+import { ZPoints } from "./predictedPoint";
+import { Vector2d } from "./vector";
 
-export type TriangleHash = {hashPt0: string, hashPt1: string, hashPt2: string};
-export type PointHash = {hash: string, pt: Vector3d};
-export type TriangleSet = {pts: PointHash[], triangles: TriangleHash[]}
-export type TriangleIndexSet = {indexP0: number, indexP1: number, indexP2: number};
+export type Index2d = {i: number, j: number};
+export type TriangleIndicies = {p0: Index2d, p1: Index2d, p2: Index2d};
+export type PointZIndexed = {index: Index2d, z: number};
+export type TriangleSet = {
+    pts: ZPoints[], 
+    anchor: Vector2d, 
+    rotation: number, 
+    resolution: number,
+    maxI: number,
+    maxJ: number,
+}

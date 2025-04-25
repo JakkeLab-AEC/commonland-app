@@ -21,17 +21,14 @@ def calculate_topo_from_points(obb, input_pts, resolution):
         enable_plotting=False,
     )
 
-    points = obb['pts']
-    
-    # Axis points
-    p0 = points['p0']
-    p1 = points['p1']
-    p3 = points['p3']
-
     # Set axis
-    vec_p0 = (p0['x'], p0['y'])
-    vec_p1 = (p1['x'], p1['y'])
-    vec_p3 = (p3['x'], p3['y'])
+    
+    x_domain = obb['domainX']
+    y_domain = obb['domainY']
+    
+    vec_p0 = (0, 0)
+    vec_p1 = (x_domain, 0)
+    vec_p3 = (0, y_domain)
 
     # Set axis vector
     v1 = np.array(vec_p1) - np.array(vec_p0)
@@ -62,14 +59,24 @@ def calculate_topo_from_points(obb, input_pts, resolution):
     z_pred, _ = OK.execute(style="points", xpoints=grid_x, ypoints=grid_y)
 
     points_pred = []
+    max_i = -1
+    max_j = -1
+    
     for idx, (i, j) in enumerate(grid_ij):
         pt = {
-            "x": float(grid_xy[idx][0]),
-            "y": float(grid_xy[idx][1]),
-            "z": float(z_pred[idx]),
+            "z": round(float(z_pred[idx]), 3),
             "i": i,
             "j": j
         }
         points_pred.append(pt)
+        if i > max_i:
+            max_i = i
+        if j > max_j:
+            max_j = j
 
-    return points_pred
+    return {
+        "points": points_pred,
+        "max_i": max_i,
+        "max_j": max_j,
+        "resolution": resolution
+    }

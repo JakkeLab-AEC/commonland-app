@@ -144,6 +144,7 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
                 isBatched: option.isBatched,
                 name: option.name,
                 topoType: option.topoType,
+                resolution: option.resolution,
             });
 
             option.basePoints.forEach(p => topo.registerPoint(p));

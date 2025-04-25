@@ -5,6 +5,7 @@ import path from "path";
 import fs from 'fs';
 import WS from 'ws';
 import { getOBB } from "../mainArea/utils/geometrics/obbUtils";
+import { VectorUtils } from "jakke-graphics-ts";
 
 const TESTER_PORT = 3355;
 const TESTER_ADDRESS = 'ws://localhost';
@@ -35,8 +36,8 @@ function generateRandomPoints(length: number, digits: number):Vector3d[] {
     const pts:Vector3d[] = [];
 
     for(let i = 0; i < length; i++) {
-        const x = (Math.random() * 2 - 1) * Math.pow(10, digits);
-        const y = (Math.random() * 4 - 1) * Math.pow(20, digits);
+        const x = (Math.random() * 2 - 1) * Math.pow(20, digits);
+        const y = (Math.random() * 2 - 1) * Math.pow(20, digits);
         const z = (Math.random() * 2 - 1) * Math.pow(10, digits);
 
         pts.push({x, y, z});
@@ -90,32 +91,63 @@ describe('Get OBB Test', () => {
         }
         
         const obb = getOBB(hullPts);
-        const obbPts = [
-            {x: obb.p0.x ,y: obb.p0.y, z: 0},
-            {x: obb.p1.x ,y: obb.p1.y, z: 0},
-            {x: obb.p2.x ,y: obb.p2.y, z: 0},
-            {x: obb.p3.x ,y: obb.p3.y, z: 0},
-        ]
+        const p0Translated = VectorUtils.subtract({...obb.p0, z: 0}, {...obb.p0, z: 0});
+        const p1Translated = VectorUtils.subtract({...obb.p1, z: 0}, {...obb.p0, z: 0});
+        const p2Translated = VectorUtils.subtract({...obb.p2, z: 0}, {...obb.p0, z: 0});
+        const p3Translated = VectorUtils.subtract({...obb.p3, z: 0}, {...obb.p0, z: 0});
+        
+        // console.log(p0Translated);
+        // console.log(p1Translated);
+        // console.log(p2Translated);
+        // console.log(p3Translated);
+        const rad = Math.atan2(p1Translated.y, p1Translated.x);
 
-        const obbLines:Line[] = [
-            {p1: {x: obb.p0.x ,y: obb.p0.y, z: 0}, p2: {x: obb.p1.x ,y: obb.p1.y, z: 0}},
-            {p1: {x: obb.p1.x ,y: obb.p1.y, z: 0}, p2: {x: obb.p2.x ,y: obb.p2.y, z: 0}},
-            {p1: {x: obb.p2.x ,y: obb.p2.y, z: 0}, p2: {x: obb.p3.x ,y: obb.p3.y, z: 0}},
-            {p1: {x: obb.p3.x ,y: obb.p3.y, z: 0}, p2: {x: obb.p0.x ,y: obb.p0.y, z: 0}},
-        ]
+        const p0T = VectorUtils.rotateOnXY(p0Translated, -rad);
+        const p1T = VectorUtils.rotateOnXY(p1Translated, -rad);
+        const p2T = VectorUtils.rotateOnXY(p2Translated, -rad);
+        const p3T = VectorUtils.rotateOnXY(p3Translated, -rad);
 
-        const ptMessage = convertPointData(pt3d);
-        const liMessage = convertLineData(hullLines);
-        const obbPtMessage = convertPointData(obbPts, 0x00ff44)
-        const obbLiMessage = convertLineData(obbLines, 0xff0000)
+        console.log(p0T);
+        console.log(p1T);
+        console.log(p2T);
+        console.log(p3T);
 
-        const client = connectToTester(TESTER_PORT);
-        client.on("open", () => {
-            client.send(JSON.stringify(ptMessage));
-            client.send(JSON.stringify(liMessage));
-            client.send(JSON.stringify(obbPtMessage));
-            client.send(JSON.stringify(obbLiMessage));
+        // console.log(obb.p0);
+        // console.log(obb.p1);
+        // console.log(obb.p2);
+        // console.log(obb.p3);
+
+        const movedPts = points.map(p => {
+            const translated = VectorUtils.subtract(p, {...obb.p0, z: 0});
+            const rotated = VectorUtils.rotateOnXY(translated, -rad);
+            return rotated;
         });
+
+        console.log(movedPts);
+        // const obbPts = [
+        //     {x: obb.p0.x ,y: obb.p0.y, z: 0},
+        //     {x: obb.p1.x ,y: obb.p1.y, z: 0},
+        //     {x: obb.p2.x ,y: obb.p2.y, z: 0},
+        //     {x: obb.p3.x ,y: obb.p3.y, z: 0},
+        // ]
+
+        // const obbLines:Line[] = [
+        //     {p1: {...obb.p0, z: 0}, p2: {...obb.p1, z: 0}},
+        //     {p1: {...obb.p0, z: 0}, p2: {...obb.p3, z: 0}},
+        // ];
+
+        // const ptMessage = convertPointData(pt3d);
+        // const liMessage = convertLineData(hullLines);
+        // const obbPtMessage = convertPointData(obbPts, 0x00ff44)
+        // const obbLiMessage = convertLineData(obbLines, 0xff0000)
+
+        // const client = connectToTester(TESTER_PORT);
+        // client.on("open", () => {
+        //     client.send(JSON.stringify(ptMessage));
+        //     client.send(JSON.stringify(liMessage));
+        //     client.send(JSON.stringify(obbPtMessage));
+        //     client.send(JSON.stringify(obbLiMessage));
+        // });
 
     });
 });

@@ -2,6 +2,11 @@ import { Matrix } from "ml-matrix";
 import { Vector2d } from "../../types/vector";
 import { getConvexHull } from "./convexHullUtils";
 
+/**
+ * Get OBB (Oriented Bounding Box) fo given points.
+ * @param points Points to get OBB.
+ * @returns 4 Points of OBB. p0 is minX, minY. p1 is maxX, minY, p2 is maxX, maxY. p3 is minX, maxY.
+ */
 export function getOBB(points: Vector2d[]): { p0: Vector2d, p1: Vector2d, p2: Vector2d, p3: Vector2d } | null {
     const hull = getConvexHull(points);
     const comparables: {area: number, p0: Vector2d, p1: Vector2d, rotation: number, pts: Vector2d[]}[] = [];
@@ -16,12 +21,10 @@ export function getOBB(points: Vector2d[]): { p0: Vector2d, p1: Vector2d, p2: Ve
             p1 = hull[i+1];
         }
 
-        const matrixP0 = getPointMatrix(p0.x, p0.y, 0);
         const matrixP1 = getPointMatrix(p1.x, p1.y, 0);
 
         const moveMatrix = getMatrixTranslate(-p0.x, -p0.y, 0);
 
-        const origin = moveMatrix.mmul(matrixP0);
         const p1Moved = moveMatrix.mmul(matrixP1);
         
         const p1Direction = Math.atan2(p1Moved.get(1, 0), p1Moved.get(0, 0));
@@ -53,11 +56,16 @@ export function getOBB(points: Vector2d[]): { p0: Vector2d, p1: Vector2d, p2: Ve
         return {x: restoredPt.get(0, 0), y: restoredPt.get(1, 0)}
     });
 
+    const restoredP0: Vector2d = restoredPts.sort((a, b) => a.y - b.y || a.x - b.x)[0];
+    const restoredP1: Vector2d = restoredPts.sort((a, b) => b.x - a.x || a.y - b.y)[0];
+    const restoredP2: Vector2d = restoredPts.sort((a, b) => b.y - a.y || b.x - a.x)[0];
+    const restoredP3: Vector2d = restoredPts.sort((a, b) => a.x - b.x || b.y - a.y)[0];
+
     return {
-        p0: restoredPts[0],
-        p1: restoredPts[1],
-        p2: restoredPts[2],
-        p3: restoredPts[3],
+        p0: restoredP0,
+        p1: restoredP1,
+        p2: restoredP2,
+        p3: restoredP3,
     }
 }
 

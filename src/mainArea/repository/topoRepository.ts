@@ -4,7 +4,7 @@ import { RepositryQueryBuilder } from "./utils/queryBuilder";
 import { DB_TABLENAMES } from "../../public/databaseProps";
 import { ModelType } from "../models/modelType";
 import { TopoType } from "../models/topoType";
-import { TriangleIndexSet, TriangleSet } from "../types/triangleDataSet";
+import { TriangleSet } from "../types/triangleDataSet";
 import { Vector3d } from "../types/vector";
 
 interface TopoCRUDMethods {
@@ -21,6 +21,10 @@ interface TopoProp {
     color_index: number,
     is_batched: 0 | 1,
     three_id: string,
+    topo_anchor_x?: number,
+    topo_anchor_y?: number,
+    topo_rotation?: number,
+    topo_resolution?: number
 }
 
 interface TopoPoint {
@@ -31,11 +35,11 @@ interface TopoPoint {
     coord_z: number
 }
 
-interface TriangleResult {
+interface ZCoord {
     topo_id: string,
-    index_n: number,
     index_i: number,
-    index_j: number
+    index_j: number,
+    coord_z: number
 }
 
 const topoSelectQuery = `
@@ -59,12 +63,6 @@ const pointQuery = `
         topo_id, point_index, coord_x, coord_y, coord_z
     FROM
         ${DB_TABLENAMES.TOPO_POINTS} tp
-`;
-
-const triangleQuery = `
-    SELECT *
-    FROM
-        ${DB_TABLENAMES.TOPO_TRIANGLES}
 `;
 
 export class TopoRepository implements TopoCRUDMethods {
@@ -99,40 +97,52 @@ export class TopoRepository implements TopoCRUDMethods {
     }
 
     async insertTopoKrigged(topoDto: TopoDTO, triangleSet: TriangleSet): Promise<{ result: boolean; message?: string; topoDataSet?: TriangleSet}> {
-        const headerQuery = RepositryQueryBuilder.buildInsertQuery(DB_TABLENAMES.TOPOS, ['topo_id', 'topo_name', 'topo_type', 'color_index', 'is_batched', 'three_id']);
+        const headerQuery = RepositryQueryBuilder.buildInsertQuery(DB_TABLENAMES.TOPOS, [
+            'topo_id', 
+            'topo_name', 
+            'topo_type', 
+            'color_index', 
+            'is_batched', 
+            'three_id',
+            'topo_anchor_x',
+            'topo_anchor_y',
+            'topo_rotation',
+            'topo_resolution'
+        ]);
+
         try {
+            const start = performance.now();
             await this.db.exec('BEGIN TRANSACTION');
             
             // Insert topo header
-            await this.db.all(headerQuery, [topoDto.id, topoDto.name, topoDto.topoType, topoDto.colorIndex, topoDto.isBatched, topoDto.threeObjId]);
+            await this.db.all(headerQuery, [
+                topoDto.id, 
+                topoDto.name, 
+                topoDto.topoType, 
+                topoDto.colorIndex, 
+                topoDto.isBatched, 
+                topoDto.threeObjId,
+                triangleSet.anchor.x,
+                triangleSet.anchor.y,
+                triangleSet.rotation,
+                triangleSet.resolution
+            ]);
             
             // Insert topo points
-            const ptQuery = RepositryQueryBuilder.buildInsertQuery(DB_TABLENAMES.TOPO_POINTS, ['topo_id', 'point_index', 'coord_x', 'coord_y', 'coord_z']);
-            const ptIndexHash: Map<string, number> = new Map();
-            for(let i = 0; i < triangleSet.pts.length; i++) {
-                const ptIndex = i;
-                const pt = triangleSet.pts[i].pt;
-                await this.db.run(ptQuery, [topoDto.id, ptIndex, pt.x, pt.y, pt.z]);
-
-                ptIndexHash.set(triangleSet.pts[i].hash, i);
-            }
-
-            // Insert topo triangles
-            const triangleQuery = RepositryQueryBuilder.buildInsertQuery(DB_TABLENAMES.TOPO_TRIANGLES, [
-                'topo_id',
-                'index_n',
-                'index_i',
-                'index_j'
+            const ptQuery = RepositryQueryBuilder.buildInsertQuery(DB_TABLENAMES.TOPO_POINTS_EXPLODED, [
+                'topo_id', 
+                'index_i', 
+                'index_j', 
+                'coord_z'
             ]);
 
-            for(const triangle of triangleSet.triangles) {
-                const p0Index = ptIndexHash.get(triangle.hashPt0);
-                const p1Index = ptIndexHash.get(triangle.hashPt1);
-                const p2Index = ptIndexHash.get(triangle.hashPt2);
-
-                await this.db.run(triangleQuery, [topoDto.id, p0Index, p1Index, p2Index]);
+            for(let i = 0; i < triangleSet.pts.length; i++) {
+                const pt = triangleSet.pts[i]
+                await this.db.run(ptQuery, [topoDto.id, pt.i, pt.j, pt.z]);
             }
 
+            const end = performance.now();
+            console.log(`Elapsed Time: ${end - start}`);
             await this.db.exec('COMMIT');
             return {result: true, topoDataSet: triangleSet}
         } catch (error) {
@@ -245,7 +255,15 @@ export class TopoRepository implements TopoCRUDMethods {
                 threeObjId: topo.three_id,
                 points: [],
                 topoType: TopoType.DelaunayMesh,
-                resolution: 1,
+                resolution: topo.topo_resolution,
+                triangles: {
+                    pts: [],
+                    anchor: { x: 0, y: 0 },
+                    rotation: 0,
+                    resolution: 0,
+                    maxI: 0,
+                    maxJ: 0
+                }
             }
             topoMap.set(topo.topo_id, dto);
     
@@ -260,30 +278,29 @@ export class TopoRepository implements TopoCRUDMethods {
                     });
                 });
             } else if (topo.topo_type === TopoType.OrdinaryKriging) {
-                const points: TopoPoint[] = await this.db.all(pointQuery);
-                const indexedPts: Map<string, Vector3d> = new Map();
-                points.sort((a, b) => a.point_index - b.point_index).forEach(pt => {
-                    indexedPts.set(`${pt.topo_id}_${pt.point_index}`, {
-                        x: pt.coord_x, 
-                        y: pt.coord_y,
-                        z: pt.coord_z
+                // Set other props
+                const targetTopo = topoMap.get(topo.topo_id);
+                targetTopo.triangles.anchor.x = topo.topo_anchor_x;
+                targetTopo.triangles.anchor.y = topo.topo_anchor_y;
+                targetTopo.triangles.rotation = topo.topo_rotation;
+                targetTopo.triangles.resolution = topo.topo_resolution;
+                
+                // Insert pts
+                const zCoordQuery = `
+                    SELECT *
+                    FROM ${DB_TABLENAMES.TOPO_POINTS_EXPLODED}
+                `;
+                
+                const zCoords: ZCoord[] = await this.db.all(zCoordQuery, [topo.topo_id]);
+                zCoords.forEach(coord => {
+                    const topoDto = topoMap.get(coord.topo_id);
+                    topoDto.triangles.pts.push({
+                        z: coord.coord_z,
+                        i: coord.index_i,
+                        j: coord.index_j
                     });
-    
-                    topoMap.get(pt.topo_id).points.push({
-                        index: pt.point_index,
-                        x: pt.coord_x,
-                        y: pt.coord_y,
-                        z: pt.coord_z
-                    });
-                });
-    
-                const triangles: TriangleResult[] = await this.db.all(triangleQuery);
-                triangles.forEach(t => {
-                    topoMap.get(t.topo_id).triangles.push({
-                        indexP0: t.index_n,
-                        indexP1: t.index_i,
-                        indexP2: t.index_j
-                    });
+                    topoDto.triangles.maxI = Math.max(coord.index_i, topoDto.triangles.maxI);
+                    topoDto.triangles.maxJ = Math.max(coord.index_i, topoDto.triangles.maxJ);
                 });
             }
         }

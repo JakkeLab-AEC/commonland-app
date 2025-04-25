@@ -3,7 +3,8 @@ import { ElementId } from "../../id";
 import { ServiceModel } from "../servicemodel";
 import { ModelType } from "../../modelType";
 import { TopoType } from "../../topoType";
-import { TriangleIndexSet } from "@/mainArea/types/triangleDataSet";
+import { TriangleSet } from "@/mainArea/types/triangleDataSet";
+
 
 export class Topo extends ServiceModel {
     readonly elementId: ElementId;
@@ -15,7 +16,7 @@ export class Topo extends ServiceModel {
         y: number,
         z: number,
     }>;
-    private triangles: TriangleIndexSet[];
+    private triangleSet: TriangleSet;
     private colorIndex: number;
     private isBatched: boolean;
     private resolution: number;
@@ -27,8 +28,7 @@ export class Topo extends ServiceModel {
         this.isBatched = isBatched;
         this.colorIndex = 1;
         this.topoType = topoType;
-        this.resolution = resolution
-        this.triangles = [];
+        this.resolution = resolution;
     }
 
     getColorIndex() {
@@ -94,7 +94,7 @@ export class Topo extends ServiceModel {
                 topo.registerPoint({x: pt.x, y: pt.y, z: pt.z});
             });
 
-            topo.triangles.push(...data.triangles);
+            topo.triangleSet = data.triangles;
         }
 
         return topo;

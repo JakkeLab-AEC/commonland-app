@@ -1,15 +1,22 @@
 import { Vector2d } from "@/mainArea/types/vector";
 import { getConvexHull } from "@/mainArea/utils/geometrics/convexHullUtils";
 import { getOBB } from "@/mainArea/utils/geometrics/obbUtils";
+import * as JG from "jakke-graphics-ts";
 
 export interface OBBDto {
-    pts: {p0: Vector2d, p1: Vector2d, p2: Vector2d, p3: Vector2d};
+    rotationX: number, 
+    domainX: number,
+    domainY: number,
+    anchor: Vector2d,
+    pts: Vector2d[],
 }
-
 
 export class OBB {
     private points: Vector2d[];
-    private obbPts: {p0: Vector2d, p1: Vector2d, p2: Vector2d, p3: Vector2d};
+    private rotationX: number;
+    private domainX: number;
+    private domainY: number;
+    private anchor: Vector2d;
 
     constructor(points: Vector2d[] = []) {
         this.points = points;
@@ -18,7 +25,15 @@ export class OBB {
 
     private refresh() {
         const hull = getConvexHull(this.points);
-        this.obbPts = getOBB(hull);
+        const {p0, p1, p2, p3} = getOBB(hull);
+        const xAxis: Vector2d = {x: p1.x - p0.x, y: p1.y - p0.y};
+        const rotationX = Math.atan2(xAxis.y, xAxis.x);
+        
+        this.rotationX = rotationX;
+        this.anchor = p0;
+        this.domainX = JG.VectorUtils.getDist({...p0, z: 0}, {...p1, z: 0});
+        this.domainY = JG.VectorUtils.getDist({...p0, z: 0}, {...p3, z: 0});
+        this.points = [p0, p1, p2, p3];
     }
 
     addPoints(points: Vector2d[]) {
@@ -48,7 +63,11 @@ export class OBB {
 
     serialize():OBBDto {
         return {
-            pts: this.obbPts
+            rotationX: this.rotationX,
+            domainX: this.domainX,
+            domainY: this.domainY,
+            anchor: this.anchor,
+            pts: this.points,
         }
     }
 }

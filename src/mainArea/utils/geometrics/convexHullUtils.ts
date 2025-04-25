@@ -5,7 +5,6 @@ export function getConvexHull(points: Vector2d[]): Vector2d[] {
         throw new Error("Convex Hull requires at least 3 points.");
     }
 
-    // 가장 왼쪽 아래 점 찾기 (시작점)
     const start = points.reduce((min, p) => (p.x < min.x || (p.x === min.x && p.y < min.y)) ? p : min, points[0]);
 
     return computeConvexHull(points, start, start);

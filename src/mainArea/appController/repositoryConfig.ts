@@ -150,12 +150,15 @@ async function initializeDB(db: Database) {
             topo_type TEXT NOT NULL,
             color_index NUMERIC NOT NULL,
             three_id TEXT,
-            is_batched INTEGER NOT NULL CHECK (is_batched IN (0, 1))
+            is_batched INTEGER NOT NULL CHECK (is_batched IN (0, 1)),
+            topo_anchor_x REAL,
+            topo_anchor_y REAL,
+            topo_rotation REAL,
+            topo_resolution REAL
         );
 
         CREATE TABLE ${DB_TABLENAMES.TOPO_POINTS} (
             topo_id TEXT NOT NULL,
-            point_index INTEGER,
             coord_x REAL NOT NULL,
             coord_y REAL NOT NULL,
             coord_z REAL NOT NULL,
@@ -163,13 +166,13 @@ async function initializeDB(db: Database) {
             UNIQUE (topo_id, coord_x, coord_y, coord_z)
         );
 
-        CREATE TABLE ${DB_TABLENAMES.TOPO_TRIANGLES} (
+        CREATE TABLE ${DB_TABLENAMES.TOPO_POINTS_EXPLODED} (
             topo_id TEXT NOT NULL,
-            index_n INTEGER NOT NULL,
             index_i INTEGER NOT NULL,
             index_j INTEGER NOT NULL,
+            coord_z REAL NOT NULL,
             FOREIGN KEY (topo_id) REFERENCES ${DB_TABLENAMES.TOPOS} ON DELETE CASCADE,
-            UNIQUE (index_n, index_i, index_j)
+            UNIQUE (topo_id, index_i, index_j)
         );
 
         CREATE TABLE ${DB_TABLENAMES.BOUNDARIES} (

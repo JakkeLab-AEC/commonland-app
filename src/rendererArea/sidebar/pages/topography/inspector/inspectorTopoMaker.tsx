@@ -62,7 +62,8 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                 topoType: topoCreationMode,
                 colorIndex: topoColorIndex,
                 basePoints: pts,
-                boundary: selectedBoundaryId === "none" ? undefined : fetchedBoundaries.get(selectedBoundaryId)
+                boundary: selectedBoundaryId === "none" ? undefined : fetchedBoundaries.get(selectedBoundaryId),
+                resolution: parseFloat(resolutionRef.current.value),
             }
 
             if(onSubmitTopo) {

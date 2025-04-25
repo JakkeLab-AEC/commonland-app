@@ -7,6 +7,7 @@ export const DB_TABLENAMES = {
     TOPOS: 'topos',
     TOPO_POINTS: 'topo_points',
     TOPO_TRIANGLES: 'topo_triangles',
+    TOPO_POINTS_EXPLODED: 'topo_points_exploded',
     BOUNDARIES: 'boundaries',
     BOUNDARY_POINTS: 'boundary_points'
 } as const;
