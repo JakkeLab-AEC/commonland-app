@@ -13,34 +13,34 @@ export const setIpcTopoRepository = (ipcMain: IpcMain) => {
         };
 
         if(topoDto.topoType === TopoType.DelaunayMesh) {
-            insertJob = await AppController.getInstance().getTopoRepository().insertTopo(topoDto);
+            insertJob = await AppController.getInstance().repositories.topo.insertTopo(topoDto);
         } else {
             const krigingResult = await TopoUtils.createTopoDataSet.runPykrige(obb, topoDto.resolution, topoDto.points);
             if(!krigingResult.result) return {result: false, message: krigingResult.message};
 
-            insertJob = await AppController.getInstance().getTopoRepository().insertTopoKrigged(topoDto, krigingResult.topoDataSet);
+            insertJob = await AppController.getInstance().repositories.topo.insertTopoKrigged(topoDto, krigingResult.topoDataSet);
         }
         
         return insertJob;
     });
 
     ipcMain.handle('topolayer-fetch-all', async (_) => {
-        const fetchJob = await AppController.getInstance().getTopoRepository().fetchAllTopos();
+        const fetchJob = await AppController.getInstance().repositories.topo.fetchAllTopos();
         return fetchJob;
     });
 
     ipcMain.handle('topolayer-update-color', async (_, id:string, index: number) => {
-        const updateJob = await AppController.getInstance().getTopoRepository().updateTopoColor(id, index);
+        const updateJob = await AppController.getInstance().repositories.topo.updateTopoColor(id, index);
         return updateJob;
     });
 
     ipcMain.handle('topolayer-remove', async (_, ids: string[]) => {
-        const insertJob = await AppController.getInstance().getTopoRepository().removeTopos(ids);
+        const insertJob = await AppController.getInstance().repositories.topo.removeTopos(ids);
         return insertJob;
     });
 
     ipcMain.handle('topolayer-update-threeobjid', async (_, ids: {id: string, threeObjId: string}[]) => {
-        const updateJob = await AppController.getInstance().getTopoRepository().updateThreeObjId(ids);
+        const updateJob = await AppController.getInstance().repositories.topo.updateThreeObjId(ids);
         return updateJob;
     });
 }

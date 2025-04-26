@@ -29,26 +29,26 @@ export const setIpcSiteBoundary = (ipcMain: IpcMain) => {
             modelType: ModelType.Boundary
         }
 
-        return await AppController.getInstance().getBoundaryRepository().insertBoundaries(data);
+        return await AppController.getInstance().repositories.boundary.insertBoundaries(data);
     });
 
     ipcMain.handle('boundary-remove', async (_, ids: string[]) => {
-        return await AppController.getInstance().getBoundaryRepository().deleteBoundaries(ids);
+        return await AppController.getInstance().repositories.boundary.deleteBoundaries(ids);
     });
 
     ipcMain.handle('boundary-fetch-all', async(_) => {
-        return await AppController.getInstance().getBoundaryRepository().selectAllBoundaries();
+        return await AppController.getInstance().repositories.boundary.selectAllBoundaries();
     });
 
     ipcMain.handle('boundary-fetch-by-id', async(_, id: string) => {
-        return await AppController.getInstance().getBoundaryRepository().selectBoundary(id);
+        return await AppController.getInstance().repositories.boundary.selectBoundary(id);
     });
 
     ipcMain.handle('boundary-fetch-metadata-by-id', async(_, id: string) => {
-        return await AppController.getInstance().getBoundaryRepository().selectBoundaryMetadata(id);
+        return await AppController.getInstance().repositories.boundary.selectBoundaryMetadata(id);
     });
 
     ipcMain.handle('boundary-fetch-metadata-all', async(_, id: string) => {
-        return await AppController.getInstance().getBoundaryRepository().selectAllBoundaryMetadata();
+        return await AppController.getInstance().repositories.boundary.selectAllBoundaryMetadata();
     });
 }

@@ -5,8 +5,16 @@ import { TopoRepository } from "../repository/topoRepository";
 import { PythonBridge } from "./bridge/pythonBridge";
 import { app } from "electron";
 import { BoundaryRepository } from "../repository/boundaryRepository";
+import { LandInfoRepository } from "../repository/landInfoRepository";
+import { DEFAULT_VALUES } from "@/public/defaultValues";
+import { ElementId } from "../models/id";
 
-type RepositoryTypes = 'Boring'|'LandInfo'|'Topo'
+interface Repositories {
+    boundary: BoundaryRepository;
+    landInfo: LandInfoRepository;
+    topo: TopoRepository;
+    boring: BoringRepository;
+}
 
 export class AppController {
     private static Instance: AppController;
@@ -15,16 +23,21 @@ export class AppController {
     private boringRepository?: BoringRepository;
     private topoRepotisotry?: TopoRepository;
     private boundaryRepository?: BoundaryRepository;
+    private landInfoRepository?: LandInfoRepository;
+
     readonly pythonBridge: PythonBridge;
     readonly osInfo: 'win'|'mac';
     readonly appRootPath: string;
 
     private constructor(osInfo: "win"|"mac" = "win", pythonPath: string, appRootPath: string) {
-        openDB().then((res) => {
+        openDB().then(async (res) => {
             this.db = res;
             this.boringRepository = new BoringRepository(this.db);
             this.topoRepotisotry = new TopoRepository(this.db);
             this.boundaryRepository = new BoundaryRepository(this.db);
+            this.landInfoRepository = new LandInfoRepository(this.db);
+
+            await this.landInfoRepository.registerInfo(DEFAULT_VALUES.DEFAULT_LANDINFO, new ElementId().getValue());
         });
         this.osInfo = osInfo;
 
@@ -47,16 +60,13 @@ export class AppController {
         return AppController.Instance;
     }
 
-    getBoringRepository() {
-        return this.boringRepository;
-    }
-
-    getTopoRepository() {
-        return this.topoRepotisotry;
-    }
-
-    getBoundaryRepository() {
-        return this.boundaryRepository;
+    get repositories():Repositories {
+        return {
+            boundary: this.boundaryRepository,
+            landInfo: this.landInfoRepository,
+            topo: this.topoRepotisotry,
+            boring: this.boringRepository
+        }
     }
 
     async truncateDBSoft() {

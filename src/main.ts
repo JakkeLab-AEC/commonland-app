@@ -11,6 +11,7 @@ import { setIpcModalControl } from './mainArea/ipcHandlers/ipcModalHandlers';
 import { setIPCPythonPipe } from './mainArea/ipcHandlers/ipcPythonPipe';
 import fs from 'fs';
 import { setIpcSiteBoundary } from './mainArea/ipcHandlers/ipcBoundary';
+import { setIpcLandInfo } from './mainArea/ipcHandlers/ipcLandInfo';
 
 if (require('electron-squirrel-startup')) app.quit();
 
@@ -113,7 +114,8 @@ app.on('ready', () => {
     setIPCPythonPipe(ipcMain);
 
     setIpcSiteBoundary(ipcMain);
-    
+
+    setIpcLandInfo(ipcMain); 
   } else {
     
   }

@@ -1,6 +1,8 @@
 import { app, dialog, FileFilter, IpcMain } from "electron"
 import { ProjectRead, ProjectWrite } from "../appController/projectIO";
 import { AppController } from "../appController/appController";
+import { DEFAULT_VALUES } from "@/public/defaultValues";
+import { ElementId } from "../models/id";
 
 export const setIpcProjectIOHandler = (ipcMain: IpcMain) => {
     ipcMain.handle('project-file-save', async (_) => {
@@ -73,6 +75,10 @@ export const setIpcProjectIOHandler = (ipcMain: IpcMain) => {
         try {
             await AppController.getInstance().truncateDatas();
 
+            await AppController.getInstance()
+                .repositories.landInfo
+                .registerInfo(DEFAULT_VALUES.DEFAULT_LANDINFO, new ElementId().getValue());
+                
             return {result: true}
         } catch (error) {
             return {result: false, message: error}

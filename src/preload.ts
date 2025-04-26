@@ -3,6 +3,8 @@ import { BoringDTO } from "./dto/serviceModel/BoringDTO";
 import { TopoDTO } from "./dto/serviceModel/topoDto";
 import { PipeMessageSendRenderer } from "./dto/pipeMessage";
 import { OBBDto } from "./mainArea/models/graphics/obb";
+import { LandInfoModifyOption } from "./mainArea/repository/landInfoRepository";
+import { LandInfoDto } from "./dto/serviceModel/landInfo";
 
 contextBridge.exposeInMainWorld('electronWindowControlAPI', {
     minimize: () => ipcRenderer.invoke('window-control-minimize'),
@@ -53,4 +55,10 @@ contextBridge.exposeInMainWorld('electronIPCPythonBridge', {
     start:() => ipcRenderer.invoke('start-python-loop'),
     stop:() => ipcRenderer.invoke('stop-python-loop'),
     send:(message: PipeMessageSendRenderer) => ipcRenderer.invoke('send-message', message),
+});
+
+contextBridge.exposeInMainWorld('electronLandInfoAPI', {
+    fetchLandInfo: () => ipcRenderer.invoke('landinfo-fetch'),
+    updateLandInfo: (option: LandInfoModifyOption) => ipcRenderer.invoke('landinfo-update', option),
+    registerLandInfo: (info: LandInfoDto) => ipcRenderer.invoke('landinfo-register', info),
 });

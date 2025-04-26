@@ -4,6 +4,9 @@ import sqlite3 from 'sqlite3';
 import path from "path";
 import fs from 'fs';
 import { DB_TABLENAMES } from "../../public/databaseProps";
+import { RepositryQueryBuilder } from "../repository/utils/queryBuilder";
+import { ElementId } from "../models/id";
+import { EPSGCodes } from "@/public/epsgCodes";
 
 export async function openDB() {
     const userDataPath = app.getPath('userData');
@@ -105,7 +108,8 @@ async function initializeDB(db: Database) {
     await db.exec(`
         CREATE TABLE ${DB_TABLENAMES.LAND_INFO} (
             land_id TEXT PRIMARY KEY,
-            name TEXT
+            epsg_code INTEGER NOT NULL DEFAULT 4326,
+            name TEXT NOT NULL DEFAULT 'New Land 1'
         );
 
         CREATE TABLE ${DB_TABLENAMES.BORINGS} (
