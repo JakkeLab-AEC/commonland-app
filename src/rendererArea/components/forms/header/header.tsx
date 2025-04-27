@@ -11,6 +11,8 @@ import { useModalOveralyUtils } from "@/rendererArea/homescreenitems/modalOverla
 import { useHomeStore } from "@/rendererArea/commonStatus/homeStatusModel";
 import { useSidebarStore } from "@/rendererArea/sidebar/sidebarStore";
 import { ProgressBar } from "../progressbar/progressbar";
+import { useProjectContext } from "../../contexts/projectContext";
+import { useProjectPageStore } from "@/rendererArea/sidebar/pages/project/projectPageStore";
 
 
 export const ModalLoadingProject:React.FC = () => {
@@ -38,6 +40,10 @@ export default function Header({appName}:{appName: string}) {
     } = useHomeStore();
 
     const {
+        fetchLandInfo
+    } = useProjectPageStore();
+
+    const {
         toggleMode,
         updateModalContent,
         updateProgress,
@@ -58,6 +64,9 @@ export default function Header({appName}:{appName: string}) {
             isActionIdBased: false,
             action: async () => {
                 const job = await window.electronProjectIOAPI.newProject();
+                if(job.result && job.landInfo) {
+                    await fetchLandInfo();
+                }
             },
             closeHandler: () => setMenuVisibility(false),
         }, {

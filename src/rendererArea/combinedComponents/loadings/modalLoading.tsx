@@ -1,4 +1,4 @@
-import { IconLoading } from '../../components/icons/loading';
+import { IconLoading } from '@/rendererArea/components/forms/icons/loading';
 import './modalLoadingStyle.css';
 import React from "react"
 

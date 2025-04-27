@@ -15,6 +15,6 @@
     "esModuleInterop": true,
     "strictNullChecks": false
   },
-  "include": ["src/**/*.ts", "src/main.ts", "src/renderer.ts", "src/rendererArea/components/status/statusLabel.tsx"],
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules"]
 }

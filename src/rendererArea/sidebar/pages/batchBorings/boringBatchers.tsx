@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react"
-import { ListBox } from "../../../../rendererArea/components/listbox/listBox"
 import { useBoringBatcherStore } from "./boringBatcherStore";
-import { ButtonPositive } from "../../../../rendererArea/components/buttons/buttonPositive";
-import { ButtonNegative } from "../../../../rendererArea/components/buttons/buttonNegative";
-import { FoldableControl } from "../../../../rendererArea/components/foldableControl/foldableControl";
-import { ListInputBox } from "../../../../rendererArea/components/listbox/listInputBox";
 import { useHomeStore } from "../../../commonStatus/homeStatusModel";
-import { ColorIndexPalette } from "../../../../rendererArea/components/palette/colorIndexPalette";
 import { ThreeBoringPost } from "../../../../rendererArea/api/three/predefinedCreations/boringPost";
 import { SceneController } from "../../../../rendererArea/api/three/SceneController";
 import * as THREE from 'three';
+import { ColorIndexPalette } from "@/rendererArea/components/forms/palette/colorIndexPalette";
+import { ButtonNegative } from "@/rendererArea/components/forms/buttons/buttonNegative";
+import { ButtonPositive } from "@/rendererArea/components/forms/buttons/buttonPositive";
+import { FoldableControl } from "@/rendererArea/components/forms/foldableControl/foldableControl";
+import { ListBox } from "@/rendererArea/components/forms/listbox/listBox";
+import { ListInputBox } from "@/rendererArea/components/forms/listbox/listInputBox";
 
 interface ColorPickerProps {
     targetId: string,

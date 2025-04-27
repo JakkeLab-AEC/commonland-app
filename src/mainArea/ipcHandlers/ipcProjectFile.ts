@@ -65,7 +65,15 @@ export const setIpcProjectIOHandler = (ipcMain: IpcMain) => {
                 throw new Error('Failed to load project file.');
             }
 
-            return {result: true}
+            const info = await AppController.getInstance()
+                .repositories.landInfo
+                .fetchInfo();
+
+            if(!info.landInfo) {
+                return {result: false, message: "Land info does not exist."};
+            }
+
+            return {result: true, landInfo: info.landInfo}
         } catch (error) {
             return {result: false, message: error}
         }
@@ -78,10 +86,18 @@ export const setIpcProjectIOHandler = (ipcMain: IpcMain) => {
             await AppController.getInstance()
                 .repositories.landInfo
                 .registerInfo(DEFAULT_VALUES.DEFAULT_LANDINFO, new ElementId().getValue());
-                
-            return {result: true}
+            
+            const info = await AppController.getInstance()
+                .repositories.landInfo
+                .fetchInfo();
+
+            if(!info.landInfo) {
+                return {result: false, message: "Land info does not exist."};
+            }
+            
+            return {result: true, landInfo: info.landInfo};
         } catch (error) {
-            return {result: false, message: error}
+            return {result: false, message: error};
         }
     });
 }

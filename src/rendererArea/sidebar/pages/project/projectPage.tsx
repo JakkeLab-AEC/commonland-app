@@ -1,17 +1,23 @@
-import React, { useEffect, useRef } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { ButtonPositive } from "@/rendererArea/components/forms/buttons/buttonPositive"
 import { ButtonNegative } from "@/rendererArea/components/forms/buttons/buttonNegative"
 import { useProjectPageStore } from "./projectPageStore";
 import { LandInfoModifyOption } from "@/mainArea/repository/landInfoRepository";
+import { LandInfoDTO } from "@/dto/serviceModel/landInfo";
 
 export const Project:React.FC = () => {
+    const {
+        updateLandinfo,
+        fetchLandInfo,
+        epsgCode,
+        projectName
+    } = useProjectPageStore();
+
     const projectNameRef = useRef<HTMLInputElement>();
     const epsgRef = useRef<HTMLInputElement>();
-    const {
-        projectName,
-        epsgCode,
-        updateLandinfo,
-    } = useProjectPageStore();
+
+    const [projectNameProp, setProjectNameProp] = useState<string>();
+    const [projectEPSGProp, setProjectEPSGProp] = useState<number>();
 
     const updateInfo = () => {
         const updatedProjectName = projectNameRef.current.value;
@@ -31,12 +37,10 @@ export const Project:React.FC = () => {
     }
 
     useEffect(() => {
-        if (projectNameRef.current) {
-            projectNameRef.current.value = projectName || '';
-        }
-        if (epsgRef.current) {
-            epsgRef.current.value = epsgCode?.toString() || '0';
-        }
+        fetchLandInfo((data: LandInfoDTO) => {
+            setProjectNameProp(data.name);
+            setProjectEPSGProp(data.epsg);
+        });
     }, [projectName, epsgCode]);
     
     return (
@@ -45,7 +49,8 @@ export const Project:React.FC = () => {
                 <span>프로젝트명</span>
                 <input 
                     className="border rounded-md flex flex-grow" 
-                    defaultValue={projectName}
+                    value={projectNameProp}
+                    onChange={(e) => setProjectNameProp(e.target.value)}
                     ref={projectNameRef}/>
             </div>
             <div className="flex flex-row w-full gap-2">
@@ -53,8 +58,9 @@ export const Project:React.FC = () => {
                 <input 
                     className="border rounded-md flex ml-auto w-[80px]" 
                     type="number" 
-                    defaultValue={epsgCode}
+                    value={projectEPSGProp}
                     step={1}
+                    onChange={(e) => setProjectEPSGProp(parseInt(e.target.value))}
                     ref={epsgRef}/>
             </div>
             <hr/>
