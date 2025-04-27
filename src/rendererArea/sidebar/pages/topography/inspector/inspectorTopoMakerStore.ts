@@ -3,8 +3,8 @@ import { Topo } from "@/mainArea/models/serviceModels/topo/Topo";
 import { TopoType } from "@/mainArea/models/topoType";
 import { TriangleSet } from "@/mainArea/types/triangleDataSet";
 import { Vector2d, Vector3d } from "@/mainArea/types/vector";
-import { createDelaunatedMesh } from "@/rendererArea/api/three/geometricUtils/delaunayUtils";
-import { createMeshFromTriangleSet } from "@/rendererArea/api/three/geometricUtils/triangleSetUtils";
+import { createDelaunatedMesh } from "@/rendererArea/api/three/predefinedCreations/delaunayUtils";
+import { createMeshFromTriangleSet } from "@/rendererArea/api/three/predefinedCreations/triangleSetUtils";
 import { SceneController } from "@/rendererArea/api/three/SceneController";
 import { generateUUID } from "three/src/math/MathUtils";
 import { create } from "zustand";
@@ -14,25 +14,27 @@ import { createBoundaryObject } from "@/rendererArea/api/three/predefinedCreatio
 import { BoundaryMetadata } from "@/dto/serviceModel/boundaryDto";
 import { TopoCreationOptions } from "../options";
 import { ElementId } from "@/mainArea/models/id";
+import { TopoMetadataDTO } from "@/dto/serviceModel/topoDto";
+import { ModelType } from "@/mainArea/models/modelType";
 
 type DisplayItemProps = {displayString: string, checked: boolean, colorIndex: number};
 
 interface TopoMakerProp {
     allDepths: {boringName: string, boringId: string, location: {x: number, y: number}, layers:{layerId: string, layerName: string, layerDepth: number}[]}[],
     allLayerNames: string[],
-    fetchedTopos: Map<string, Topo>,
+    fetchedTopos: Map<string, TopoMetadataDTO>,
     fetchedBoundaries: Map<string, BoundaryMetadata>,
     topoDisplayItems: Map<string, DisplayItemProps>,
     boundaryDisplayItems: Map<string, DisplayItemProps>,
     selectedValues: Map<string, string|null>,
     fetchAllDepths:() => void;
-    insertTopo: (options: TopoCreationOptions) => Promise<void>;
     fetchAllTopos: () => Promise<void>,
+    insertTopo: (options: TopoCreationOptions) => Promise<void>;
     selectValue: (boringId: string, layerId: string) => void,
     selectOnce: (layerName: string) => void,
     updateDisplayItemCheck: (id: string, checked: boolean) => void,
-    updateDisplayItemColor: (id: string, color: number) => Promise<{result: boolean, updatedTopo?: Topo}>,
-    removeTopos: (ids: string[]) => Promise<{result: boolean, deletedTopos?: Topo[]}>,
+    updateDisplayItemColor: (id: string, color: number) => Promise<{result: boolean, updatedTopo?: TopoMetadataDTO}>,
+    removeTopos: (ids: string[]) => Promise<{result: boolean, deletedTopos?: TopoMetadataDTO[]}>,
     insertBoundary: (name: string) => Promise<void>,
     fetchAllBoundaries: () => Promise<void>,
     reset: () => void,
@@ -98,7 +100,15 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
             const newDisplayItems = new Map(get().topoDisplayItems);
             fetchJob.topoDatas.forEach(topoData => {
                 const topo = Topo.deserialize(topoData);
-                topoMap.set(topo.elementId.getValue(), topo);
+                topoMap.set(topo.elementId.getValue(), {
+                    topoType: topo.topoType,
+                    name: topo.getName(),
+                    threeObjId: topo.getThreeObjId(),
+                    colorIndex: topo.getColorIndex(),
+                    isBatched: 0,
+                    id: topo.elementId.getValue(),
+                    modelType: topo.modelType
+                });
 
                 newDisplayItems.set(topo.elementId.getValue(), {
                     displayString: topo.getName(),
@@ -124,13 +134,15 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
                 name: option.name,
                 topoType: option.topoType,
             });
+            topo.setThreeObjId(new ElementId().getValue());
             
             option.basePoints.forEach(p => topo.registerPoint(p));            
-            mesh = createDelaunatedMesh(topo, new ElementId().getValue());
+            mesh = createDelaunatedMesh(topo, topo.getThreeObjId());
             
             topo.setThreeObjId(mesh.uuid);
             insertJob = await window.electronTopoLayerAPI.insertTopo(topo.serialize());
         } else {
+            console.log(option.topoType);
             const boundaryPts: Vector2d[] = [];
             if(option.boundary) {
                 const boundaryFetch = await window.electronTopoLayerAPI.selectBoundary(option.boundary.id);
@@ -146,6 +158,7 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
                 topoType: option.topoType,
                 resolution: option.resolution,
             });
+            topo.setThreeObjId(new ElementId().getValue());
 
             option.basePoints.forEach(p => topo.registerPoint(p));
             insertJob = await window.electronTopoLayerAPI.insertTopo(topo.serialize(), obb.serialize());
@@ -212,10 +225,10 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
                 colorIndex: color
             });
 
-            const fetchJob = await window.electronTopoLayerAPI.fetchAllTopos();
+            const fetchJob = await window.electronTopoLayerAPI.fetchAllTopoMetadatas();
             if(fetchJob.result) {
-                fetchJob.topoDatas.forEach(topo => {
-                    updatedTopos.set(topo.id, Topo.deserialize(topo));
+                fetchJob.metadatas.forEach(topo => {
+                    updatedTopos.set(topo.id, topo);
                 });
 
                 set(() => {return {
@@ -232,7 +245,7 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
         const removeJob = await window.electronTopoLayerAPI.removeTopos(ids);
         const oldTopos = get().fetchedTopos;
         const updatedTopos = new Map(oldTopos);
-        const deletedTargets: Map<string, Topo> = new Map();
+        const deletedTargets: Map<string, TopoMetadataDTO> = new Map();
         const newDisplayItems = new Map(get().topoDisplayItems);
         if(removeJob.result) {
             ids.forEach(id => {
@@ -286,21 +299,22 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
         
         // Insert job
         const insertJob = await window.electronTopoLayerAPI.insertBoundary(name);
-        console.log(insertJob);
         if(!insertJob || !insertJob.result) return;
         
         const updatedBoundaries = new Map(get().fetchedBoundaries);
         const updatedBoundaryDisplayItems = new Map(get().boundaryDisplayItems);
-        updatedBoundaries.set(insertJob.boundary.id, insertJob.boundary);
-        updatedBoundaryDisplayItems.set(insertJob.boundary.id, {
-            displayString: insertJob.boundary.name,
-            checked: false,
-            colorIndex: insertJob.boundary.colorIndex
-        })
+        insertJob.boundaries.forEach(boundary => {
+            updatedBoundaries.set(boundary.id, boundary);
+            updatedBoundaryDisplayItems.set(boundary.id, {
+                displayString: boundary.name,
+                checked: false,
+                colorIndex: boundary.colorIndex
+            });
 
-        const boundaryObject = createBoundaryObject(insertJob.boundary);
-        SceneController.getInstance().addObjects([boundaryObject]);
-
+            const boundaryObject = createBoundaryObject(boundary);
+            SceneController.getInstance().addObjects([boundaryObject]);
+        });
+        
         set(() => {
             return {
                 fetchedBoundaries: updatedBoundaries,

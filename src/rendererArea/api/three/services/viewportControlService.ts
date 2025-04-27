@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Topo } from "@/mainArea/models/serviceModels/topo/Topo";
 import { SceneController } from "../SceneController";
-import { createDelaunatedMesh } from '../geometricUtils/delaunayUtils';
+import { createDelaunatedMesh } from '../predefinedCreations/delaunayUtils';
 import { colorPaletteValues } from '@/public/colorPalette';
 import { ModelType } from '@/mainArea/models/modelType';
 import { useVisibilityOptionStore } from '@/rendererArea/homescreenitems/visibilityOptionsStore';
@@ -128,18 +128,17 @@ export class ViewportControlService {
         const max = boundingBox.max;
 
         // Calculate camera positions and lookAt direction
-        const directionMinToMax = max.clone().sub(min).normalize();
-        const cameraCenter = max.clone().add(directionMinToMax.clone().multiplyScalar(10));
+        const cameraCenter = max.clone();
         const cameraLookAt = min.clone();
-        const yAdd = max.y - min.y;
 
         // Set camera's position and look at the target
-        camera.position.set(cameraCenter.x, cameraCenter.y + yAdd, cameraCenter.z);
+        camera.position.set(cameraCenter.x, cameraCenter.y, cameraCenter.z);
         camera.lookAt(cameraLookAt);
 
         // Update camera's near and far planes
-        camera.near = 0.1;
-        camera.far = cameraCenter.distanceTo(cameraLookAt) + 2000;
+        camera.near = -100000;
+        camera.far = 100000;
+        camera.zoom = 10;
         camera.updateProjectionMatrix();
 
         // Set the OrbitControls target to the new camera lookAt point

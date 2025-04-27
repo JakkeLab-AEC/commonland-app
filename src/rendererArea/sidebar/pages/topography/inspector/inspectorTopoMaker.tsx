@@ -10,6 +10,7 @@ import { Inspector } from "@/rendererArea/components/forms/inspector/inspector";
 import { TopoType } from "@/mainArea/models/topoType";
 import { TopoCreationOptions } from "../options";
 import { Vector3d } from "@/mainArea/types/vector";
+import { ModalLoading } from "@/rendererArea/components/forms/loadings/modalLoading";
 
 interface InspectorTopoMakerProp {
     onSubmitTopo?: (options: TopoCreationOptions) => void;
@@ -25,7 +26,8 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
     const [selectedBoundaryId, setBoundaryId] = useState<string>();
     const {
         toggleMode,
-        resetProps
+        updateModalContent,
+        setMode,
     } = useModalOveralyStore();
 
     const {
@@ -69,8 +71,6 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
             if(onSubmitTopo) {
                 onSubmitTopo(option);
             }
-
-            toggleMode(false);
         } else {
             await window.electronSystemAPI.callDialogError('지형면 생성 오류', '모든 시추공에서 레이어를 선택헤 주세요');
         }
@@ -119,7 +119,6 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
 
         return () => {
             reset();
-            resetProps();
         }
     }, []);
 
@@ -192,10 +191,10 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                 <div className="flex-grow">높이 지정</div>
                 <div className="">일괄 선택</div>
                 <select className="border w-[132px]" onChange={onSelectAllLayers}>
-                    <option>선택하지 않음</option>
-                    <option>지하수위</option>
+                    <option key="topomaker-level-none">선택하지 않음</option>
+                    <option key="topomaker-level-ungw">지하수위</option>
                     {allLayerNames.map(name => {
-                        return (<option>{name}</option>)
+                        return (<option key={`topomaker-level-${name}`}>{name}</option>)
                     })}
                 </select>
             </div>

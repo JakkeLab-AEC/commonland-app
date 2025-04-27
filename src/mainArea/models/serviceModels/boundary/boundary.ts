@@ -1,6 +1,6 @@
 import { Vector2d } from "@/mainArea/types/vector";
 import { ServiceModel } from "../servicemodel";
-import { BoundaryDto } from "@/dto/serviceModel/boundaryDto";
+import { BoundaryDTO } from "@/dto/serviceModel/boundaryDto";
 import { ModelType } from "../../modelType";
 
 type ConstructorOptions = {
@@ -24,7 +24,7 @@ export class Boundary extends ServiceModel {
         this.name = name;
     }
 
-    serialize(): BoundaryDto {
+    serialize(): BoundaryDTO {
         return {
             modelType: ModelType.Boundary,
             id: this.elementId.getValue(),

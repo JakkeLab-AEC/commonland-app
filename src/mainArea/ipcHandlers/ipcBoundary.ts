@@ -2,7 +2,7 @@ import { app, dialog, FileFilter, IpcMain } from "electron";
 import { parsePolylinePoints } from "../utils/fileParsers/csvPolylineParser";
 import { SystemUtils } from "../utils/wrapper";
 import { AppController } from "../appController/appController";
-import { BoundaryDto } from "@/dto/serviceModel/boundaryDto";
+import { BoundaryDTO } from "@/dto/serviceModel/boundaryDto";
 import { ElementId } from "../models/id";
 import { ModelType } from "../models/modelType";
 
@@ -20,7 +20,7 @@ export const setIpcSiteBoundary = (ipcMain: IpcMain) => {
         if(!openFileJobResult.result) return openFileJobResult;
 
         const parseJob = await parsePolylinePoints(openFileJobResult.filePaths[0]);
-        const data: BoundaryDto = {
+        const data: BoundaryDTO = {
             id: new ElementId().getValue(),
             threeObjId: new ElementId().getValue(),
             name: name,
@@ -29,7 +29,7 @@ export const setIpcSiteBoundary = (ipcMain: IpcMain) => {
             modelType: ModelType.Boundary
         }
 
-        return await AppController.getInstance().repositories.boundary.insertBoundaries(data);
+        return await AppController.getInstance().repositories.boundary.insertBoundaries([data]);
     });
 
     ipcMain.handle('boundary-remove', async (_, ids: string[]) => {

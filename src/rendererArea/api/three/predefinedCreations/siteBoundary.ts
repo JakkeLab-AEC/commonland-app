@@ -1,7 +1,8 @@
 import * as THREE from 'three';
-import { BoundaryDto } from '@/dto/serviceModel/boundaryDto';
+import { BoundaryDTO } from '@/dto/serviceModel/boundaryDto';
+import { ModelType } from '@/mainArea/models/modelType';
 
-export function createBoundaryObject(boundaryDto: BoundaryDto): THREE.Object3D {
+export function createBoundaryObject(boundaryDto: BoundaryDTO): THREE.Object3D {
     const threePts = boundaryDto.pts.map(p => new THREE.Vector3(p.x, p.y, 0));
     threePts.push(new THREE.Vector3(boundaryDto.pts[0].x, boundaryDto.pts[0].y, 0));
 
@@ -11,7 +12,8 @@ export function createBoundaryObject(boundaryDto: BoundaryDto): THREE.Object3D {
 
     polyline.uuid = boundaryDto.threeObjId;
     polyline.userData = {
-        type: "boundary",
+        modelCreatedFrom: 'CommonLandApp',
+        type: ModelType.Boundary,
         instanceId: boundaryDto.id
     }
 

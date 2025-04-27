@@ -4,10 +4,16 @@ import { TopoType } from "@/mainArea/models/topoType";
 import { TriangleSet } from "@/mainArea/types/triangleDataSet";
 
 export interface TopoDTO extends DTOBase {
-    id: string,
-    modelType: ModelType,
+    // Id data
     topoType: TopoType,
     name: string,
+    threeObjId: string,
+    colorIndex: number,
+    isBatched: 0 | 1,
+    resolution?: number;
+
+    // Geometric datas
+    triangles?: TriangleSet,
     points: {
         id?: string,
         index?: number,
@@ -15,9 +21,13 @@ export interface TopoDTO extends DTOBase {
         y: number,
         z: number
     }[],
+}
+
+export interface TopoMetadataDTO extends DTOBase {
+    topoType: TopoType,
+    name: string,
     threeObjId: string,
     colorIndex: number,
     isBatched: 0 | 1,
     resolution?: number;
-    triangles?: TriangleSet,
 }

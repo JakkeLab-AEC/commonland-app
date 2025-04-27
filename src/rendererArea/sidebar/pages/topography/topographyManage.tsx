@@ -8,6 +8,7 @@ import {ListBoxColorPicker} from "@/rendererArea/components/forms/listbox/listBo
 import { useTopoMakerStore } from "./inspector/inspectorTopoMakerStore";
 import { SceneController } from "@/rendererArea/api/three/SceneController";
 import { TopoCreationOptions } from "./options";
+import { ModalLoading } from "@/rendererArea/components/forms/loadings/modalLoading";
 
 export const TopographyManage = () => {
     const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
@@ -16,7 +17,7 @@ export const TopographyManage = () => {
     const {
         toggleMode,
         updateModalContent,
-        resetProps
+        setMode
     } = useModalOveralyStore();
 
     const {
@@ -33,9 +34,11 @@ export const TopographyManage = () => {
     } = useTopoMakerStore();
 
     const onSubmitTopo = async (options: TopoCreationOptions) => {
+        updateModalContent(<ModalLoading message="지형 생성중..." />)
         await insertTopo(options);
-        
         await fetchAllTopos();
+
+        toggleMode(false);
     }
 
     const onClickCloseMaker = async () => {
@@ -75,17 +78,17 @@ export const TopographyManage = () => {
             SceneController.getInstance()
                 .getViewportControl()
                 .updateTopoColor([{
-                    threeObjId: updatedTopo.getThreeObjId(),
+                    threeObjId: updatedTopo.threeObjId,
                     colorIndex: index,
             }]);
         }
     }
 
-    const TopographyEditor:React.FC<{}> = () => {
+    const TopographyEditor:React.FC = () => {
         return (
-        <InspectorFixed title={"지형 생성"} width={1280} height={720} onClickCloseHandler={onClickCloseMaker}>
-            <InspectorTopoMaker onSubmitTopo={onSubmitTopo} onClickClose={onClickCloseMaker}/>
-        </InspectorFixed>
+            <InspectorFixed title={"지형 생성"} width={1280} height={720} onClickCloseHandler={onClickCloseMaker}>
+                <InspectorTopoMaker onSubmitTopo={onSubmitTopo} onClickClose={onClickCloseMaker}/>
+            </InspectorFixed>
         )
     }
 
@@ -97,10 +100,11 @@ export const TopographyManage = () => {
     const onClickDeleteTopos = async () => {
         const newSet = new Set(checkedItems);
         const deleteJobResult = await removeTopos(Array.from(newSet.values()));
-
+        console.log(deleteJobResult);
+        
         if(deleteJobResult.result) {
             setCheckedItems(new Set());
-            const targetThreeIds = deleteJobResult.deletedTopos.map(topo => topo.getThreeObjId());
+            const targetThreeIds = deleteJobResult.deletedTopos.map(topo => topo.threeObjId);
             SceneController.getInstance().removeObjectByUUIDs(targetThreeIds);
         }
     }
@@ -123,10 +127,6 @@ export const TopographyManage = () => {
     useEffect(() => {
         fetchAllTopos();
         fetchAllBoundaries();
-        
-        return () => {
-            resetProps();
-        }
     }, []);
 
     return (
@@ -144,7 +144,7 @@ export const TopographyManage = () => {
             </div>
             <div className="flex flex-row place-content-between">
                 <ButtonPositive text={"새로 만들기"} isEnabled={true} width={92} onClickHandler={showEditor} />
-                <ButtonNegative text={"삭제"} isEnabled={true} width={48} onClickHandler={removeBoundary}/>
+                <ButtonNegative text={"삭제"} isEnabled={true} width={48} onClickHandler={onClickDeleteTopos}/>
             </div>
             <hr/>
             <div>

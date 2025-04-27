@@ -29,6 +29,11 @@ export const setIpcTopoRepository = (ipcMain: IpcMain) => {
         return fetchJob;
     });
 
+    ipcMain.handle('topolayer-fetch-metadata-all', async (_) => {
+        const fetchJob = await AppController.getInstance().repositories.topo.fetchAllTopoMetadatas();
+        return fetchJob;
+    });
+
     ipcMain.handle('topolayer-update-color', async (_, id:string, index: number) => {
         const updateJob = await AppController.getInstance().repositories.topo.updateTopoColor(id, index);
         return updateJob;

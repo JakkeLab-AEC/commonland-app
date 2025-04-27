@@ -1,7 +1,7 @@
 import { Database } from "sqlite";
 import { RepositryQueryBuilder } from "./utils/queryBuilder";
 import { DB_TABLENAMES } from "@/public/databaseProps";
-import { BoundaryDto, BoundaryMetadata } from "@/dto/serviceModel/boundaryDto";
+import { BoundaryDTO, BoundaryMetadata } from "@/dto/serviceModel/boundaryDto";
 import { ModelType } from "../models/modelType";
 
 
@@ -37,6 +37,19 @@ const selectPtsQuery = `
     ORDER BY point_index
 `;
 
+const insertBoundaryQuery = RepositryQueryBuilder.buildInsertQuery(DB_TABLENAMES.BOUNDARIES, [
+    "boundary_id",
+    "three_obj_id",
+    "boundary_name"
+]);
+
+const insertPointsQuery = RepositryQueryBuilder.buildInsertQuery(DB_TABLENAMES.BOUNDARY_POINTS, [
+    "boundary_id",
+    "point_index",
+    "coord_x",
+    "coord_y"
+]);
+
 export class BoundaryRepository {
     private db: Database;
 
@@ -44,41 +57,29 @@ export class BoundaryRepository {
         this.db = db;
     }
 
-    async insertBoundaries(data: BoundaryDto): Promise<{result: boolean, message?: string, boundary?: BoundaryDto}> {
-        const insertBoundaryQuery = RepositryQueryBuilder.buildInsertQuery(DB_TABLENAMES.BOUNDARIES, [
-            "boundary_id",
-            "three_obj_id",
-            "boundary_name"
-        ]);
-
-        const insertPointsQuery = RepositryQueryBuilder.buildInsertQuery(DB_TABLENAMES.BOUNDARY_POINTS, [
-            "boundary_id",
-            "point_index",
-            "coord_x",
-            "coord_y"
-        ]);
-
+    async insertBoundaries(datas: BoundaryDTO[]): Promise<{result: boolean, message?: string, boundaries?: BoundaryDTO[]}> {
         try {
             await this.db.run('BEGIN TRANSACTION');
-
-            await this.db.all(insertBoundaryQuery, [
-                data.id,
-                data.threeObjId,
-                data.name
-            ]);
-
-            for(let i = 0; i < data.pts.length; i++) {
-                const pt = data.pts[i];
-                await this.db.all(insertPointsQuery, [
+            for(const data of datas) {
+                await this.db.all(insertBoundaryQuery, [
                     data.id,
-                    i,
-                    pt.x,
-                    pt.y
+                    data.threeObjId,
+                    data.name
                 ]);
+    
+                for(let i = 0; i < data.pts.length; i++) {
+                    const pt = data.pts[i];
+                    await this.db.all(insertPointsQuery, [
+                        data.id,
+                        i,
+                        pt.x,
+                        pt.y
+                    ]);
+                }
             }
 
             await this.db.run('COMMIT');
-            return {result: true, boundary: data}
+            return {result: true, boundaries: datas}
         } catch (error) {
             await this.db.run('ROLLBACK');
             return {result: false, message: String(error)}
@@ -101,12 +102,12 @@ export class BoundaryRepository {
         }
     }
 
-    async selectBoundary(id: string): Promise<{result: boolean, message?: string, boundaries?: BoundaryDto[]}> {
+    async selectBoundary(id: string): Promise<{result: boolean, message?: string, boundaries?: BoundaryDTO[]}> {
         try {
             const boundaryResult = await this.db.all(selectBoundaryQuery, [id]) as BoundarySelectResult[];
             const ptsResult = await this.db.all(selectPtsQuery, [id]) as PtsSelectResult[];
             
-            const dto: BoundaryDto = {
+            const dto: BoundaryDTO = {
                 id: id,
                 threeObjId: boundaryResult[0].three_obj_id,
                 name: boundaryResult[0].boundary_name,
@@ -140,15 +141,15 @@ export class BoundaryRepository {
         }
     }
 
-    async selectAllBoundaries(): Promise<{result: boolean, message?: string, boundaries?: BoundaryDto[]}> {
+    async selectAllBoundaries(): Promise<{result: boolean, message?: string, boundaries?: BoundaryDTO[]}> {
         try {
-            const boundaries: BoundaryDto[] = [];
+            const boundaries: BoundaryDTO[] = [];
 
             const boundaryResult = await this.db.all(selectAllBoundaryQuery) as BoundarySelectResult[];
             for(const boundary of boundaryResult) {
                 const ptsResult = await this.db.all(selectPtsQuery, boundary.boundary_id);
 
-                if(boundaries.length !== 0) {
+                if(boundaryResult.length !== 0) {
                     boundaries.push({
                         id: boundary.boundary_id,
                         threeObjId: boundary.three_obj_id,
@@ -159,7 +160,7 @@ export class BoundaryRepository {
                     });
                 }
             }
-
+            
             return {result: true, boundaries: boundaries};
         } catch (error) {
             return {result: false, message: String(error)};

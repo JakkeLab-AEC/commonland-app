@@ -1,7 +1,7 @@
 import { Vector2d } from "@/mainArea/types/vector";
 import { DTOBase } from "../DTOBase";
 
-export interface BoundaryDto extends DTOBase {
+export interface BoundaryDTO extends DTOBase {
     threeObjId: string,
     name: string,
     colorIndex: number,

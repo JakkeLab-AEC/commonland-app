@@ -233,7 +233,7 @@ export class SceneController {
         targetCamera.up.set(0, 0, 1);
         
         targetCamera.position.set(50, 50, 50);
-        targetCamera.zoom = 100;
+        targetCamera.zoom = 10;
         targetCamera.updateProjectionMatrix();
         targetCamera.lookAt(new THREE.Vector3(0, 0, 0));
         targetScene.add(new THREE.AxesHelper());

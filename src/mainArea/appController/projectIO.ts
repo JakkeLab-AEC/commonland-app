@@ -7,12 +7,14 @@ import { ProjectFileDTO } from "@/dto/projectFile";
 import { LayerColor } from "@/dto/serviceModel/layerColor";
 import { DEFAULT_VALUES } from "@/public/defaultValues";
 import { ElementId } from "../models/id";
+import { BoundaryDTO } from "@/dto/serviceModel/boundaryDto";
 
 export class ProjectWrite {
     private landInfo: LandInfoDTO;
     private borings: BoringDTO[];
     private layerColors: {layerName: string, colorIndex: number}[];
     private filePath: string;
+    private boundaries: BoundaryDTO[];
 
     private async writeLandInfo() {
         const fetchLandInfoJob = await AppController.getInstance().repositories.landInfo.fetchInfo();
@@ -42,17 +44,29 @@ export class ProjectWrite {
         }
     }
 
+    private async writeBoundaryDatas() {
+        this.boundaries = [];
+        const fetchBoundaryJob = await AppController.getInstance().repositories.boundary.selectAllBoundaries();
+        if(fetchBoundaryJob.result) {
+            fetchBoundaryJob.boundaries.forEach(b => {
+                this.boundaries.push(...fetchBoundaryJob.boundaries);
+            })
+        }
+    }
+
     async createSaveFile() {
         // Write data
         await this.writeLandInfo();
         await this.writeBoringDatas();
         await this.writeLayerConfig();
+        await this.writeBoundaryDatas();
 
         // Create JSON data
         const dataToSave: ProjectFileDTO = {
             landInfo: this.landInfo,
             borings: this.borings,
             layerColors: this.layerColors,
+            boundaries: this.boundaries,
         };
 
         // Convert to JSON strings
@@ -82,6 +96,7 @@ export class ProjectRead {
     private borings: BoringDTO[];
     private layerColors: LayerColor[];
     private filePath: string;
+    private boundaries: BoundaryDTO[];
 
     constructor() {
         this.borings = [];
@@ -105,6 +120,7 @@ export class ProjectRead {
             this.landInfo = jsonData.landInfo;
             this.borings = jsonData.borings;
             this.layerColors = jsonData.layerColors;
+            this.boundaries = jsonData.boundaries;
 
             return {result: true}
         } catch (error) {
@@ -127,6 +143,7 @@ export class ProjectRead {
                 }, new ElementId().getValue());
             }
 
+            // Borings
             for(const boring of this.borings) {
                 console.log(`Push ${boring.name}`);
                 await AppController.getInstance().repositories.boring.insertBoring(boring);
@@ -136,6 +153,9 @@ export class ProjectRead {
                 console.log(`Push ${layer.layerName} - ${layer.colorIndex}`);
                 await AppController.getInstance().repositories.boring.updateLayerColor(layer.layerName, layer.colorIndex);
             }
+
+            // Boundaries
+            await AppController.getInstance().repositories.boundary.insertBoundaries(this.boundaries);
 
             console.log('Pushed all datas');
         } catch (error) {
@@ -161,6 +181,5 @@ export class ProjectRead {
             console.log(error);
             return {result: false, message: error};
         }
-        
     }
 }

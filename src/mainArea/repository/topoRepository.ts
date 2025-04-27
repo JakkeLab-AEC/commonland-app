@@ -1,4 +1,4 @@
-import { TopoDTO } from "../../dto/serviceModel/topoDto";
+import { TopoDTO, TopoMetadataDTO } from "../../dto/serviceModel/topoDto";
 import { Database } from "sqlite";
 import { RepositryQueryBuilder } from "./utils/queryBuilder";
 import { DB_TABLENAMES } from "../../public/databaseProps";
@@ -17,7 +17,7 @@ interface TopoCRUDMethods {
 interface TopoProp {
     topo_id: string,
     topo_name: string,
-    topo_type: string,
+    topo_type: TopoType,
     color_index: number,
     is_batched: 0 | 1,
     three_id: string,
@@ -44,14 +44,14 @@ interface ZCoord {
 
 const topoSelectQuery = `
     SELECT
-        topo_id, topo_name, color_index, is_batched, three_id
+        *
     FROM
         ${DB_TABLENAMES.TOPOS}
 `;
 
 const topoSelectByIdQuery = `
     SELECT
-        topo_id, topo_name, color_index, is_batched, three_id
+        *
     FROM
         ${DB_TABLENAMES.TOPOS}
     WHERE
@@ -174,6 +174,46 @@ export class TopoRepository implements TopoCRUDMethods {
         }
     }
 
+    async fetchAllTopoMetadatas(): Promise<{result: boolean, message?: string, metadatas?: TopoMetadataDTO[]}> {
+        try {
+            const fetchedProps: TopoProp[] = await this.db.all(topoSelectQuery);
+            const metadatas: TopoMetadataDTO[] = fetchedProps.map(data => {
+                return {
+                    id: data.topo_id,
+                    modelType: ModelType.Topo,
+                    topoType: data.topo_type,
+                    name: data.topo_name,
+                    threeObjId: data.three_id,
+                    colorIndex: data.color_index,
+                    isBatched: data.is_batched,
+                    resolution: data.topo_resolution,
+                }
+            });
+            return {result: false, metadatas: metadatas};
+        } catch (error) {
+            return {result: false, message: String(error)};
+        }
+    }
+
+    async fetchTopoMetadata(id: string): Promise<{result: boolean, message?: string, metadata?: TopoMetadataDTO}> {
+        try {
+            const fetchedProps: TopoProp = await this.db.all(topoSelectByIdQuery, [id])[0];
+            const metadata: TopoMetadataDTO = {
+                id: fetchedProps.topo_id,
+                modelType: ModelType.Topo,
+                topoType: fetchedProps.topo_type,
+                name: fetchedProps.topo_name,
+                threeObjId: fetchedProps.three_id,
+                colorIndex: fetchedProps.color_index,
+                isBatched: fetchedProps.is_batched,
+                resolution: fetchedProps.topo_resolution,
+            };
+            return {result: false, metadata: metadata};
+        } catch (error) {
+            return {result: false, message: String(error)};
+        }
+    }
+
     async updateTopoColor(id:string, index: number): Promise<{ result: boolean; message?: string; }> {
         const query = RepositryQueryBuilder.buildUpdateQuery(DB_TABLENAMES.TOPOS, ['color_index'], 'topo_id');
         try {
@@ -244,6 +284,8 @@ export class TopoRepository implements TopoCRUDMethods {
 
     private async buildTopoMap(topoProps: TopoProp[]): Promise<Map<string, TopoDTO>> {
         const topoMap: Map<string, TopoDTO> = new Map();
+
+        // Fill all items;
         for(const topo of topoProps){
             // Fetch topo header data.
             const dto: TopoDTO = {
@@ -254,19 +296,10 @@ export class TopoRepository implements TopoCRUDMethods {
                 isBatched: topo.is_batched,
                 threeObjId: topo.three_id,
                 points: [],
-                topoType: TopoType.DelaunayMesh,
+                topoType: topo.topo_type,
                 resolution: topo.topo_resolution,
-                triangles: {
-                    pts: [],
-                    anchor: { x: 0, y: 0 },
-                    rotation: 0,
-                    resolution: 0,
-                    maxI: 0,
-                    maxJ: 0
-                }
             }
             topoMap.set(topo.topo_id, dto);
-    
             if(topo.topo_type === TopoType.DelaunayMesh) {
                 const points: TopoPoint[] = await this.db.all(pointQuery);
                 points.forEach(pt => {
@@ -278,32 +311,36 @@ export class TopoRepository implements TopoCRUDMethods {
                     });
                 });
             } else if (topo.topo_type === TopoType.OrdinaryKriging) {
-                // Set other props
-                const targetTopo = topoMap.get(topo.topo_id);
-                targetTopo.triangles.anchor.x = topo.topo_anchor_x;
-                targetTopo.triangles.anchor.y = topo.topo_anchor_y;
-                targetTopo.triangles.rotation = topo.topo_rotation;
-                targetTopo.triangles.resolution = topo.topo_resolution;
-                
-                // Insert pts
-                const zCoordQuery = `
-                    SELECT *
-                    FROM ${DB_TABLENAMES.TOPO_POINTS_EXPLODED}
-                `;
-                
-                const zCoords: ZCoord[] = await this.db.all(zCoordQuery, [topo.topo_id]);
-                zCoords.forEach(coord => {
-                    const topoDto = topoMap.get(coord.topo_id);
-                    topoDto.triangles.pts.push({
-                        z: coord.coord_z,
-                        i: coord.index_i,
-                        j: coord.index_j
-                    });
-                    topoDto.triangles.maxI = Math.max(coord.index_i, topoDto.triangles.maxI);
-                    topoDto.triangles.maxJ = Math.max(coord.index_i, topoDto.triangles.maxJ);
-                });
+                dto.triangles = {
+                    pts: [],
+                    anchor: { x: topo.topo_anchor_x, y: topo.topo_anchor_y },
+                    rotation: topo.topo_rotation,
+                    resolution: topo.topo_resolution,
+                    maxI: 0,
+                    maxJ: 0
+                }
             }
         }
+
+        // Insert pts
+        // Ordinary Krigging
+        const zCoordQuery = `
+            SELECT *
+            FROM ${DB_TABLENAMES.TOPO_POINTS_EXPLODED}
+        `;
+
+        const zCoords: ZCoord[] = await this.db.all(zCoordQuery);
+        zCoords.forEach(coord => {
+            const topoDto = topoMap.get(coord.topo_id);
+            topoDto.triangles.pts.push({
+                z: coord.coord_z,
+                i: coord.index_i,
+                j: coord.index_j
+            });
+
+            topoDto.triangles.maxI = Math.max(coord.index_i, topoDto.triangles.maxI);
+            topoDto.triangles.maxJ = Math.max(coord.index_j, topoDto.triangles.maxJ);
+        });
 
         return topoMap;
     }

@@ -13,6 +13,7 @@ import { useSidebarStore } from "@/rendererArea/sidebar/sidebarStore";
 import { ProgressBar } from "../progressbar/progressbar";
 import { useProjectContext } from "../../contexts/projectContext";
 import { useProjectPageStore } from "@/rendererArea/sidebar/pages/project/projectPageStore";
+import { ModalLoading } from "../loadings/modalLoading";
 
 
 export const ModalLoadingProject:React.FC = () => {
@@ -70,24 +71,30 @@ export default function Header({appName}:{appName: string}) {
             },
             closeHandler: () => setMenuVisibility(false),
         }, {
-            displayString: '파일 저장',
+            displayString: '프로젝트 파일 저장',
             isActionIdBased: false,
             action: async () => await window.electronProjectIOAPI.saveProject(),
             closeHandler: () => setMenuVisibility(false),
         }, {
-            displayString: '파일 불러오기',
+            displayString: '프로젝트 파일 불러오기',
             isActionIdBased: false,
             action: async () => {
                 await withModalOverlay('loading', async () => {
                     const loadProject = await window.electronProjectIOAPI.openProject();
+
+                    const callback = () => {
+                        SceneController.getInstance().getViewportControl().resetCamera();
+                        toggleMode(false);
+                    }
                     if(loadProject.result) {
-                        updateModalContent(<ModalLoadingProject/>)
+                        updateModalContent(<ModalLoading />)
                         updateHomeId();
+                        toggleMode(true);
                         setNaviationIndex(navigationIndex == 1 ? 0 : 1);
                         await SceneController
                             .getInstance()
                             .getDataMangeService()
-                            .refreshBoringPosts(loadingListner);
+                            .refreshAllGeometries(callback);
                     }
                 })
             },
