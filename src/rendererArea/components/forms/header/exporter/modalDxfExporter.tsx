@@ -1,9 +1,9 @@
 import React, { ChangeEvent, useEffect, useRef, useState } from "react"
-import {InspectorFixed} from "../../../components/inspector/inspectorFixed";
-import {useModalOveralyStore} from '../../../homescreenitems/modalOverlayStore';
-import {ButtonPositive} from '../../../components/buttons/buttonPositive';
-import {ButtonNegative} from '../../../components/buttons/buttonNegative';
 import { ThreeExporter } from "@/rendererArea/api/three/exporters/threeExporter";
+import { useModalOveralyStore } from "@/rendererArea/homescreenitems/modalOverlayStore";
+import { ButtonPositive } from "../../buttons/buttonPositive";
+import { InspectorFixed } from '../../inspector/inspectorFixed';
+import { ButtonNegative } from "../../buttons/buttonNegative";
 
 interface ModalDxfExporterProp {
     mode: 'boring'|'topo';

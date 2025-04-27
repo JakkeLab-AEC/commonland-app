@@ -1,8 +1,7 @@
 import { useLanguageStore } from "../../../../language/languageStore";
-import { ButtonNegative } from "../../../../components/buttons/buttonNegative";
-import {ButtonPositive} from "../../../../components/buttons/buttonPositive";
+import { ButtonNegative } from "../../../../components/forms/buttons/buttonNegative";
+import {ButtonPositive} from "../../../../components/forms/buttons/buttonPositive";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
-import { FoldableControl } from "../../../../components/foldableControl/foldableControl";
 import React from "react";
 import { LayerSet } from "./detailItems/layers";
 import { SPTSheet } from "./detailItems/sptSheet";
@@ -11,8 +10,6 @@ import { useHomeStore } from "../../../../commonStatus/homeStatusModel";
 import { Layer } from "../../../../../mainArea/models/serviceModels/boring/layer";
 import { SPTResult, SPTResultSet } from "../../../../../mainArea/models/serviceModels/boring/sptResult";
 import { useEditorPageStore } from "../EditorPageStore";
-import { ThreeBoringPost } from "@/rendererArea/api/three/predefinedCreations/boringPost";
-import { SceneController } from "@/rendererArea/api/three/SceneController";
 
 interface BoringEditorProps {
     boring: Boring

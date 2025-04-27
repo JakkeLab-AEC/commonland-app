@@ -1,5 +1,5 @@
-import { DefaultDimensions } from "../../../rendererArea/api/three/defaultConfigs/DefaultDimensionConfigs";
-import { SceneController } from "../../../rendererArea/api/three/SceneController";
+import { DefaultDimensions } from "@/rendererArea/api/three/defaultConfigs/DefaultDimensionConfigs";
+import { SceneController } from "@/rendererArea/api/three/SceneController";
 import React, { useEffect, useRef } from "react"
 
 export const ThreeViewPort = () => {

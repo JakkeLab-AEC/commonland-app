@@ -1,12 +1,12 @@
 import React, { ChangeEvent, useEffect, useRef, useState } from "react"
 import {LayerSelector} from '../components/layerSelector';
 import {D3LineChart} from '../../../../api/d3chart/d3linechart';
-import { ButtonPositive } from "@/rendererArea/components/buttons/buttonPositive";
-import { ButtonNegative } from "@/rendererArea/components/buttons/buttonNegative";
+import { ButtonPositive } from "@/rendererArea/components/forms/buttons/buttonPositive";
+import { ButtonNegative } from "@/rendererArea/components/forms/buttons/buttonNegative";
 import { useModalOveralyStore } from "@/rendererArea/homescreenitems/modalOverlayStore";
 import { useTopoMakerStore } from "./inspectorTopoMakerStore";
-import { ColorIndexPalette, ColorSquare } from "@/rendererArea/components/palette/colorIndexPalette";
-import { Inspector } from "@/rendererArea/components/inspector/inspector";
+import { ColorIndexPalette, ColorSquare } from "@/rendererArea/components/forms/palette/colorIndexPalette";
+import { Inspector } from "@/rendererArea/components/forms/inspector/inspector";
 import { TopoType } from "@/mainArea/models/topoType";
 import { TopoCreationOptions } from "../options";
 import { Vector3d } from "@/mainArea/types/vector";

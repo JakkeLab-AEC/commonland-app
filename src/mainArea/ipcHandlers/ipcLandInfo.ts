@@ -1,7 +1,7 @@
 import { IpcMain } from "electron";
 import { AppController } from "../appController/appController";
 import { LandInfoModifyOption } from "../repository/landInfoRepository";
-import { LandInfoDto } from "@/dto/serviceModel/landInfo";
+import { LandInfoDTO } from "@/dto/serviceModel/landInfo";
 
 export const setIpcLandInfo = (ipcMain: IpcMain) => {
     ipcMain.handle('landinfo-fetch', async (_) => {
@@ -12,7 +12,7 @@ export const setIpcLandInfo = (ipcMain: IpcMain) => {
         return await AppController.getInstance().repositories.landInfo.modifyInfo(option);
     });
 
-    ipcMain.handle('landinfo-register', async(_, info: LandInfoDto) => {
+    ipcMain.handle('landinfo-register', async(_, info: LandInfoDTO) => {
         return await AppController.getInstance().repositories.landInfo.registerInfo(info, info.landId);
     });
 }

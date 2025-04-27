@@ -1,9 +1,9 @@
 import Sidebar from "./sidebar/sidebar";
 import './homeStyle.css'
-import Header from "./components/header/header";
+import Header from "./components/forms/header/header";
 import { appInfo } from "../appConfig";
-import { ThreeViewPort } from "./components/threeViewport/threeViewport";
-import { InspectorWrapper } from "./components/inspector/inspectorWrapper";
+import { ThreeViewPort } from "./components/forms/threeViewport/threeViewport";
+import { InspectorWrapper } from "./components/forms/inspector/inspectorWrapper";
 import { VisibilityOptions } from "./homescreenitems/visibilityOptions"
 import { ModalOverlay } from './homescreenitems/modalOverlay'
 import { useEffect } from "react";

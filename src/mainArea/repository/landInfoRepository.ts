@@ -2,9 +2,7 @@ import { Database } from "sqlite";
 import { RepositryQueryBuilder } from "./utils/queryBuilder";
 import { DB_TABLENAMES } from "@/public/databaseProps";
 import { SystemUtils } from "../utils/wrapper";
-import { DEFAULT_VALUES } from "@/public/defaultValues";
-import { ElementId } from "../models/id";
-import { LandInfoDto } from "@/dto/serviceModel/landInfo";
+import { LandInfoDTO } from "@/dto/serviceModel/landInfo";
 
 export type LandInfoModifyOption = {
     epsg?: number;
@@ -33,25 +31,43 @@ export class LandInfoRepository {
     }
 
     async modifyInfo(option: LandInfoModifyOption) {
-        const columns: {column: string, value: string|number}[] = [];
-        const {epsg, name} = option;
+        try {
+            await this.db.exec("BEGIN TRANSACTION");
 
-        if(name) {
-            if(name.length === 0) {
-                SystemUtils.Modal.showError("이름 설정 오류", "이름은 공백으로 설정할 수 없습니다.");
-                return;
+            const getIdQuery = `
+                SELECT land_id
+                FROM
+                    ${DB_TABLENAMES.LAND_INFO}
+            `;
+
+            const id = (await this.db.all(getIdQuery))[0].land_id;
+            const columns: {column: string, value: string|number}[] = [];
+            const {epsg, name} = option;
+
+            if(name) {
+                if(name.length === 0) {
+                    SystemUtils.Modal.showError("이름 설정 오류", "이름은 공백으로 설정할 수 없습니다.");
+                    return;
+                }
+                columns.push({column: 'name', value: option.name});
             }
-            columns.push({column: 'name', value: option.name});
-        }
 
-        if(epsg) {
-            columns.push({column: 'epsg_code', value: option.epsg});
-        }
-        
-        if(columns.length === 0) return;
+            if(epsg) {
+                columns.push({column: 'epsg_code', value: option.epsg});
+            }
+            
+            if(columns.length === 0) return;
+            
+            const query = RepositryQueryBuilder.buildUpdateQuery(DB_TABLENAMES.LAND_INFO, columns.map(c => c.column), ID_COLUMN);
 
-        const query = RepositryQueryBuilder.buildUpdateQuery(DB_TABLENAMES.LAND_INFO, columns.map(c => c.column), ID_COLUMN);
-        await this.db.run(query, )
+            await this.db.run(query,[...columns.map(c => c.value), id]);
+
+            await this.db.exec('COMMIT');
+
+            return {result: true};
+        } catch (error) {
+            return {result: false, message: String(error)};
+        }        
     }
 
     async registerInfo(info: Required<LandInfoModifyOption>, id: string) {
@@ -74,7 +90,7 @@ export class LandInfoRepository {
         }
     }
 
-    async fetchInfo(): Promise<{result: boolean, message?: string, landInfo?: LandInfoDto}> {
+    async fetchInfo(): Promise<{result: boolean, message?: string, landInfo?: LandInfoDTO}> {
         const query = `
             SELECT *
             FROM
@@ -86,7 +102,7 @@ export class LandInfoRepository {
             return {result: false, message: "No land info."};
         }
 
-        const landInfo: LandInfoDto = {
+        const landInfo: LandInfoDTO = {
             landId: landInfos[0].land_id,
             name: landInfos[0].name,
             epsg: landInfos[0].epsg_code,

@@ -2,15 +2,15 @@ import ServiceLogo from "./logo/servicelogo";
 import { ButtonPositive } from "../buttons/buttonPositive";
 import { useEffect, useState } from "react";
 import { ContextMenu, ContextMenuProp } from "../contextmenu/contextMenu";
-import { useHomeStore } from "../../commonStatus/homeStatusModel";
-import { useSidebarStore } from "../../../rendererArea/sidebar/sidebarStore";
 import './headerStyle.css';
 import { useModalOveralyStore } from "@/rendererArea/homescreenitems/modalOverlayStore";
 import {ModalDxfExporter} from './exporter/modalDxfExporter';
 import { SceneController } from "@/rendererArea/api/three/SceneController";
 import { InspectorHeadless } from "../inspector/inspectorHeadless";
 import { useModalOveralyUtils } from "@/rendererArea/homescreenitems/modalOverlayUtils";
-import {ProgressBar} from '@/rendererArea/components/progressbar/progressbar';
+import { useHomeStore } from "@/rendererArea/commonStatus/homeStatusModel";
+import { useSidebarStore } from "@/rendererArea/sidebar/sidebarStore";
+import { ProgressBar } from "../progressbar/progressbar";
 
 
 export const ModalLoadingProject:React.FC = () => {
@@ -56,7 +56,9 @@ export default function Header({appName}:{appName: string}) {
         menuItemProps: [{
             displayString: '새 프로젝트 생성',
             isActionIdBased: false,
-            action: async () => await window.electronProjectIOAPI.newProject(),
+            action: async () => {
+                const job = await window.electronProjectIOAPI.newProject();
+            },
             closeHandler: () => setMenuVisibility(false),
         }, {
             displayString: '파일 저장',

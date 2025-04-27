@@ -1,10 +1,10 @@
 import React, { ChangeEvent, useCallback, useRef, useState } from "react"
-import {ButtonPositive} from "../../../../../components/buttons/buttonPositive";
-import { ContextMenu, ContextMenuItemProp } from "../../../../../components/contextmenu/contextMenu";
-import { SPTResult, SPTResultSet } from "../../../../../../mainArea/models/serviceModels/boring/sptResult";
-import { Inspector } from "../../../../../../rendererArea/components/inspector/inspector";
-import { ButtonNegative } from "../../../../../../rendererArea/components/buttons/buttonNegative";
-import { MultilineTextbox, MultilineTextboxHandle } from "@/rendererArea/components/multilineTextbox/multilineTextBox";
+import {ButtonPositive} from "../../../../../components/forms/buttons/buttonPositive";
+import { ContextMenu, ContextMenuItemProp } from "../../../../../components/forms/contextmenu/contextMenu";
+import { SPTResultSet } from "../../../../../../mainArea/models/serviceModels/boring/sptResult";
+import { Inspector } from "../../../../../../rendererArea/components/forms/inspector/inspector";
+import { ButtonNegative } from "../../../../../../rendererArea/components/forms/buttons/buttonNegative";
+import { MultilineTextbox, MultilineTextboxHandle } from "@/rendererArea/components/forms/multilineTextbox/multilineTextBox";
 
 interface SPTResultUnitProp {
     id: string,

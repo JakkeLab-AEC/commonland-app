@@ -1,6 +1,6 @@
 import React, { useState } from "react"
-import {ColorSquare, ColorIndexPalette} from '../../components/palette/colorIndexPalette';
-import {Inspector} from '../../components/inspector/inspector';
+import {ColorSquare, ColorIndexPalette} from '../../forms/palette/colorIndexPalette';
+import {Inspector} from '../../forms/inspector/inspector';
 
 interface ListBoxItemProps {
     id: string,

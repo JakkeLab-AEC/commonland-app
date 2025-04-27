@@ -4,7 +4,7 @@ import { TopoDTO } from "./dto/serviceModel/topoDto";
 import { PipeMessageSendRenderer } from "./dto/pipeMessage";
 import { OBBDto } from "./mainArea/models/graphics/obb";
 import { LandInfoModifyOption } from "./mainArea/repository/landInfoRepository";
-import { LandInfoDto } from "./dto/serviceModel/landInfo";
+import { LandInfoDTO } from "./dto/serviceModel/landInfo";
 
 contextBridge.exposeInMainWorld('electronWindowControlAPI', {
     minimize: () => ipcRenderer.invoke('window-control-minimize'),
@@ -60,5 +60,5 @@ contextBridge.exposeInMainWorld('electronIPCPythonBridge', {
 contextBridge.exposeInMainWorld('electronLandInfoAPI', {
     fetchLandInfo: () => ipcRenderer.invoke('landinfo-fetch'),
     updateLandInfo: (option: LandInfoModifyOption) => ipcRenderer.invoke('landinfo-update', option),
-    registerLandInfo: (info: LandInfoDto) => ipcRenderer.invoke('landinfo-register', info),
+    registerLandInfo: (info: LandInfoDTO) => ipcRenderer.invoke('landinfo-register', info),
 });

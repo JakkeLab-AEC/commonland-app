@@ -1,6 +1,6 @@
 import React, { ReactNode, useState } from "react"
 import { Inspector } from "./inspector"
-import { useHomeStore } from "../../commonStatus/homeStatusModel";
+import { useHomeStore } from "@/rendererArea/commonStatus/homeStatusModel";
 
 
 export const InspectorWrapper:React.FC = () => {

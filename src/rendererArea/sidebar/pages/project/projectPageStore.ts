@@ -30,6 +30,7 @@ const createProjectPageStore = create<ProjectPageStoreProps>((set, get) => ({
     },
     updateLandinfo: async (option: LandInfoModifyOption) => {
         const updateJob = await window.electronLandInfoAPI.updateLandInfo(option);
+        console.log(updateJob);
         if(!updateJob || !updateJob.result) return;
 
         set(() => ({

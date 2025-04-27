@@ -1,9 +1,9 @@
 import { ChangeEvent, useEffect, useState } from "react"
-import { FoldableControlHor } from "../components/foldableControl/foldableControlHor"
+import { FoldableControlHor } from "../components/forms/foldableControl/foldableControlHor"
 import { SceneController } from "../api/three/SceneController";
 import { useVisibilityOptionStore } from "./visibilityOptionsStore";
 import { ModelType } from "@/mainArea/models/modelType";
-import { ButtonPositive } from "../components/buttons/buttonPositive";
+import { ButtonPositive } from "../components/forms/buttons/buttonPositive";
 import { useSidebarStore } from '../sidebar/sidebarStore';
 
 export const VisibilityOptions = () => {

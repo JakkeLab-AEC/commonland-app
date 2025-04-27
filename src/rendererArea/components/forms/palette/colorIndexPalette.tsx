@@ -1,4 +1,4 @@
-import { colorPaletteValues } from "../../../public/colorPalette"
+import { colorPaletteValues } from "../../../../public/colorPalette"
 import './colorIndexPaletteStyle.css';
 
 interface ColorSquareProp {

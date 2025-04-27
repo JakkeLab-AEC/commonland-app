@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from "react"
-import { ButtonPositive } from "@/rendererArea/components/buttons/buttonPositive";
-import { ButtonNegative } from "@/rendererArea/components/buttons/buttonNegative";
+import { ButtonPositive } from "@/rendererArea/components/forms/buttons/buttonPositive";
+import { ButtonNegative } from "@/rendererArea/components/forms/buttons/buttonNegative";
 import { useModalOveralyStore } from "@/rendererArea/homescreenitems/modalOverlayStore";
-import { InspectorFixed } from "@/rendererArea/components/inspector/inspectorFixed";
+import { InspectorFixed } from "@/rendererArea/components/forms/inspector/inspectorFixed";
 import { InspectorTopoMaker } from './inspector/inspectorTopoMaker';
-import {ListBoxColorPicker} from "@/rendererArea/components/listbox/listBoxColorPicker"
+import {ListBoxColorPicker} from "@/rendererArea/components/forms/listbox/listBoxColorPicker"
 import { useTopoMakerStore } from "./inspector/inspectorTopoMakerStore";
 import { SceneController } from "@/rendererArea/api/three/SceneController";
 import { TopoCreationOptions } from "./options";

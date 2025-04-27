@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react"
-import { ButtonPositive } from "@/rendererArea/components/buttons/buttonPositive"
-import { ButtonNegative } from "@/rendererArea/components/buttons/buttonNegative"
+import { ButtonPositive } from "@/rendererArea/components/forms/buttons/buttonPositive"
+import { ButtonNegative } from "@/rendererArea/components/forms/buttons/buttonNegative"
 import { useProjectPageStore } from "./projectPageStore";
 import { LandInfoModifyOption } from "@/mainArea/repository/landInfoRepository";
 
@@ -11,7 +11,6 @@ export const Project:React.FC = () => {
         projectName,
         epsgCode,
         updateLandinfo,
-        fetchLandInfo,
     } = useProjectPageStore();
 
     const updateInfo = () => {

@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useEffect, useRef } from "react"
 import { useTopoMakerStore } from "../inspector/inspectorTopoMakerStore";
-import {StatusLabel} from '@/rendererArea/components/status/statusLabel';
+import {StatusLabel} from '@/rendererArea/components/forms/status/statusLabel';
 
 interface LayerSelectorProp {
     boringName: string,
