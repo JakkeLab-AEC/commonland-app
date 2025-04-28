@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import { ElementId } from "../id";
 import { IModelBase } from "../iModelBase";
 import { ModelType } from "../modelType";
@@ -22,5 +23,5 @@ export class ServiceModel implements IModelBase {
 
     setThreeObjId(id: string): void {
         this.threeObjId = id;
-    }    
+    }
 }

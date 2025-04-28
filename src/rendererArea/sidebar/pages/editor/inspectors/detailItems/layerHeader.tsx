@@ -1,5 +1,5 @@
 import React from "react"
-import {ButtonPositive} from '../../../../../components/buttons/buttonPositive';
+import {ButtonPositive} from '../../../../../components/forms/buttons/buttonPositive';
 
 interface LayerSetHeaderProps {
     onCreate: () => void;

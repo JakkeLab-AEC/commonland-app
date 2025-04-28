@@ -17,8 +17,6 @@ export class PythonBridge {
         this.platform = platform;
         this.appRootPath = appRootPath;
         this.appRuntimePath = appRuntimePath;
-        console.log(`RootPath: ${appRootPath}`);
-        console.log(`RuntimePath: ${appRuntimePath}`);
     }
 
     ready(): void {
@@ -38,7 +36,6 @@ export class PythonBridge {
         const pythonExecutable = path.resolve(this.embeddedPath, pythonBinary);
         this.pythonExecutable = pythonExecutable;
 
-        console.log('Python Executable Path:', pythonExecutable);
     }
 
     start(scriptPath?: string): void {
@@ -102,8 +99,6 @@ export class PythonBridge {
             this.start();
         }
         
-        console.log(message);
-
         const convertedMessage:PipeMessageSendRenderer = {
             ...message
         }
@@ -114,7 +109,6 @@ export class PythonBridge {
             console.log('Sending message to Python process...\n');
     
             const data = JSON.stringify(convertedMessage) + '\n';
-            // console.log(data);
 
             const [stdin, stdout] = [this.pyProcess.stdin, this.pyProcess.stdout];
     

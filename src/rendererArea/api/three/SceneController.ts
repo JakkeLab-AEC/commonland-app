@@ -72,7 +72,20 @@ export class SceneController {
         this.render();
     }
 
-    public addObjects(objects: THREE.Object3D[]): void {
+    public addObjects(objects: THREE.Object3D[], onRendered?: () => void): void {
+        if(!objects || objects.length === 0) return;
+        
+        if(onRendered) {
+            const once = () => {
+                onRendered();
+            };
+
+            this.scene.onAfterRender = () => {
+                once();
+                this.scene.onAfterRender = () => { }
+            }
+        }
+        
         this.scene.add(...objects);
         this.render();
     }
@@ -214,13 +227,13 @@ export class SceneController {
         const targetCamera = camera ? camera : new THREE.OrthographicCamera(
             -frustumSize * aspect / 2, frustumSize * aspect / 2,
             frustumSize / 2, -frustumSize / 2,
-            0.1, 10000
+            -100000, 100000
         );
 
         targetCamera.up.set(0, 0, 1);
         
         targetCamera.position.set(50, 50, 50);
-        targetCamera.zoom = 100;
+        targetCamera.zoom = 10;
         targetCamera.updateProjectionMatrix();
         targetCamera.lookAt(new THREE.Vector3(0, 0, 0));
         targetScene.add(new THREE.AxesHelper());

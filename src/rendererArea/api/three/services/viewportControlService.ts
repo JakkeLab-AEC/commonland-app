@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Topo } from "@/mainArea/models/serviceModels/topo/Topo";
 import { SceneController } from "../SceneController";
-import { createDelaunatedMesh } from '../geometricUtils/delaunayUtils';
+import { createDelaunatedMesh } from '../predefinedCreations/delaunayUtils';
 import { colorPaletteValues } from '@/public/colorPalette';
 import { ModelType } from '@/mainArea/models/modelType';
 import { useVisibilityOptionStore } from '@/rendererArea/homescreenitems/visibilityOptionsStore';
@@ -49,7 +49,23 @@ export class ViewportControlService {
             });
             this.sceneController.render();
         } catch (error) {
-            console.log(error);
+            console.error(error);
+        }
+    }
+
+    updateBoundaryColor = (updateArgs: {threeObjId: string, colorIndex: number}[]) => {
+        try {
+            updateArgs.forEach(arg => {
+                const threeObj = this.sceneController.getScene().getObjectByProperty('uuid', arg.threeObjId);
+                if(threeObj) {
+                    (threeObj as THREE.Line).material = new THREE.LineBasicMaterial({
+                        color: parseInt(colorPaletteValues[arg.colorIndex].slice(1), 16),
+                    });
+                }
+            });
+            this.sceneController.render();
+        } catch (error) {
+            console.error(error);
         }
     }
 
@@ -102,7 +118,7 @@ export class ViewportControlService {
         this.sceneController.render();
     }
 
-    resetCamera = () => {
+    resetCamera = (asInitiated = false) => {
          // Remove the event listener temporarily
         this.sceneController.controls.removeEventListener('change', this.updateCameraPlane);
 
@@ -117,7 +133,7 @@ export class ViewportControlService {
             }
         });
 
-        if (targetObjects.length === 0) {
+        if (targetObjects.length === 0 && !asInitiated) {
             this.sceneController.controls.addEventListener('change', this.updateCameraPlane);
             return;
         }
@@ -128,18 +144,17 @@ export class ViewportControlService {
         const max = boundingBox.max;
 
         // Calculate camera positions and lookAt direction
-        const directionMinToMax = max.clone().sub(min).normalize();
-        const cameraCenter = max.clone().add(directionMinToMax.clone().multiplyScalar(10));
-        const cameraLookAt = min.clone();
-        const yAdd = max.y - min.y;
+        const cameraCenter = asInitiated ? new THREE.Vector3(50, 50, 50) : max.clone();
+        const cameraLookAt = asInitiated ? new THREE.Vector3(0, 0, 0) : min.clone();
 
         // Set camera's position and look at the target
-        camera.position.set(cameraCenter.x, cameraCenter.y + yAdd, cameraCenter.z);
+        camera.position.set(cameraCenter.x, cameraCenter.y, cameraCenter.z);
         camera.lookAt(cameraLookAt);
 
         // Update camera's near and far planes
-        camera.near = 0.1;
-        camera.far = cameraCenter.distanceTo(cameraLookAt) + 2000;
+        camera.near = -100000;
+        camera.far = 100000;
+        camera.zoom = 10;
         camera.updateProjectionMatrix();
 
         // Set the OrbitControls target to the new camera lookAt point

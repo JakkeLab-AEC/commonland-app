@@ -1,5 +1,5 @@
+import { ButtonPositive } from "@/rendererArea/components/forms/buttons/buttonPositive";
 import { SceneController } from "../../../rendererArea/api/three/SceneController";
-import {ButtonPositive} from "../../../rendererArea/components/buttons/buttonPositive";
 import { useLanguageStore } from "../../../rendererArea/language/languageStore";
 import { useEffect, useRef, useState } from "react";
 

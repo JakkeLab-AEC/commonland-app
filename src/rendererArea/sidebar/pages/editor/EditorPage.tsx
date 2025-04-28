@@ -1,18 +1,18 @@
 import { useHomeStore } from "../../../commonStatus/homeStatusModel";
-import { ListBox } from "../../../../rendererArea/components/listbox/listBox"
+import { ListBox } from "../../../components/forms/listbox/listBox"
 import React, { ChangeEvent, useEffect, useRef, useState } from "react"
 import { InspectorBoringEdit } from "./inspectors/inspectorBoringEdit";
 import { useLanguageStore } from "../../../../rendererArea/language/languageStore";
-import {ButtonPositive} from "../../../../rendererArea/components/buttons/buttonPositive";
-import {ButtonNegative} from "../../../../rendererArea/components/buttons/buttonNegative";
+import {ButtonPositive} from "../../../components/forms/buttons/buttonPositive";
+import {ButtonNegative} from "../../../components/forms/buttons/buttonNegative";
 import { useEditorPageStore } from "./EditorPageStore";
 import { Boring } from "../../../../mainArea/models/serviceModels/boring/boring";
 import { Layer } from "../../../../mainArea/models/serviceModels/boring/layer";
-import { FoldableControl } from "@/rendererArea/components/foldableControl/foldableControl";
-import { ListInputBox } from "@/rendererArea/components/listbox/listInputBox";
-import { ColorIndexPalette } from "@/rendererArea/components/palette/colorIndexPalette";
 import { useModalOveralyStore } from "@/rendererArea/homescreenitems/modalOverlayStore";
 import {ModalSwapXY} from './modals/modalswapxy';
+import { ColorIndexPalette } from "../../../components/forms/palette/colorIndexPalette";
+import { FoldableControl} from "../../../components/forms/foldableControl/foldableControl"
+import { ListInputBox } from "../../../components/forms/listbox/listInputBox";
 
 interface InspectorContent {
     boring: Boring,

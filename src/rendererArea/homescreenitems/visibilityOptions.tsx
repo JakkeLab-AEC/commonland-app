@@ -1,10 +1,12 @@
 import { ChangeEvent, useEffect, useState } from "react"
-import { FoldableControlHor } from "../components/foldableControl/foldableControlHor"
+import { FoldableControlHor } from "../components/forms/foldableControl/foldableControlHor"
 import { SceneController } from "../api/three/SceneController";
 import { useVisibilityOptionStore } from "./visibilityOptionsStore";
 import { ModelType } from "@/mainArea/models/modelType";
-import { ButtonPositive } from "../components/buttons/buttonPositive";
+import { ButtonPositive } from "../components/forms/buttons/buttonPositive";
 import { useSidebarStore } from '../sidebar/sidebarStore';
+import { useModalOveralyStore } from "./modalOverlayStore";
+import { ModalLoading } from "../components/forms/loadings/modalLoading";
 
 export const VisibilityOptions = () => {
     const [isResetBoringEnabled, setRestBoringState] = useState<boolean>(false);
@@ -18,6 +20,11 @@ export const VisibilityOptions = () => {
     const {
         navigationIndex
     } = useSidebarStore();
+
+    const {
+        toggleMode,
+        updateModalContent
+    } = useModalOveralyStore();
 
     const onChangePostOpacity = (e: ChangeEvent<HTMLInputElement>) => {
         SceneController.getInstance()
@@ -80,14 +87,22 @@ export const VisibilityOptions = () => {
         SceneController.getInstance().getViewportControl().resetCamera();
     }
 
-    const onClickResetBorings = async () => {
-        if(navigationIndex != 0) {
-            SceneController.getInstance().getDataMangeService().refreshBoringPosts();
+    const onClickRefreshViewport = async () => {
+        updateModalContent(<ModalLoading />)
+        toggleMode(true);
+
+        const onRefreshEnd = () => {
+            SceneController.getInstance().getViewportControl().resetCamera();
+            toggleMode(false);
+        }
+
+        if(navigationIndex != 1) {
+            await SceneController.getInstance().getDataMangeService().refreshAllGeometries(onRefreshEnd);
         }
     }
 
     useEffect(() => {
-        if(navigationIndex == 0) {
+        if(navigationIndex === 1) {
             setRestBoringState(false);
         } else {
             setRestBoringState(true);
@@ -95,13 +110,11 @@ export const VisibilityOptions = () => {
     }, [navigationIndex])
 
     return (
-        <>
             <FoldableControlHor header={"표시 설정"} controls={[
                 <PostOpacitySlider/>,
                 <TopoOpacitySlider/>,
                 <ButtonPositive text={"전체 보기"} isEnabled={true} onClickHandler={onClickResetCamera} width={80}/>,
-                <ButtonPositive text={"시추공 새로고침"} isEnabled={isResetBoringEnabled} onClickHandler={onClickResetBorings} width={132}/>
+                <ButtonPositive text={"뷰포트 새로고침"} isEnabled={isResetBoringEnabled} onClickHandler={onClickRefreshViewport} width={132}/>
             ]} />
-        </>
     )
 }

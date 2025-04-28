@@ -33,6 +33,6 @@ class APIGateway:
 
             return {
                 "duration": round(end_time - start_time, 3),
-                "count": len(calculated_points),
+                "count": len(calculated_points['points']),
                 "pointFilePath": str(json_file_path)
             }

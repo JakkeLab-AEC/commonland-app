@@ -3,8 +3,6 @@ import { resolve } from 'path';
 import { builtinModules } from 'module';
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import copyFilesPlugin from "./vite.plugin.copy";
-import truncatePriorBuild from "./vite.plugin.truncate";
-
 import os from 'os';
 
 export default defineConfig({

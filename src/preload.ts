@@ -3,6 +3,8 @@ import { BoringDTO } from "./dto/serviceModel/BoringDTO";
 import { TopoDTO } from "./dto/serviceModel/topoDto";
 import { PipeMessageSendRenderer } from "./dto/pipeMessage";
 import { OBBDto } from "./mainArea/models/graphics/obb";
+import { LandInfoModifyOption } from "./mainArea/repository/landInfoRepository";
+import { LandInfoDTO } from "./dto/serviceModel/landInfo";
 
 contextBridge.exposeInMainWorld('electronWindowControlAPI', {
     minimize: () => ipcRenderer.invoke('window-control-minimize'),
@@ -26,14 +28,26 @@ contextBridge.exposeInMainWorld('electronBoringDataAPI', {
 contextBridge.exposeInMainWorld('electronProjectIOAPI', {
     saveProject: () => ipcRenderer.invoke('project-file-save'),
     openProject: () => ipcRenderer.invoke('project-file-read'),
+    newProject: () => ipcRenderer.invoke('project-file-new'),
 })
 
 contextBridge.exposeInMainWorld('electronTopoLayerAPI', {
+    // Topos
     insertTopo: (topoDto: TopoDTO, obb?: OBBDto) => ipcRenderer.invoke('topolayer-insert', topoDto, obb),
     fetchAllTopos: () => ipcRenderer.invoke('topolayer-fetch-all'),
+    fetchAllTopoMetadatas: () => ipcRenderer.invoke('topolayer-fetch-metadata-all'),
     updateTopoColor: (id:string, index: number) => ipcRenderer.invoke('topolayer-update-color', id, index),
     updateTopoThreeObjId: (ids: {id: string, threeObjId: string}[]) => ipcRenderer.invoke('topolayer-update-threeobjid', ids),
     removeTopos: (ids: string[]) => ipcRenderer.invoke('topolayer-remove', ids),
+    
+    // Boundaries
+    insertBoundary: (name: string) => ipcRenderer.invoke('boundary-add', name),
+    removeBoundaries: (ids: string[]) => ipcRenderer.invoke('boundary-remove', ids),
+    selectBoundaryMetadata: (id: string) => ipcRenderer.invoke('boundary-fetch-metadata-by-id', id),
+    selectBoundaryMetadataAll: () => ipcRenderer.invoke('boundary-fetch-metadata-all'),
+    selectBoundary: (id: string) => ipcRenderer.invoke('boundary-fetch-by-id', id),
+    selectBoundaryAll: () => ipcRenderer.invoke('boundary-fetch-all'),
+    updateBoundaryColor: (id: string, index: number) => ipcRenderer.invoke('boundary-update-color', id, index),
 });
 
 contextBridge.exposeInMainWorld('electronSystemAPI', {
@@ -46,4 +60,10 @@ contextBridge.exposeInMainWorld('electronIPCPythonBridge', {
     start:() => ipcRenderer.invoke('start-python-loop'),
     stop:() => ipcRenderer.invoke('stop-python-loop'),
     send:(message: PipeMessageSendRenderer) => ipcRenderer.invoke('send-message', message),
+});
+
+contextBridge.exposeInMainWorld('electronLandInfoAPI', {
+    fetchLandInfo: () => ipcRenderer.invoke('landinfo-fetch'),
+    updateLandInfo: (option: LandInfoModifyOption) => ipcRenderer.invoke('landinfo-update', option),
+    registerLandInfo: (info: LandInfoDTO) => ipcRenderer.invoke('landinfo-register', info),
 });

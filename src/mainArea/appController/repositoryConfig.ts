@@ -9,7 +9,6 @@ export async function openDB() {
     const userDataPath = app.getPath('userData');
     const dbPath = path.join(userDataPath, 'database.db');
 
-    console.log(dbPath);
     // Ensure the directory exists
     fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
@@ -92,7 +91,6 @@ async function initializeDB(db: Database) {
     
     let i = 1;
     for (const { name } of tables) {
-        console.log(`Job ${i++} : Drop Table ${name}`);
         // 테이블에 해당하는 트리거 삭제
         await db.run(`DROP TRIGGER IF EXISTS insert_layer_color_if_not_exists;`);
         await db.run(`DROP TRIGGER IF EXISTS delete_layer_color_if_no_layers;`);
@@ -100,12 +98,11 @@ async function initializeDB(db: Database) {
         await db.run(`DROP TABLE IF EXISTS "${name}";`);
     }
     
-    console.log("Existing tables dropped");
-
     await db.exec(`
         CREATE TABLE ${DB_TABLENAMES.LAND_INFO} (
             land_id TEXT PRIMARY KEY,
-            name TEXT
+            epsg_code INTEGER NOT NULL DEFAULT 4326,
+            name TEXT NOT NULL DEFAULT 'New Land 1'
         );
 
         CREATE TABLE ${DB_TABLENAMES.BORINGS} (
@@ -147,25 +144,51 @@ async function initializeDB(db: Database) {
         CREATE TABLE ${DB_TABLENAMES.TOPOS} (
             topo_id TEXT PRIMARY KEY,
             topo_name TEXT NOT NULL UNIQUE,
+            topo_type TEXT NOT NULL,
             color_index NUMERIC NOT NULL,
             three_id TEXT,
-            is_batched INTEGER NOT NULL CHECK (is_batched IN (0, 1))
+            is_batched INTEGER NOT NULL CHECK (is_batched IN (0, 1)),
+            topo_anchor_x REAL,
+            topo_anchor_y REAL,
+            topo_rotation REAL,
+            topo_resolution REAL
         );
 
         CREATE TABLE ${DB_TABLENAMES.TOPO_POINTS} (
             topo_id TEXT NOT NULL,
-            index_n INTEGER,
-            index_i INTEGER,
-            index_j INTEGER,
+            point_index INTEGER,
             coord_x REAL NOT NULL,
             coord_y REAL NOT NULL,
             coord_z REAL NOT NULL,
-            FOREIGN KEY (topo_id) REFERENCES ${DB_TABLENAMES.TOPOS} ON DELETE CASCADE
+            FOREIGN KEY (topo_id) REFERENCES ${DB_TABLENAMES.TOPOS} ON DELETE CASCADE,
             UNIQUE (topo_id, coord_x, coord_y, coord_z)
         );
-    `);
 
-    console.log("Tables recreated");
+        CREATE TABLE ${DB_TABLENAMES.TOPO_POINTS_EXPLODED} (
+            topo_id TEXT NOT NULL,
+            index_i INTEGER NOT NULL,
+            index_j INTEGER NOT NULL,
+            coord_z REAL NOT NULL,
+            FOREIGN KEY (topo_id) REFERENCES ${DB_TABLENAMES.TOPOS} ON DELETE CASCADE,
+            UNIQUE (topo_id, index_i, index_j)
+        );
+
+        CREATE TABLE ${DB_TABLENAMES.BOUNDARIES} (
+            boundary_id TEXT PRIMARY KEY,
+            three_obj_id TEXT NOT NULL UNIQUE,
+            boundary_name TEXT NOT NULL,
+            color_index INTEGER NOT NULL DEFAULT 1
+        );
+
+        CREATE TABLE ${DB_TABLENAMES.BOUNDARY_POINTS} (
+            boundary_id TEXT NOT NULL,
+            point_index INTEGER NOT NULL,
+            coord_x REAL NOT NULL,
+            coord_y REAL NOT NULL,
+            FOREIGN KEY (boundary_id) REFERENCES ${DB_TABLENAMES.BOUNDARIES} ON DELETE CASCADE,
+            UNIQUE (boundary_id, point_index)
+        );
+    `);
 
     // Add layer trigger
     await db.exec(`
@@ -236,15 +259,13 @@ export async function truncateDBHard(db: Database) {
         
         let i = 1;
         for (const { name } of tables) {
-            console.log(`Job ${i++} : Drop Table ${name}`);
-            // 테이블에 해당하는 트리거 삭제
+            // Remove triggers
             await db.run(`DROP TRIGGER IF EXISTS insert_layer_color_if_not_exists;`);
             await db.run(`DROP TRIGGER IF EXISTS delete_layer_color_if_no_layers;`);
             await db.run(`DROP TRIGGER IF EXISTS delete_layer_color_if_no_layers;`);
             await db.run(`DROP TABLE IF EXISTS "${name}";`);
         }
 
-        console.log('Dropped all tables.');
     } catch (error) {
         console.error('Failed to truncate database:', error);
         throw error;
@@ -267,7 +288,6 @@ export async function truncateDBSoft(db: Database) {
         `);
 
         for (const { name } of tables) {
-            console.log(`Deleting all rows from table: ${name}`);
             await db.run(`DELETE FROM "${name}";`);
         }
 
@@ -281,5 +301,29 @@ export async function truncateDBSoft(db: Database) {
     } catch (error) {
         console.error('Failed to truncate database:', error);
         throw error;
+    }
+}
+
+export async function flushData(db: Database) {
+    try {
+        await db.run("PRAGMA foreign_keys = OFF;");
+        
+        const tables = await db.all(`
+            SELECT name FROM sqlite_master WHERE type='table';
+        `);
+        
+        await db.run('BEGIN TRANSACTION');
+
+        for (const table of tables) {
+            await db.exec(`DELETE FROM ${table.name}`);
+        }
+
+        await db.run('COMMIT');
+
+        await db.run("PRAGMA foreign_keys = ON;");
+        
+    } catch (error) {
+        await db.run('ROLLBACK');
+        console.error(error);
     }
 }
