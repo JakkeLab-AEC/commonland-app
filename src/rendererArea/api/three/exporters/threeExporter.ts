@@ -128,7 +128,7 @@ export class ThreeExporter {
                 );
                 dxfWriter.addComponent(triangle3d);
             });
-        })
+        });
 
         dxfWriter.exportAsDXFFile(language);
     }

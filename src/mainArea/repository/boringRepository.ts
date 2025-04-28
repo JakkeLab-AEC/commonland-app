@@ -171,7 +171,7 @@ export class BoringRepository implements BoringCRUDMethods {
                 fetchedBorings: fetchedBorings
             }
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return {
                 result: false,
                 message: typeof error === 'string' ? error : ""
@@ -223,7 +223,6 @@ export class BoringRepository implements BoringCRUDMethods {
             await this.db.exec('BEGIN TRANSACTION');
             
             // Insert all datas
-            console.log(boringParams);
             await this.db.all(boringInsertQuery, boringParams);
 
             if(layerParams.length > 0) {
@@ -241,11 +240,10 @@ export class BoringRepository implements BoringCRUDMethods {
             // COMMIT
             await this.db.exec('COMMIT');
             
-            console.log('Insert Done');
             return {result: true}
         } catch (error) {
             await this.db.exec('ROLLBACK');
-            console.log(error);
+            console.error(error);
             return {result: false, message: typeof error === 'string' ? error : ""}
         }
     }
@@ -349,7 +347,7 @@ export class BoringRepository implements BoringCRUDMethods {
             return {result: true}
         } catch (error) {
             await this.db.exec('ROLLBACK');
-            console.log(error);
+            console.error(error);
             return {result: false, message: typeof error === 'string' ? error : ""}
         }
     }
@@ -453,7 +451,7 @@ export class BoringRepository implements BoringCRUDMethods {
             return {result: true}
         } catch (error) {
             await this.db.exec('ROLLBACK');
-            console.log(error);
+            console.error(error);
             return {result: false, message: typeof error === 'string' ? error : ""}
         }
     }
@@ -474,7 +472,7 @@ export class BoringRepository implements BoringCRUDMethods {
             }
         } catch (error) {
             await this.db.exec('ROLLBACK');
-            console.log(error);
+            console.error(error);
             return {
                 result: false,
                 message: typeof error === 'string' ? error : ""
@@ -501,7 +499,7 @@ export class BoringRepository implements BoringCRUDMethods {
             }
         } catch (error) {
             await this.db.exec('ROLLBACK');
-            console.log(error)
+            console.error(error)
             return {
                 result: false,
                 message: typeof error === 'string' ? error : ""
@@ -531,7 +529,7 @@ export class BoringRepository implements BoringCRUDMethods {
                 return { result: false, message: `No names found with index greater than ${index}`, searchedNames: []};
             }
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return {
                 result: false,
                 message: typeof error === 'string' ? error : ""
@@ -540,7 +538,6 @@ export class BoringRepository implements BoringCRUDMethods {
     }
 
     async searchBoringName(name: string, id?: string): Promise<{result: boolean, message?: string, error?: boolean}> {
-        console.log(`input test - name : ${name}, id : ${id}`);
         const queryWithId = `
             SELECT 
                 name
@@ -572,7 +569,7 @@ export class BoringRepository implements BoringCRUDMethods {
                 }
             }
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return {
                 result: false,
                 error: true,
@@ -595,7 +592,7 @@ export class BoringRepository implements BoringCRUDMethods {
 
             return {result: true, layerColors: layerColors}
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return {result: false, message: typeof error === 'string' ? error : ""}
         }
     }
@@ -606,7 +603,7 @@ export class BoringRepository implements BoringCRUDMethods {
             await this.db.all(query, [layerName, colorIndex, layerName]);
             return {result: true}
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return {result: false, message: typeof error === 'string' ? error : ""}
         }
     }

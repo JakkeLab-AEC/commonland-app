@@ -10,6 +10,8 @@ import { UIController } from './mainArea/appController/uicontroller/uicontroller
 import { setIpcModalControl } from './mainArea/ipcHandlers/ipcModalHandlers';
 import { setIPCPythonPipe } from './mainArea/ipcHandlers/ipcPythonPipe';
 import fs from 'fs';
+import { setIpcSiteBoundary } from './mainArea/ipcHandlers/ipcBoundary';
+import { setIpcLandInfo } from './mainArea/ipcHandlers/ipcLandInfo';
 
 if (require('electron-squirrel-startup')) app.quit();
 
@@ -27,7 +29,6 @@ const createMainWindow = () => {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
-      nodeIntegration: true,
       devTools: !app.isPackaged,
     },
   });
@@ -111,7 +112,10 @@ app.on('ready', () => {
     setIpcModalControl(ipcMain);
 
     setIPCPythonPipe(ipcMain);
-    
+
+    setIpcSiteBoundary(ipcMain);
+
+    setIpcLandInfo(ipcMain); 
   } else {
     
   }

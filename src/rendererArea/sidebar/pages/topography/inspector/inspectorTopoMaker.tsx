@@ -1,18 +1,19 @@
 import React, { ChangeEvent, useEffect, useRef, useState } from "react"
 import {LayerSelector} from '../components/layerSelector';
 import {D3LineChart} from '../../../../api/d3chart/d3linechart';
-import { ButtonPositive } from "@/rendererArea/components/buttons/buttonPositive";
-import { ButtonNegative } from "@/rendererArea/components/buttons/buttonNegative";
+import { ButtonPositive } from "@/rendererArea/components/forms/buttons/buttonPositive";
+import { ButtonNegative } from "@/rendererArea/components/forms/buttons/buttonNegative";
 import { useModalOveralyStore } from "@/rendererArea/homescreenitems/modalOverlayStore";
-import { useTopoMakerStore } from "./inspectorTopoMakerStore";
-import { Topo } from "@/mainArea/models/serviceModels/topo/Topo";
-import { ColorIndexPalette, ColorSquare } from "@/rendererArea/components/palette/colorIndexPalette";
-import { Inspector } from "@/rendererArea/components/inspector/inspector";
+import { DepthType, useTopoMakerStore } from "./inspectorTopoMakerStore";
+import { ColorIndexPalette, ColorSquare } from "@/rendererArea/components/forms/palette/colorIndexPalette";
+import { Inspector } from "@/rendererArea/components/forms/inspector/inspector";
 import { TopoType } from "@/mainArea/models/topoType";
-import { OBB } from "@/mainArea/models/graphics/obb";
+import { TopoCreationOptions } from "../options";
+import { Vector3d } from "@/mainArea/types/vector";
+import { ModalLoading } from "@/rendererArea/components/forms/loadings/modalLoading";
 
 interface InspectorTopoMakerProp {
-    onSubmitTopo?: (topo: Topo) => void;
+    onSubmitTopo?: (options: TopoCreationOptions) => void;
     onClickClose?: () => void;
 }
 
@@ -21,18 +22,18 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
     const resolutionRef = useRef<HTMLInputElement>(null);
     const [isPlatteOpened, setPaletteState] = useState<boolean>(false);
     const [topoColorIndex, setTopoColorIndex] = useState<number>(1);
-    const [topoCreationMode, setTopoCreationMode] = useState<TopoType>(TopoType.NotDefined)
-    const {
-        toggleMode,
-        resetProps
-    } = useModalOveralyStore();
+    const [topoCreationMode, setTopoCreationMode] = useState<TopoType>(TopoType.DelaunayMesh)
+    const [offset, setOffset] = useState<number>(0);
+    const [selectedBoundaryId, setBoundaryId] = useState<string>();
 
     const {
         allDepths,
         allLayerNames,
         selectedValues,
+        fetchedBoundaries,
         fetchAllDepths,
-        selectOnce,
+        selectValue,
+        unselectValue,
         reset,
     } = useTopoMakerStore();
 
@@ -44,25 +45,37 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
         }
 
         if(selectedValues.size == Array.from(selectedValues.values()).filter(value => value != null).length) {
-            const topo = new Topo({
-                isBatched: false, 
-                name: topoName, 
-                topoType: topoCreationMode, 
-                resolution: topoCreationMode === TopoType.DelaunayMesh || topoCreationMode === TopoType.NotDefined ? -1 : parseFloat(resolutionRef.current.value)
-            });
-            topo.setColorIndex(topoColorIndex);
+            const pts: Vector3d[] = [];
             selectedValues.forEach((value, key) => {
-                const targetBoring = allDepths.find(depth => depth.boringId == key);
-                topo.registerPoint({
+                const targetBoring = allDepths.find(depth => depth.boringId === key);
+                let level:number;
+                if(typeof value === "number") {
+                    level = value;
+                } else {
+                    level = targetBoring.layers.find(layer => layer.layerId === value).layerDepth;
+                }
+                
+                pts.push({
                     x: targetBoring.location.x,
                     y: targetBoring.location.y,
-                    z: targetBoring.layers.find(layer => layer.layerId == value).layerDepth
+                    z: level
                 });
             });
-            if(onSubmitTopo) {
-                onSubmitTopo(topo);
+
+            const option: TopoCreationOptions = {
+                name: topoName,
+                isBatched: false,
+                topoType: topoCreationMode,
+                colorIndex: topoColorIndex,
+                basePoints: pts,
+                offset: offset,
+                boundary: selectedBoundaryId === "none" ? undefined : fetchedBoundaries.get(selectedBoundaryId),
+                resolution: topoCreationMode === TopoType.OrdinaryKriging ? parseFloat(resolutionRef.current.value) : undefined,
             }
-            toggleMode(false);
+
+            if(onSubmitTopo) {
+                onSubmitTopo(option);
+            }
         } else {
             await window.electronSystemAPI.callDialogError('지형면 생성 오류', '모든 시추공에서 레이어를 선택헤 주세요');
         }
@@ -74,17 +87,44 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
         const depths:{name: string, value: number}[] = [];
         selectedValues.forEach((value, key) => {
             const targetBoring = allDepths.find(depth => depth.boringId == key);
-            const targetLayer = targetBoring.layers.find(layer => layer.layerId == value);
-            depths.push({
-                name: targetBoring.boringName,
-                value: targetLayer?.layerDepth,
-            })
+            if(typeof value === "string") {
+                const targetLayer = targetBoring.layers.find(layer => layer.layerId == value);
+                depths.push({
+                    name: targetBoring.boringName,
+                    value: targetLayer?.layerDepth,
+                })
+            } else {
+                depths.push({
+                    name: targetBoring.boringName,
+                    value: value
+                })
+            }
         });
         setData(depths);
     };
 
     const onSelectAllLayers = (e: ChangeEvent<HTMLSelectElement>) => {
-        selectOnce(e.target.value);
+        const layerName = e.target.value;
+        const depthMap: Map<string, DepthType> = new Map();
+        const boringIds = allDepths.map(d => {
+            depthMap.set(d.boringId, d);
+            return d.boringId;
+        });
+
+        if(layerName === 'topomaker-level-none') {
+            boringIds.forEach(id => unselectValue(id));
+            return;
+        }
+
+        boringIds.forEach(id => {
+            const depth = depthMap.get(id);
+            const targetLayer = depth.layers.find(ly => ly.layerName === layerName);
+            if(targetLayer) {
+                selectValue(id, targetLayer.layerId);
+            } else {
+                unselectValue(id);
+            }
+        });
     }
 
     const onClickRefreshGraph = () => {
@@ -100,13 +140,22 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
         const topoCreationType = e.target.value as TopoType;
         setTopoCreationMode(topoCreationType);
     }
+
+    const onChangeBoundary = (e: ChangeEvent<HTMLSelectElement>) => {
+        const boundaryId = e.target.value;
+        setBoundaryId(boundaryId);
+    }
+
+    const onChangeOffset = (e: ChangeEvent<HTMLInputElement>) => {
+        const offsetValue = parseInt(e.target.value);
+        setOffset(offsetValue);
+    }
     
     useEffect(() => {
         fetchAllDepths();
 
         return () => {
             reset();
-            resetProps();
         }
     }, []);
 
@@ -118,7 +167,7 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                     지형 이름
                 </div>
                 <div>
-                    <input ref={nameRef} className="border"/>
+                    <input ref={nameRef} className="flex border w-[120px]"/>
                 </div>
                 <div>
                     지형 색상
@@ -138,9 +187,9 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                         생성 방식
                     </div>
                     <div>
-                        <select className="border w-[180px]" onChange={onChangeCreationMode}>
+                        <select className="border w-[240px]" onChange={onChangeCreationMode} defaultValue={TopoType.DelaunayMesh}>
                             <option value={TopoType.DelaunayMesh}>Delaunay Mesh</option>
-                            <option value={TopoType.OrdinaryKriging}>Ordinary Krige</option>
+                            <option value={TopoType.OrdinaryKriging}>PyKrige - Universal Kriging</option>
                         </select>
                     </div>
                 </div>
@@ -149,9 +198,39 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                     <div>
                         해상도 (m)
                     </div>
-                    <div className="border">
-                        <input type="number" step={0.25} min={0.25} max={20} ref={resolutionRef} defaultValue={1}/>
+                    <input 
+                        className="border w-[60px]"
+                        type="number" 
+                        step={0.25} 
+                        min={0.25} 
+                        max={20}
+                        defaultValue={1}
+                        ref={resolutionRef}/>
+                </div>}
+                {(topoCreationMode !== TopoType.DelaunayMesh && topoCreationMode !== TopoType.NotDefined) &&
+                <div className="flex flex-row gap-2">
+                    <div>
+                        경계선 설정
                     </div>
+                    <select className="border w-[180px]" onChange={onChangeBoundary}>
+                        <option value="none" key="boundary-none">선택하지 않음</option>
+                        {Array.from(fetchedBoundaries.values())
+                            .sort((a, b) => a.name.localeCompare(b.name))
+                            .map(item => {
+                                return (
+                                <option 
+                                    value={item.id} 
+                                    key={`boundary-${item.id}`}>
+                                    {item.name}
+                                </option>)
+                            })}
+                    </select>
+                </div>}
+                {(topoCreationMode === TopoType.OrdinaryKriging) && <div className="flex flex-row gap-2">
+                    <div>
+                        오프셋 (m)
+                    </div>
+                    <input className="border w-[60px]" type="number" min={0} step={1} defaultValue={0} onChange={onChangeOffset}/>
                 </div>}
             </div>
             <hr/>
@@ -160,10 +239,10 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                 <div className="flex-grow">높이 지정</div>
                 <div className="">일괄 선택</div>
                 <select className="border w-[132px]" onChange={onSelectAllLayers}>
-                    <option>선택하지 않음</option>
-                    <option>지하수위</option>
+                    <option key="topomaker-level-none">선택하지 않음</option>
+                    <option key="topomaker-level-ungw">지하수위</option>
                     {allLayerNames.map(name => {
-                        return (<option>{name}</option>)
+                        return (<option key={`topomaker-level-${name}`}>{name}</option>)
                     })}
                 </select>
             </div>
