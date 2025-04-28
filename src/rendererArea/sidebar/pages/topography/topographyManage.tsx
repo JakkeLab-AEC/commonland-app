@@ -17,7 +17,6 @@ export const TopographyManage = () => {
     const {
         toggleMode,
         updateModalContent,
-        setMode
     } = useModalOveralyStore();
 
     const {

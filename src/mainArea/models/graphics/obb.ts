@@ -61,6 +61,31 @@ export class OBB {
         return this.points;
     }
 
+    expandByOffset(offset: number) {
+        const p0 = this.points[0];
+        const p1 = this.points[1];
+        const p3 = this.points[3];
+
+        const p0p1NormNeg = JG.VectorUtils.chain({...p1, z: 0})
+            .subtract({...p0, z: 0})
+            .normalize()
+            .scale(-offset)
+            .value();
+        const p0p3NormNeg = JG.VectorUtils.chain({...p3, z: 0})
+            .subtract({...p0, z: 0})
+            .normalize()
+            .scale(-offset)
+            .value();
+
+        const offsetNegXNegY = JG.VectorUtils.add(p0p1NormNeg, p0p3NormNeg);
+
+        const p0Offset = JG.VectorUtils.chain({...p0, z: 0}).add(offsetNegXNegY).value();
+        
+        this.anchor = p0Offset;
+        this.domainX += offset * 2;
+        this.domainY += offset * 2;
+    }
+
     serialize():OBBDto {
         return {
             rotationX: this.rotationX,

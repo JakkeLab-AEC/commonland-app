@@ -8,6 +8,7 @@ import { LayerColor } from "@/dto/serviceModel/layerColor";
 import { DEFAULT_VALUES } from "@/public/defaultValues";
 import { ElementId } from "../models/id";
 import { BoundaryDTO } from "@/dto/serviceModel/boundaryDto";
+import { TopoDTO } from "@/dto/serviceModel/topoDto";
 
 export class ProjectWrite {
     private landInfo: LandInfoDTO;
@@ -15,6 +16,7 @@ export class ProjectWrite {
     private layerColors: {layerName: string, colorIndex: number}[];
     private filePath: string;
     private boundaries: BoundaryDTO[];
+    private topos: TopoDTO[]
 
     private async writeLandInfo() {
         const fetchLandInfoJob = await AppController.getInstance().repositories.landInfo.fetchInfo();
@@ -54,12 +56,25 @@ export class ProjectWrite {
         }
     }
 
+    private async writeTopos() {
+        this.topos = [];
+        const fetchTopoJob = await AppController.getInstance()
+            .repositories.topo.fetchAllTopos();
+        
+        if(fetchTopoJob.result) {
+            fetchTopoJob.topoDatas.forEach(t => {
+                this.topos.push(t);
+            });
+        }
+    }
+
     async createSaveFile() {
         // Write data
         await this.writeLandInfo();
         await this.writeBoringDatas();
         await this.writeLayerConfig();
         await this.writeBoundaryDatas();
+        await this.writeTopos();
 
         // Create JSON data
         const dataToSave: ProjectFileDTO = {
@@ -67,6 +82,7 @@ export class ProjectWrite {
             borings: this.borings,
             layerColors: this.layerColors,
             boundaries: this.boundaries,
+            topos: this.topos,
         };
 
         // Convert to JSON strings
@@ -97,10 +113,13 @@ export class ProjectRead {
     private layerColors: LayerColor[];
     private filePath: string;
     private boundaries: BoundaryDTO[];
+    private topos: TopoDTO[];
 
     constructor() {
         this.borings = [];
         this.layerColors = [];
+        this.boundaries = [];
+        this.topos = [];
         this.filePath = '';
     }
 
@@ -121,6 +140,7 @@ export class ProjectRead {
             this.borings = jsonData.borings;
             this.layerColors = jsonData.layerColors;
             this.boundaries = jsonData.boundaries;
+            this.topos = jsonData.topos;
 
             return {result: true}
         } catch (error) {
@@ -156,6 +176,13 @@ export class ProjectRead {
 
             // Boundaries
             await AppController.getInstance().repositories.boundary.insertBoundaries(this.boundaries);
+
+            // Topos
+            if(this.topos && this.topos.length > 0) {
+                for(const topo of this.topos) {
+                    await AppController.getInstance().repositories.topo.insertTopo(topo);
+                }
+            }
 
             console.log('Pushed all datas');
         } catch (error) {

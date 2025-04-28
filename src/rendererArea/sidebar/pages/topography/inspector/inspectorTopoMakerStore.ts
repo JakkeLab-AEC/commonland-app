@@ -2,20 +2,18 @@ import { OBB } from "@/mainArea/models/graphics/obb";
 import { Topo } from "@/mainArea/models/serviceModels/topo/Topo";
 import { TopoType } from "@/mainArea/models/topoType";
 import { TriangleSet } from "@/mainArea/types/triangleDataSet";
-import { Vector2d, Vector3d } from "@/mainArea/types/vector";
+import { Vector2d } from "@/mainArea/types/vector";
 import { createDelaunatedMesh } from "@/rendererArea/api/three/predefinedCreations/delaunayUtils";
 import { createMeshFromTriangleSet } from "@/rendererArea/api/three/predefinedCreations/triangleSetUtils";
 import { SceneController } from "@/rendererArea/api/three/SceneController";
 import { generateUUID } from "three/src/math/MathUtils";
 import { create } from "zustand";
 import * as THREE from 'three';
-import { Boundary } from "@/mainArea/models/serviceModels/boundary/boundary";
 import { createBoundaryObject } from "@/rendererArea/api/three/predefinedCreations/siteBoundary";
 import { BoundaryMetadata } from "@/dto/serviceModel/boundaryDto";
 import { TopoCreationOptions } from "../options";
 import { ElementId } from "@/mainArea/models/id";
 import { TopoMetadataDTO } from "@/dto/serviceModel/topoDto";
-import { ModelType } from "@/mainArea/models/modelType";
 
 type DisplayItemProps = {displayString: string, checked: boolean, colorIndex: number};
 
@@ -26,11 +24,11 @@ interface TopoMakerProp {
     fetchedBoundaries: Map<string, BoundaryMetadata>,
     topoDisplayItems: Map<string, DisplayItemProps>,
     boundaryDisplayItems: Map<string, DisplayItemProps>,
-    selectedValues: Map<string, string|null>,
+    selectedValues: Map<string, string|number|null>,
     fetchAllDepths:() => void;
     fetchAllTopos: () => Promise<void>,
     insertTopo: (options: TopoCreationOptions) => Promise<void>;
-    selectValue: (boringId: string, layerId: string) => void,
+    selectValue: (boringId: string, layerIdOrLevel: string|number) => void,
     selectOnce: (layerName: string) => void,
     updateDisplayItemCheck: (id: string, checked: boolean) => void,
     updateDisplayItemColor: (id: string, color: number) => Promise<{result: boolean, updatedTopo?: TopoMetadataDTO}>,
@@ -142,7 +140,6 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
             topo.setThreeObjId(mesh.uuid);
             insertJob = await window.electronTopoLayerAPI.insertTopo(topo.serialize());
         } else {
-            console.log(option.topoType);
             const boundaryPts: Vector2d[] = [];
             if(option.boundary) {
                 const boundaryFetch = await window.electronTopoLayerAPI.selectBoundary(option.boundary.id);
@@ -150,7 +147,9 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
             } else {
                 boundaryPts.push(...option.basePoints);
             }
+
             const obb = new OBB(boundaryPts);
+            obb.expandByOffset(option.offset);
 
             const topo = new Topo({
                 isBatched: option.isBatched,
@@ -170,10 +169,10 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
         
         SceneController.getInstance().addObject(mesh);
     },
-    selectValue: (boringId: string, layerId: string) => {
+    selectValue: (boringId: string, layerIdOrLevel: string|number) => {
         const slot = get().selectedValues;
         const updatedSlot = new Map(slot);
-        updatedSlot.set(boringId, layerId);
+        updatedSlot.set(boringId, layerIdOrLevel);
         set(() => {return {selectedValues: updatedSlot}});
     },
     selectOnce: (layerName: string) => {
@@ -321,5 +320,5 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
                 boundaryDisplayItems: updatedBoundaryDisplayItems
             }
         })
-    }
+    },
 }));

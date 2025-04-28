@@ -8,6 +8,7 @@ export type TopoCreationOptions = {
     topoType: TopoType,
     colorIndex: number,
     basePoints: Vector3d[],
+    offset: number,
     boundary?: BoundaryMetadata,
     resolution?: number,
 }

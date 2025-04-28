@@ -23,12 +23,8 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
     const [isPlatteOpened, setPaletteState] = useState<boolean>(false);
     const [topoColorIndex, setTopoColorIndex] = useState<number>(1);
     const [topoCreationMode, setTopoCreationMode] = useState<TopoType>(TopoType.NotDefined)
+    const [offset, setOffset] = useState<number>(0);
     const [selectedBoundaryId, setBoundaryId] = useState<string>();
-    const {
-        toggleMode,
-        updateModalContent,
-        setMode,
-    } = useModalOveralyStore();
 
     const {
         allDepths,
@@ -50,13 +46,21 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
         if(selectedValues.size == Array.from(selectedValues.values()).filter(value => value != null).length) {
             const pts: Vector3d[] = [];
             selectedValues.forEach((value, key) => {
-                const targetBoring = allDepths.find(depth => depth.boringId == key);
+                const targetBoring = allDepths.find(depth => depth.boringId === key);
+                let level:number;
+                if(typeof value === "number") {
+                    level = value;
+                } else {
+                    level = targetBoring.layers.find(layer => layer.layerId == value).layerDepth;
+                }
+                
                 pts.push({
                     x: targetBoring.location.x,
                     y: targetBoring.location.y,
-                    z: targetBoring.layers.find(layer => layer.layerId == value).layerDepth
+                    z: level
                 });
             });
+            console.log(pts);
 
             const option: TopoCreationOptions = {
                 name: topoName,
@@ -64,6 +68,7 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                 topoType: topoCreationMode,
                 colorIndex: topoColorIndex,
                 basePoints: pts,
+                offset: offset,
                 boundary: selectedBoundaryId === "none" ? undefined : fetchedBoundaries.get(selectedBoundaryId),
                 resolution: parseFloat(resolutionRef.current.value),
             }
@@ -82,11 +87,18 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
         const depths:{name: string, value: number}[] = [];
         selectedValues.forEach((value, key) => {
             const targetBoring = allDepths.find(depth => depth.boringId == key);
-            const targetLayer = targetBoring.layers.find(layer => layer.layerId == value);
-            depths.push({
-                name: targetBoring.boringName,
-                value: targetLayer?.layerDepth,
-            })
+            if(typeof value === "string") {
+                const targetLayer = targetBoring.layers.find(layer => layer.layerId == value);
+                depths.push({
+                    name: targetBoring.boringName,
+                    value: targetLayer?.layerDepth,
+                })
+            } else {
+                depths.push({
+                    name: targetBoring.boringName,
+                    value: value
+                })
+            }
         });
         setData(depths);
     };
@@ -112,6 +124,11 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
     const onChangeBoundary = (e: ChangeEvent<HTMLSelectElement>) => {
         const boundaryId = e.target.value;
         setBoundaryId(boundaryId);
+    }
+
+    const onChangeOffset = (e: ChangeEvent<HTMLInputElement>) => {
+        const offsetValue = parseInt(e.target.value);
+        setOffset(offsetValue);
     }
     
     useEffect(() => {
@@ -183,6 +200,12 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                                 </option>)
                             })}
                     </select>
+                </div>}
+                {(topoCreationMode === TopoType.OrdinaryKriging) && <div className="flex flex-row gap-2">
+                    <div>
+                        오프셋 (m)
+                    </div>
+                    <input className="border w-[80px]" type="number" min={0} step={1} defaultValue={0} onChange={onChangeOffset}/>
                 </div>}
             </div>
             <hr/>

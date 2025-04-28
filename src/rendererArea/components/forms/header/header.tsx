@@ -54,10 +54,6 @@ export default function Header({appName}:{appName: string}) {
         navigationIndex,
         setNaviationIndex
     } = useSidebarStore();
-
-    const loadingListner = (e: number) => {
-        updateProgress(e);
-    }
     
     const contextMenuProp:ContextMenuProp = {
         menuItemProps: [{
