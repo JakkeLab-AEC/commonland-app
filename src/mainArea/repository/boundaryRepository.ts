@@ -93,7 +93,7 @@ export class BoundaryRepository {
             for(const id of ids) {
                 await this.db.run(`DELETE FROM ${DB_TABLENAMES.BOUNDARIES} WHERE boundary_id = ?`, [id])
             }
-
+            
             await this.db.run('COMMIT');
             return {result: true}
         } catch (error) {
@@ -183,6 +183,23 @@ export class BoundaryRepository {
             return {result: true, metadatas: metadatas};
         } catch (error) {
             return {result: false, message: String(error)};
+        }
+    }
+
+    async updateBoundaryColor(id: string, index: number): Promise<{result: boolean, message?: string}> {
+        const query = RepositryQueryBuilder.buildUpdateQuery(DB_TABLENAMES.BOUNDARIES, ['color_index'], 'boundary_id');
+        try {
+            await this.db.exec('BEGIN TRANSACTION');
+            
+            await this.db.all(query, [index, id]);
+
+            await this.db.exec('COMMIT');
+
+            return {result: true}
+        } catch (error) {
+            console.log(error);
+            await this.db.exec('ROLLBACK');
+            return {result: false, message: error ? error.toString() : null }
         }
     }
 }

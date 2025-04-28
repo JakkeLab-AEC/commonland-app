@@ -8,8 +8,6 @@ import { VectorUtils, Vertex3d } from "jakke-graphics-ts";
 import * as THREE from 'three';
 
 export function createMeshFromTriangleSet(dataSet: TriangleSet, colorIndex: number, topoMetadata: TopoMetadataDTO): THREE.Object3D {
-    console.log(dataSet);
-    
     // Set points map
     const { pts, anchor: anc, rotation: rot, resolution: res, maxI, maxJ } = dataSet;
     const vertices: number[] = [];
@@ -79,6 +77,7 @@ export function createMeshFromTriangleSet(dataSet: TriangleSet, colorIndex: numb
         type : ModelType.Topo,
         createdFrom: topoMetadata
     }
+    mesh.uuid = topoMetadata.threeObjId;
 
     // Add edges
     const edgesGeometry = new THREE.EdgesGeometry(geometry);

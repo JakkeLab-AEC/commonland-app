@@ -48,7 +48,11 @@ export const setIpcSiteBoundary = (ipcMain: IpcMain) => {
         return await AppController.getInstance().repositories.boundary.selectBoundaryMetadata(id);
     });
 
-    ipcMain.handle('boundary-fetch-metadata-all', async(_, id: string) => {
+    ipcMain.handle('boundary-fetch-metadata-all', async(_) => {
         return await AppController.getInstance().repositories.boundary.selectAllBoundaryMetadata();
+    });
+
+    ipcMain.handle('boundary-update-color', async (_, id: string, index: number) => {
+        return await AppController.getInstance().repositories.boundary.updateBoundaryColor(id, index);
     });
 }

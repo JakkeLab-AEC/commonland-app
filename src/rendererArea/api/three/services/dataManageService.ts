@@ -91,7 +91,6 @@ export class ViewportDataManageService {
         const threeOldObjUUIDs: string[] = [];
 
         const boundaryFetch = await window.electronTopoLayerAPI.selectBoundaryAll();
-        console.log(boundaryFetch);
         if(!boundaryFetch || !boundaryFetch.result) return;
 
         const polylines: THREE.Object3D[] = [];

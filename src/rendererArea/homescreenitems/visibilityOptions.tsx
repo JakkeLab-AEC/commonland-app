@@ -87,7 +87,7 @@ export const VisibilityOptions = () => {
         SceneController.getInstance().getViewportControl().resetCamera();
     }
 
-    const onClickResetBorings = async () => {
+    const onClickRefreshViewport = async () => {
         updateModalContent(<ModalLoading />)
         toggleMode(true);
 
@@ -114,7 +114,7 @@ export const VisibilityOptions = () => {
                 <PostOpacitySlider/>,
                 <TopoOpacitySlider/>,
                 <ButtonPositive text={"전체 보기"} isEnabled={true} onClickHandler={onClickResetCamera} width={80}/>,
-                <ButtonPositive text={"뷰포트 새로고침"} isEnabled={isResetBoringEnabled} onClickHandler={onClickResetBorings} width={132}/>
+                <ButtonPositive text={"뷰포트 새로고침"} isEnabled={isResetBoringEnabled} onClickHandler={onClickRefreshViewport} width={132}/>
             ]} />
     )
 }

@@ -12,6 +12,7 @@ import { ModalLoading } from "@/rendererArea/components/forms/loadings/modalLoad
 
 export const TopographyManage = () => {
     const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
+    const [checkedBoundary, setCheckedBoundaries] = useState<Set<string>>(new Set());
     const boundaryNameRef = useRef<HTMLInputElement>(null);
 
     const {
@@ -23,13 +24,17 @@ export const TopographyManage = () => {
         topoDisplayItems,
         fetchedTopos,
         boundaryDisplayItems,
+        fetchedBoundaries,
         updateDisplayItemCheck,
         updateDisplayItemColor,
+        updateBoundaryDisplayItemCheck,
+        updateBoundaryDisplayItemColor,
         removeTopos,
         insertTopo,
         fetchAllTopos,
         fetchAllBoundaries,
-        insertBoundary
+        insertBoundary,
+        removeBoundaries
     } = useTopoMakerStore();
 
     const onSubmitTopo = async (options: TopoCreationOptions) => {
@@ -99,7 +104,6 @@ export const TopographyManage = () => {
     const onClickDeleteTopos = async () => {
         const newSet = new Set(checkedItems);
         const deleteJobResult = await removeTopos(Array.from(newSet.values()));
-        console.log(deleteJobResult);
         
         if(deleteJobResult.result) {
             setCheckedItems(new Set());
@@ -119,8 +123,52 @@ export const TopographyManage = () => {
         insertBoundary(name);
     }
 
-    const removeBoundary = () => {
+    const removeBoundary = async () => {
+        const newSet = new Set(checkedBoundary);
+        const deleteJobResult = await removeBoundaries(Array.from(newSet.values()));
         
+        if(deleteJobResult.result) {
+            setCheckedItems(new Set());
+            const targetThreeIds = deleteJobResult.deletedBoundaries.map(boundary => boundary.threeObjId);
+            SceneController.getInstance().removeObjectByUUIDs(targetThreeIds);
+        }
+    }
+
+    const onChangeColorBoundary = async (id: string, index: number) => {
+        const updateJob = await updateBoundaryDisplayItemColor(id, index);
+        if(updateJob && updateJob.result) {
+            const updatedBoundary = updateJob.updatedBoundary;
+
+            SceneController.getInstance()
+                .getViewportControl()
+                .updateBoundaryColor([{
+                    threeObjId: updatedBoundary.threeObjId,
+                    colorIndex: index,
+            }]);
+        }
+    }
+
+    const onCheckedBoundary = (id: string, checked: boolean, all?: boolean | null) => {
+        if(all != null) {
+            if(all) {
+                const ids = new Set(fetchedBoundaries.keys());
+                ids.forEach(id => updateBoundaryDisplayItemCheck(id, true));
+                setCheckedBoundaries(ids);
+            } else {
+                const ids = new Set(fetchedBoundaries.keys());
+                ids.forEach(id => updateBoundaryDisplayItemCheck(id, false));
+                setCheckedBoundaries(new Set());
+            }
+        } else {
+            const newSet = new Set(checkedBoundary);
+            if(checked) {
+                newSet.add(id);
+            } else {
+                newSet.delete(id);
+            }
+            setCheckedBoundaries(newSet);
+            updateBoundaryDisplayItemCheck(id, checked);
+        }
     }
 
     useEffect(() => {
@@ -153,7 +201,9 @@ export const TopographyManage = () => {
                 <ListBoxColorPicker 
                     height={240} 
                     items={boundaryDisplayItems} 
-                    header={"폴리라인"}/>
+                    header={"폴리라인"}
+                    onChangeColorHandler={onChangeColorBoundary}
+                    onCheckedHandler={onCheckedBoundary}/>
             </div>
             <div className="flex flex-row place-content-between gap-2">
                 <input className="border rounded-md w-full" maxLength={22} ref={boundaryNameRef}/>

@@ -5,7 +5,6 @@ import { DB_TABLENAMES } from "../../public/databaseProps";
 import { ModelType } from "../models/modelType";
 import { TopoType } from "../models/topoType";
 import { TriangleSet } from "../types/triangleDataSet";
-import { Vector3d } from "../types/vector";
 
 interface TopoCRUDMethods {
     insertTopo(topoDto: TopoDTO): Promise<{result: boolean, message?: string}>;
@@ -189,7 +188,7 @@ export class TopoRepository implements TopoCRUDMethods {
                     resolution: data.topo_resolution,
                 }
             });
-            return {result: false, metadatas: metadatas};
+            return {result: true, metadatas: metadatas};
         } catch (error) {
             return {result: false, message: String(error)};
         }

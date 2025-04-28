@@ -32,18 +32,22 @@ contextBridge.exposeInMainWorld('electronProjectIOAPI', {
 })
 
 contextBridge.exposeInMainWorld('electronTopoLayerAPI', {
+    // Topos
     insertTopo: (topoDto: TopoDTO, obb?: OBBDto) => ipcRenderer.invoke('topolayer-insert', topoDto, obb),
     fetchAllTopos: () => ipcRenderer.invoke('topolayer-fetch-all'),
     fetchAllTopoMetadatas: () => ipcRenderer.invoke('topolayer-fetch-metadata-all'),
     updateTopoColor: (id:string, index: number) => ipcRenderer.invoke('topolayer-update-color', id, index),
     updateTopoThreeObjId: (ids: {id: string, threeObjId: string}[]) => ipcRenderer.invoke('topolayer-update-threeobjid', ids),
     removeTopos: (ids: string[]) => ipcRenderer.invoke('topolayer-remove', ids),
+    
+    // Boundaries
     insertBoundary: (name: string) => ipcRenderer.invoke('boundary-add', name),
-    removeBoundary: (id: string) => ipcRenderer.invoke('boundary-remove', id),
+    removeBoundaries: (ids: string[]) => ipcRenderer.invoke('boundary-remove', ids),
     selectBoundaryMetadata: (id: string) => ipcRenderer.invoke('boundary-fetch-metadata-by-id', id),
     selectBoundaryMetadataAll: () => ipcRenderer.invoke('boundary-fetch-metadata-all'),
     selectBoundary: (id: string) => ipcRenderer.invoke('boundary-fetch-by-id', id),
     selectBoundaryAll: () => ipcRenderer.invoke('boundary-fetch-all'),
+    updateBoundaryColor: (id: string, index: number) => ipcRenderer.invoke('boundary-update-color', id, index),
 });
 
 contextBridge.exposeInMainWorld('electronSystemAPI', {

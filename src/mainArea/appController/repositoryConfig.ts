@@ -4,9 +4,6 @@ import sqlite3 from 'sqlite3';
 import path from "path";
 import fs from 'fs';
 import { DB_TABLENAMES } from "../../public/databaseProps";
-import { RepositryQueryBuilder } from "../repository/utils/queryBuilder";
-import { ElementId } from "../models/id";
-import { EPSGCodes } from "@/public/epsgCodes";
 
 export async function openDB() {
     const userDataPath = app.getPath('userData');

@@ -53,6 +53,22 @@ export class ViewportControlService {
         }
     }
 
+    updateBoundaryColor = (updateArgs: {threeObjId: string, colorIndex: number}[]) => {
+        try {
+            updateArgs.forEach(arg => {
+                const threeObj = this.sceneController.getScene().getObjectByProperty('uuid', arg.threeObjId);
+                if(threeObj) {
+                    (threeObj as THREE.Line).material = new THREE.LineBasicMaterial({
+                        color: parseInt(colorPaletteValues[arg.colorIndex].slice(1), 16),
+                    });
+                }
+            });
+            this.sceneController.render();
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     updateOpacityByModelType = (modelType: ModelType, opacity: number)=> {
         const matchingObjects: THREE.Object3D[] = [];
         this.sceneController.getScene().traverse((obj) => {
@@ -102,7 +118,8 @@ export class ViewportControlService {
         this.sceneController.render();
     }
 
-    resetCamera = () => {
+    resetCamera = (asInitiated = false) => {
+        console.log("Reset Camera");
          // Remove the event listener temporarily
         this.sceneController.controls.removeEventListener('change', this.updateCameraPlane);
 
@@ -117,7 +134,7 @@ export class ViewportControlService {
             }
         });
 
-        if (targetObjects.length === 0) {
+        if (targetObjects.length === 0 && !asInitiated) {
             this.sceneController.controls.addEventListener('change', this.updateCameraPlane);
             return;
         }
@@ -128,8 +145,8 @@ export class ViewportControlService {
         const max = boundingBox.max;
 
         // Calculate camera positions and lookAt direction
-        const cameraCenter = max.clone();
-        const cameraLookAt = min.clone();
+        const cameraCenter = asInitiated ? new THREE.Vector3(50, 50, 50) : max.clone();
+        const cameraLookAt = asInitiated ? new THREE.Vector3(0, 0, 0) : min.clone();
 
         // Set camera's position and look at the target
         camera.position.set(cameraCenter.x, cameraCenter.y, cameraCenter.z);

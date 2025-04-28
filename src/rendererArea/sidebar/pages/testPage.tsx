@@ -3,7 +3,6 @@ import { TestAPI } from "../../../rendererArea/api/test/testAPI"
 import { useRef } from "react";
 import { PipeMessageSendRenderer } from "@/dto/pipeMessage";
 import { Vector2d } from "@/mainArea/types/vector";
-import { createConvexHullGeometry, createTextOverlay } from "@/rendererArea/api/three/utils/createConvexHull";
 import { SceneController } from "@/rendererArea/api/three/SceneController";
 import * as THREE from 'three'; 
 import './test/testStyle.css';
@@ -36,28 +35,6 @@ export const TestPage = () => {
     const testPython = async () => {
         await window.electronIPCPythonBridge.test();
     }
-
-    const testConvexHull = () => {
-        const points: Vector2d[] = [];
-        for(let i = 0; i < TEST_POINT_COUNT; i++) {
-            points.push({
-                x: Math.random()*100 - 50,
-                y: Math.random()*100 - 50,
-            });
-        }
-
-        const {originalPts, hullPts, lines, hullPtValues} = createConvexHullGeometry(points);
-        SceneController.getInstance().addObjects([originalPts, lines, hullPts]);
-
-        hullPtValues.forEach((pt, index) => {
-            createTextOverlay(
-                SceneController.getInstance().getRenderer(), 
-                SceneController.getInstance().getCamera(),
-                new THREE.Vector3(pt.x, pt.y, 0),
-                index.toString(),
-            );
-        });
-    }
     
     return (
         <div className="flex flex-col gap-2">
@@ -73,9 +50,6 @@ export const TestPage = () => {
             </div>
             <ButtonPositive text={"Send Message"} isEnabled={true} onClickHandler={testSendingText} width={'100%'}/>
             <hr/>
-            <label>Graphics Test</label>
-            <ButtonPositive text={"Test ConvexHull"} isEnabled={true} onClickHandler={testConvexHull} width={'100%'}/>
-            <ButtonPositive text={"Test OBB"} isEnabled={true} onClickHandler={testConvexHull} width={'100%'}/>
         </div>
     )
 }

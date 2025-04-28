@@ -64,6 +64,8 @@ export default function Header({appName}:{appName: string}) {
                 if(job.result && job.landInfo) {
                     await fetchLandInfo();
                 }
+
+                SceneController.getInstance().getViewportControl().resetCamera(true);
             },
             closeHandler: () => setMenuVisibility(false),
         }, {

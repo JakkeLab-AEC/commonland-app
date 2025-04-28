@@ -32,8 +32,11 @@ interface TopoMakerProp {
     selectOnce: (layerName: string) => void,
     updateDisplayItemCheck: (id: string, checked: boolean) => void,
     updateDisplayItemColor: (id: string, color: number) => Promise<{result: boolean, updatedTopo?: TopoMetadataDTO}>,
+    updateBoundaryDisplayItemCheck: (id: string, checked: boolean) => void,
+    updateBoundaryDisplayItemColor: (id: string, color: number) => Promise<{result: boolean, updatedBoundary?: BoundaryMetadata}>,
     removeTopos: (ids: string[]) => Promise<{result: boolean, deletedTopos?: TopoMetadataDTO[]}>,
     insertBoundary: (name: string) => Promise<void>,
+    removeBoundaries: (ids: string[]) => Promise<{result: boolean, deletedBoundaries?: BoundaryMetadata[]}>,
     fetchAllBoundaries: () => Promise<void>,
     reset: () => void,
 }
@@ -164,7 +167,15 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
 
             if(!insertJob || !insertJob.result) return;
 
-            mesh = createMeshFromTriangleSet(insertJob.topoDataSet, option.colorIndex);
+            mesh = createMeshFromTriangleSet(insertJob.topoDataSet, option.colorIndex, {
+                topoType: topo.topoType,
+                name: topo.getName(),
+                threeObjId: topo.getThreeObjId(),
+                colorIndex: topo.getColorIndex(),
+                isBatched: 0,
+                id: topo.elementId.getValue(),
+                modelType: topo.modelType
+            });
         }
         
         SceneController.getInstance().addObject(mesh);
@@ -225,10 +236,13 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
             });
 
             const fetchJob = await window.electronTopoLayerAPI.fetchAllTopoMetadatas();
+            console.log(fetchJob);
             if(fetchJob.result) {
                 fetchJob.metadatas.forEach(topo => {
                     updatedTopos.set(topo.id, topo);
                 });
+
+                console.log(updatedDisplayItems);
 
                 set(() => {return {
                     topoDisplayItems: updatedDisplayItems,
@@ -263,6 +277,47 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
         }
         
         return {result: false}
+    },
+    updateBoundaryDisplayItemCheck: (id: string, checked: boolean) => {
+        const updatedDisplayItems = new Map(get().boundaryDisplayItems);
+        const formerStatus = updatedDisplayItems.get(id);
+
+        updatedDisplayItems.set(id, {
+            displayString: formerStatus.displayString,
+            checked: checked,
+            colorIndex: formerStatus.colorIndex
+        });
+
+        set(() => {return {boundaryDisplayItems: updatedDisplayItems}});
+    },
+    updateBoundaryDisplayItemColor: async (id: string, color: number) => {
+        const updateJob = await window.electronTopoLayerAPI.updateBoundaryColor(id, color);
+        if(updateJob.result) {
+            const updatedDisplayItems = new Map(get().boundaryDisplayItems);
+            const updatedBoundaries = new Map(get().fetchedBoundaries);
+            const formerStatus = updatedDisplayItems.get(id);
+
+            updatedDisplayItems.set(id, {
+                displayString: formerStatus.displayString,
+                checked: formerStatus.checked,
+                colorIndex: color
+            });
+
+            const fetchJob = await window.electronTopoLayerAPI.selectBoundaryMetadataAll();
+            if(fetchJob.result) {
+                fetchJob.metadatas.forEach(boundary => {
+                    updatedBoundaries.set(boundary.id, boundary);
+                });
+
+                set(() => {return {
+                    boundaryDisplayItems: updatedDisplayItems,
+                    fetchedBoundaries: updatedBoundaries,
+                }});
+            }
+
+            return {result: true, updatedBoundary:  get().fetchedBoundaries.get(id)};
+        }
+        return {result: false};
     },
     fetchAllBoundaries: async() => {
         const fetchJob = await window.electronTopoLayerAPI.selectBoundaryMetadataAll();
@@ -321,4 +376,28 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
             }
         })
     },
+    removeBoundaries: async(ids: string[]) => {
+        const removeJob = await window.electronTopoLayerAPI.removeBoundaries(ids);
+        const oldBoundaries = get().fetchedBoundaries;
+        const updatedBoundaries= new Map(oldBoundaries);
+        const deletedTargets: Map<string, BoundaryMetadata> = new Map();
+        const newDisplayItems = new Map(get().boundaryDisplayItems);
+        if(removeJob.result) {
+            ids.forEach(id => {
+                deletedTargets.set(id, oldBoundaries.get(id));
+                newDisplayItems.delete(id);
+                updatedBoundaries.delete(id);
+            })
+
+            set(() => {
+                return { 
+                    boundaryDisplayItems : newDisplayItems,
+                    fetchedBoundaries: updatedBoundaries,
+                }
+            })
+            return {result: removeJob.result, deletedBoundaries: Array.from(deletedTargets.values())};
+        }
+        
+        return {result: false}
+    }
 }));
