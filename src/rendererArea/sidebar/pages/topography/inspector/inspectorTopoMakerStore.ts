@@ -16,9 +16,10 @@ import { ElementId } from "@/mainArea/models/id";
 import { TopoMetadataDTO } from "@/dto/serviceModel/topoDto";
 
 type DisplayItemProps = {displayString: string, checked: boolean, colorIndex: number};
+export type DepthType = {boringName: string, boringId: string, location: {x: number, y: number}, layers:{layerId: string, layerName: string, layerDepth: number}[]};
 
 interface TopoMakerProp {
-    allDepths: {boringName: string, boringId: string, location: {x: number, y: number}, layers:{layerId: string, layerName: string, layerDepth: number}[]}[],
+    allDepths: DepthType[],
     allLayerNames: string[],
     fetchedTopos: Map<string, TopoMetadataDTO>,
     fetchedBoundaries: Map<string, BoundaryMetadata>,
@@ -29,7 +30,8 @@ interface TopoMakerProp {
     fetchAllTopos: () => Promise<void>,
     insertTopo: (options: TopoCreationOptions) => Promise<void>;
     selectValue: (boringId: string, layerIdOrLevel: string|number) => void,
-    selectOnce: (layerName: string) => void,
+    unselectValue: (boringId: string) => void,
+    selectOnce: (layerName: string, reset?: boolean) => void,
     updateDisplayItemCheck: (id: string, checked: boolean) => void,
     updateDisplayItemColor: (id: string, color: number) => Promise<{result: boolean, updatedTopo?: TopoMetadataDTO}>,
     updateBoundaryDisplayItemCheck: (id: string, checked: boolean) => void,
@@ -163,6 +165,7 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
             topo.setThreeObjId(new ElementId().getValue());
 
             option.basePoints.forEach(p => topo.registerPoint(p));
+            console.log(topo.getAllPoints());
             insertJob = await window.electronTopoLayerAPI.insertTopo(topo.serialize(), obb.serialize());
 
             if(!insertJob || !insertJob.result) return;
@@ -186,19 +189,29 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
         updatedSlot.set(boringId, layerIdOrLevel);
         set(() => {return {selectedValues: updatedSlot}});
     },
-    selectOnce: (layerName: string) => {
-        const depths = get().allDepths;
-        const newSelectedValues = new Map(get().selectedValues);
-        depths.forEach(depth => {
-            const index = depth.layers.findIndex(layer => layer.layerName == layerName);
-            if(index != -1) {
+    unselectValue: (boringId: string) => {
+        const slot = get().selectedValues;
+        const updatedSlot = new Map(slot);
+        updatedSlot.delete(boringId);
+        set(() => {return {selectedValues: updatedSlot}});
+    },
+    selectOnce: (layerName: string, reset = false) => {
+        if(reset) {
+            set(() => { return { selectedValues: new Map() }});
+        } else {
+            const depths = get().allDepths;
+            const newSelectedValues = new Map(get().selectedValues);
+            depths.forEach(depth => {
+            const index = depth.layers.findIndex(layer => layer.layerName === layerName);
+            if(index !== -1) {
                 const layerId = depth.layers[index].layerId;
                 newSelectedValues.set(depth.boringId, layerId);
             } else {
-                newSelectedValues.set(depth.boringId, null);
+                newSelectedValues.delete(depth.boringId);
             }
         });
         set(() => { return { selectedValues: newSelectedValues }});
+        }
     },
     reset: () => {
         set(() => {

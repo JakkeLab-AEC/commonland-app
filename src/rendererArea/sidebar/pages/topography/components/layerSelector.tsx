@@ -9,7 +9,6 @@ interface LayerSelectorProp {
 }
 
 export const LayerSelector:React.FC<LayerSelectorProp> = ({boringName, boringId, layerValues}) => {
-    const refs = useRef(new Map<string, HTMLInputElement | null>());
     const customLevelRef = useRef<HTMLInputElement>(null);
     const [isCustomMode, setCustomMode] = useState<boolean>(false);
     const {
@@ -20,7 +19,9 @@ export const LayerSelector:React.FC<LayerSelectorProp> = ({boringName, boringId,
     const onCheckItem = (e: ChangeEvent<HTMLInputElement>) => {
         if(e.target.checked) {
             const value = e.target.value;
+            console.log(value);
             if(value === `${boringId}-depth-userdefined-custom`) {
+                console.log("CustomLevel");
                 const customLevel = parseFloat(customLevelRef.current.value);
                 selectValue(boringId, customLevel);
                 setCustomMode(true);
@@ -30,14 +31,6 @@ export const LayerSelector:React.FC<LayerSelectorProp> = ({boringName, boringId,
             }
         }
     }
-
-    const handleAddRef = (key: string) => (element: HTMLInputElement | null) => {
-        if (element) {
-          refs.current.set(key, element);
-        } else {
-          refs.current.delete(key); // 요소가 unmount되면 Map에서 삭제
-        }
-    };
 
     const onTypeCustomLevel = (e: ChangeEvent<HTMLInputElement>) => {
         const value = parseFloat(e.target.value);
@@ -52,7 +45,7 @@ export const LayerSelector:React.FC<LayerSelectorProp> = ({boringName, boringId,
                 </div>
                 <div>
                     <StatusLabel 
-                        isRedLight={selectedValues.get(boringId) === null} 
+                        isRedLight={!selectedValues.get(boringId)} 
                         redLightMessage={"선택 전"} 
                         greenLightMessage={"선택 완료"} />
                 </div>
@@ -69,8 +62,7 @@ export const LayerSelector:React.FC<LayerSelectorProp> = ({boringName, boringId,
                             name={`${boringId}`} 
                             value={layer.layerId} 
                             onChange={onCheckItem} 
-                            ref={handleAddRef(layer.layerId)} 
-                            checked={selectedValues.get(boringId) == layer.layerId}/> 
+                            checked={selectedValues.get(boringId) === layer.layerId}/> 
                         <div className="flex-grow max-w-[84px]">
                             {layer.layerName.length > 7 ? layer.layerName.slice(0, 7) + '...' : layer.layerName} 
                         </div>

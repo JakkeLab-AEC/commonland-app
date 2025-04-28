@@ -4,7 +4,7 @@ import {D3LineChart} from '../../../../api/d3chart/d3linechart';
 import { ButtonPositive } from "@/rendererArea/components/forms/buttons/buttonPositive";
 import { ButtonNegative } from "@/rendererArea/components/forms/buttons/buttonNegative";
 import { useModalOveralyStore } from "@/rendererArea/homescreenitems/modalOverlayStore";
-import { useTopoMakerStore } from "./inspectorTopoMakerStore";
+import { DepthType, useTopoMakerStore } from "./inspectorTopoMakerStore";
 import { ColorIndexPalette, ColorSquare } from "@/rendererArea/components/forms/palette/colorIndexPalette";
 import { Inspector } from "@/rendererArea/components/forms/inspector/inspector";
 import { TopoType } from "@/mainArea/models/topoType";
@@ -32,7 +32,8 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
         selectedValues,
         fetchedBoundaries,
         fetchAllDepths,
-        selectOnce,
+        selectValue,
+        unselectValue,
         reset,
     } = useTopoMakerStore();
 
@@ -49,9 +50,10 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                 const targetBoring = allDepths.find(depth => depth.boringId === key);
                 let level:number;
                 if(typeof value === "number") {
+                    console.log("Custom level");
                     level = value;
                 } else {
-                    level = targetBoring.layers.find(layer => layer.layerId == value).layerDepth;
+                    level = targetBoring.layers.find(layer => layer.layerId === value).layerDepth;
                 }
                 
                 pts.push({
@@ -104,7 +106,27 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
     };
 
     const onSelectAllLayers = (e: ChangeEvent<HTMLSelectElement>) => {
-        selectOnce(e.target.value);
+        const layerName = e.target.value;
+        const depthMap: Map<string, DepthType> = new Map();
+        const boringIds = allDepths.map(d => {
+            depthMap.set(d.boringId, d);
+            return d.boringId;
+        });
+
+        if(layerName === 'topomaker-level-none') {
+            boringIds.forEach(id => unselectValue(id));
+            return;
+        }
+
+        boringIds.forEach(id => {
+            const depth = depthMap.get(id);
+            const targetLayer = depth.layers.find(ly => ly.layerName === layerName);
+            if(targetLayer) {
+                selectValue(id, targetLayer.layerId);
+            } else {
+                unselectValue(id);
+            }
+        });
     }
 
     const onClickRefreshGraph = () => {
