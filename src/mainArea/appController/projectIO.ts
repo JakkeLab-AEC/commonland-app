@@ -9,6 +9,7 @@ import { DEFAULT_VALUES } from "@/public/defaultValues";
 import { ElementId } from "../models/id";
 import { BoundaryDTO } from "@/dto/serviceModel/boundaryDto";
 import { TopoDTO } from "@/dto/serviceModel/topoDto";
+import { TopoType } from "../models/topoType";
 
 export class ProjectWrite {
     private landInfo: LandInfoDTO;
@@ -180,7 +181,11 @@ export class ProjectRead {
             // Topos
             if(this.topos && this.topos.length > 0) {
                 for(const topo of this.topos) {
-                    await AppController.getInstance().repositories.topo.insertTopo(topo);
+                    if(topo.topoType === TopoType.OrdinaryKriging) {
+                        await AppController.getInstance().repositories.topo.insertTopoKrigged(topo, topo.triangles);
+                    } else {
+                        await AppController.getInstance().repositories.topo.insertTopo(topo);
+                    }
                 }
             }
 

@@ -14,7 +14,8 @@ export function createBoundaryObject(boundaryDto: BoundaryDTO): THREE.Object3D {
     polyline.userData = {
         modelCreatedFrom: 'CommonLandApp',
         type: ModelType.Boundary,
-        instanceId: boundaryDto.id
+        instanceId: boundaryDto.id,
+        createdFrom: boundaryDto
     }
 
     return polyline;

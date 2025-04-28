@@ -1,3 +1,4 @@
+import { TopoMetadataDTO } from "@/dto/serviceModel/topoDto";
 import { ModelType } from "@/mainArea/models/modelType";
 import { Index2d, TriangleSet } from "@/mainArea/types/triangleDataSet";
 import { Vector3d } from "@/mainArea/types/vector";
@@ -6,7 +7,7 @@ import { useVisibilityOptionStore } from "@/rendererArea/homescreenitems/visibil
 import { VectorUtils, Vertex3d } from "jakke-graphics-ts";
 import * as THREE from 'three';
 
-export function createMeshFromTriangleSet(dataSet: TriangleSet, colorIndex: number): THREE.Object3D {
+export function createMeshFromTriangleSet(dataSet: TriangleSet, colorIndex: number, topoMetadata: TopoMetadataDTO): THREE.Object3D {
     console.log(dataSet);
     
     // Set points map
@@ -51,8 +52,6 @@ export function createMeshFromTriangleSet(dataSet: TriangleSet, colorIndex: numb
             indices.push(index1, index3, index2);
         }
     }
-
-    console.log()
     
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
@@ -78,6 +77,7 @@ export function createMeshFromTriangleSet(dataSet: TriangleSet, colorIndex: numb
     mesh.userData = {
         modelCreatedFrom: 'CommonLandApp',
         type : ModelType.Topo,
+        createdFrom: topoMetadata
     }
 
     // Add edges

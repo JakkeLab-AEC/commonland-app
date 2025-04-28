@@ -66,7 +66,15 @@ export class ViewportDataManageService {
                 const mesh = createDelaunatedMesh(Topo.deserialize(topo), topo.id);
                 meshes.push(mesh);
             } else if (topo.topoType === TopoType.OrdinaryKriging) {
-                const mesh = createMeshFromTriangleSet(topo.triangles, topo.colorIndex);
+                const mesh = createMeshFromTriangleSet(topo.triangles, topo.colorIndex, {
+                    topoType: topo.topoType,
+                    name: topo.name,
+                    threeObjId: topo.threeObjId,
+                    colorIndex: topo.colorIndex,
+                    isBatched: topo.isBatched,
+                    id: topo.id,
+                    modelType: topo.modelType
+                });
                 meshes.push(mesh);
             }
 
