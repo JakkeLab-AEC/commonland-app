@@ -15,7 +15,6 @@ export const setIpcTopoRepository = (ipcMain: IpcMain) => {
         if(topoDto.topoType === TopoType.DelaunayMesh) {
             insertJob = await AppController.getInstance().repositories.topo.insertTopo(topoDto);
         } else {
-            console.log(topoDto);
             const krigingResult = await TopoUtils.createTopoDataSet.runPykrige(obb, topoDto.resolution, topoDto.points);
             if(!krigingResult.result) return {result: false, message: krigingResult.message};
 

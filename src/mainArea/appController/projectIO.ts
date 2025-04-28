@@ -90,9 +90,7 @@ export class ProjectWrite {
         const jsonString = JSON.stringify(dataToSave, null, 2); // Indent setting
 
         try {
-            // 파일로 저장
             await fs.writeFile(this.filePath, jsonString, 'utf-8');
-            console.log(`File saved successfully at ${this.filePath}`);
         } catch (error) {
             console.error('Error saving the file:', error);
         }
@@ -166,12 +164,10 @@ export class ProjectRead {
 
             // Borings
             for(const boring of this.borings) {
-                console.log(`Push ${boring.name}`);
                 await AppController.getInstance().repositories.boring.insertBoring(boring);
             }
             
             for(const layer of this.layerColors) {
-                console.log(`Push ${layer.layerName} - ${layer.colorIndex}`);
                 await AppController.getInstance().repositories.boring.updateLayerColor(layer.layerName, layer.colorIndex);
             }
 
@@ -189,9 +185,8 @@ export class ProjectRead {
                 }
             }
 
-            console.log('Pushed all datas');
         } catch (error) {
-            console.log(`Error occured : ${error}`);
+            console.error(`Error occured : ${error}`);
         }
     }
 
@@ -210,7 +205,7 @@ export class ProjectRead {
             await this.pushAllDatas();
             return {result: true};
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return {result: false, message: error};
         }
     }

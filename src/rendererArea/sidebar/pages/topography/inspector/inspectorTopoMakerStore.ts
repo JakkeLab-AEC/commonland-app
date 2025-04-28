@@ -166,7 +166,6 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
             topo.setThreeObjId(new ElementId().getValue());
 
             option.basePoints.forEach(p => topo.registerPoint(p));
-            console.log(topo.getAllPoints());
             insertJob = await window.electronTopoLayerAPI.insertTopo(topo.serialize(), obb.serialize());
 
             if(!insertJob || !insertJob.result) return;
@@ -250,13 +249,10 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
             });
 
             const fetchJob = await window.electronTopoLayerAPI.fetchAllTopoMetadatas();
-            console.log(fetchJob);
             if(fetchJob.result) {
                 fetchJob.metadatas.forEach(topo => {
                     updatedTopos.set(topo.id, topo);
                 });
-
-                console.log(updatedDisplayItems);
 
                 set(() => {return {
                     topoDisplayItems: updatedDisplayItems,

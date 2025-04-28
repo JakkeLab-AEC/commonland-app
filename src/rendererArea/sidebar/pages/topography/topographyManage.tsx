@@ -39,7 +39,6 @@ export const TopographyManage = () => {
 
     const onSubmitTopo = async (options: TopoCreationOptions) => {
         updateModalContent(<ModalLoading message="지형 생성중..." />)
-        console.log(options);
         await insertTopo(options);
         await fetchAllTopos();
 

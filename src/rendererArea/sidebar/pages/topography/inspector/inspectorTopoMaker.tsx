@@ -22,7 +22,7 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
     const resolutionRef = useRef<HTMLInputElement>(null);
     const [isPlatteOpened, setPaletteState] = useState<boolean>(false);
     const [topoColorIndex, setTopoColorIndex] = useState<number>(1);
-    const [topoCreationMode, setTopoCreationMode] = useState<TopoType>(TopoType.NotDefined)
+    const [topoCreationMode, setTopoCreationMode] = useState<TopoType>(TopoType.DelaunayMesh)
     const [offset, setOffset] = useState<number>(0);
     const [selectedBoundaryId, setBoundaryId] = useState<string>();
 
@@ -50,7 +50,6 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                 const targetBoring = allDepths.find(depth => depth.boringId === key);
                 let level:number;
                 if(typeof value === "number") {
-                    console.log("Custom level");
                     level = value;
                 } else {
                     level = targetBoring.layers.find(layer => layer.layerId === value).layerDepth;
@@ -62,7 +61,6 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                     z: level
                 });
             });
-            console.log(pts);
 
             const option: TopoCreationOptions = {
                 name: topoName,
@@ -72,7 +70,7 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                 basePoints: pts,
                 offset: offset,
                 boundary: selectedBoundaryId === "none" ? undefined : fetchedBoundaries.get(selectedBoundaryId),
-                resolution: parseFloat(resolutionRef.current.value),
+                resolution: topoCreationMode === TopoType.OrdinaryKriging ? parseFloat(resolutionRef.current.value) : undefined,
             }
 
             if(onSubmitTopo) {
@@ -189,7 +187,7 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                         생성 방식
                     </div>
                     <div>
-                        <select className="border w-[180px]" onChange={onChangeCreationMode}>
+                        <select className="border w-[180px]" onChange={onChangeCreationMode} defaultValue={TopoType.DelaunayMesh}>
                             <option value={TopoType.DelaunayMesh}>Delaunay Mesh</option>
                             <option value={TopoType.OrdinaryKriging}>Ordinary Krige</option>
                         </select>

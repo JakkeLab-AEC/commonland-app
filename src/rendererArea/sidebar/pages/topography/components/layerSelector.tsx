@@ -19,7 +19,6 @@ export const LayerSelector:React.FC<LayerSelectorProp> = ({boringName, boringId,
     const onCheckItem = (e: ChangeEvent<HTMLInputElement>) => {
         if(e.target.checked) {
             const value = e.target.value;
-            console.log(value);
             if(value === `${boringId}-depth-userdefined-custom`) {
                 console.log("CustomLevel");
                 const customLevel = parseFloat(customLevelRef.current.value);

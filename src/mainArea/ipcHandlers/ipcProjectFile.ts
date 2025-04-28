@@ -30,7 +30,7 @@ export const setIpcProjectIOHandler = (ipcMain: IpcMain) => {
 
             return {result: true}
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return {result: false, message: error}
         }
     });

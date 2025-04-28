@@ -9,7 +9,6 @@ export async function openDB() {
     const userDataPath = app.getPath('userData');
     const dbPath = path.join(userDataPath, 'database.db');
 
-    console.log(dbPath);
     // Ensure the directory exists
     fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
@@ -92,7 +91,6 @@ async function initializeDB(db: Database) {
     
     let i = 1;
     for (const { name } of tables) {
-        console.log(`Job ${i++} : Drop Table ${name}`);
         // 테이블에 해당하는 트리거 삭제
         await db.run(`DROP TRIGGER IF EXISTS insert_layer_color_if_not_exists;`);
         await db.run(`DROP TRIGGER IF EXISTS delete_layer_color_if_no_layers;`);
@@ -100,8 +98,6 @@ async function initializeDB(db: Database) {
         await db.run(`DROP TABLE IF EXISTS "${name}";`);
     }
     
-    console.log("Existing tables dropped");
-
     await db.exec(`
         CREATE TABLE ${DB_TABLENAMES.LAND_INFO} (
             land_id TEXT PRIMARY KEY,
@@ -160,6 +156,7 @@ async function initializeDB(db: Database) {
 
         CREATE TABLE ${DB_TABLENAMES.TOPO_POINTS} (
             topo_id TEXT NOT NULL,
+            point_index INTEGER,
             coord_x REAL NOT NULL,
             coord_y REAL NOT NULL,
             coord_z REAL NOT NULL,
@@ -192,8 +189,6 @@ async function initializeDB(db: Database) {
             UNIQUE (boundary_id, point_index)
         );
     `);
-
-    console.log("Tables recreated");
 
     // Add layer trigger
     await db.exec(`
@@ -264,7 +259,6 @@ export async function truncateDBHard(db: Database) {
         
         let i = 1;
         for (const { name } of tables) {
-            console.log(`Job ${i++} : Drop Table ${name}`);
             // Remove triggers
             await db.run(`DROP TRIGGER IF EXISTS insert_layer_color_if_not_exists;`);
             await db.run(`DROP TRIGGER IF EXISTS delete_layer_color_if_no_layers;`);
@@ -272,7 +266,6 @@ export async function truncateDBHard(db: Database) {
             await db.run(`DROP TABLE IF EXISTS "${name}";`);
         }
 
-        console.log('Dropped all tables.');
     } catch (error) {
         console.error('Failed to truncate database:', error);
         throw error;
@@ -295,7 +288,6 @@ export async function truncateDBSoft(db: Database) {
         `);
 
         for (const { name } of tables) {
-            console.log(`Deleting all rows from table: ${name}`);
             await db.run(`DELETE FROM "${name}";`);
         }
 
@@ -314,8 +306,6 @@ export async function truncateDBSoft(db: Database) {
 
 export async function flushData(db: Database) {
     try {
-
-        console.log('Run Truncate');
         await db.run("PRAGMA foreign_keys = OFF;");
         
         const tables = await db.all(`
@@ -334,6 +324,6 @@ export async function flushData(db: Database) {
         
     } catch (error) {
         await db.run('ROLLBACK');
-        console.log(error);
+        console.error(error);
     }
 }
