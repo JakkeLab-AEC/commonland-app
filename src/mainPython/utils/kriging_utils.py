@@ -1,6 +1,6 @@
 import math
 import numpy as np
-from pykrige.ok import OrdinaryKriging
+from pykrige.uk import UniversalKriging
 
 def calculate_topo_from_points(obb, input_pts, resolution):
     # Generate krigging model
@@ -9,16 +9,22 @@ def calculate_topo_from_points(obb, input_pts, resolution):
         converted_point = [point['x'], point['y'], point['z']]
         arr_points.append(converted_point)
 
-
     # Run krigging
     data = np.array(arr_points)
-    OK = OrdinaryKriging(
+    OK = UniversalKriging(
         x=data[:, 0],
         y=data[:, 1],
         z=data[:, 2],
         variogram_model="gaussian",
+        variogram_parameters={
+            "sill": np.var(data[:, 2]),  # Set distribution as sill
+            "range": (obb['domainX'] + obb['domainY']) / len(input_pts) * 2, # Set range
+            "nugget": 0.01, # Set samll nugget value
+        },
         verbose=False,
         enable_plotting=False,
+        exact_values=True,
+        drift_terms=['linear']
     )
 
     # Set axis
