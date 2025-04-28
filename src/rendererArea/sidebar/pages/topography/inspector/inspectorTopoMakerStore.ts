@@ -137,12 +137,13 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
                 name: option.name,
                 topoType: option.topoType,
             });
+            topo.setColorIndex(option.colorIndex);
             topo.setThreeObjId(new ElementId().getValue());
             
             option.basePoints.forEach(p => topo.registerPoint(p));            
             mesh = createDelaunatedMesh(topo, topo.getThreeObjId());
-            
-            topo.setThreeObjId(mesh.uuid);
+            mesh.uuid = topo.getThreeObjId();
+
             insertJob = await window.electronTopoLayerAPI.insertTopo(topo.serialize());
         } else {
             const boundaryPts: Vector2d[] = [];

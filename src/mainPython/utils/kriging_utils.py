@@ -11,7 +11,7 @@ def calculate_topo_from_points(obb, input_pts, resolution):
 
     # Run krigging
     data = np.array(arr_points)
-    OK = UniversalKriging(
+    UK = UniversalKriging(
         x=data[:, 0],
         y=data[:, 1],
         z=data[:, 2],
@@ -62,7 +62,7 @@ def calculate_topo_from_points(obb, input_pts, resolution):
     grid_y = grid_xy[:, 1]
 
     # Run krigging
-    z_pred, _ = OK.execute(style="points", xpoints=grid_x, ypoints=grid_y)
+    z_pred, _ = UK.execute(style="points", xpoints=grid_x, ypoints=grid_y)
 
     points_pred = []
     max_i = -1
