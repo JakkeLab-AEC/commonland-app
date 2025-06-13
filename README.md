@@ -5,6 +5,9 @@ Tool for create topography, manage land based on borehole report.
 
 ![image](https://github.com/user-attachments/assets/c6425a4a-88c2-455a-af97-f308a50fc835)
 
+IMPORTANT : 25-06-13 Currently some embedded local libraries are in progress to distribute on npm. <br/>
+So please wait a little bit and I will notice when it finished. <br/>
+- Local Libraries : Computational Geometry Library - https://github.com/JakkeLab-AEC/jakke-graphics-ts
 
 ---
 
