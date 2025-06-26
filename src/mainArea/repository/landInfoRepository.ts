@@ -85,7 +85,7 @@ export class LandInfoRepository {
             }
             return {result: true}
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return {result: false, message: String(error)}
         }
     }

@@ -49,7 +49,7 @@ export class ViewportControlService {
             });
             this.sceneController.render();
         } catch (error) {
-            console.log(error);
+            console.error(error);
         }
     }
 
@@ -65,7 +65,7 @@ export class ViewportControlService {
             });
             this.sceneController.render();
         } catch (error) {
-            console.log(error);
+            console.error(error);
         }
     }
 
@@ -119,7 +119,6 @@ export class ViewportControlService {
     }
 
     resetCamera = (asInitiated = false) => {
-        console.log("Reset Camera");
          // Remove the event listener temporarily
         this.sceneController.controls.removeEventListener('change', this.updateCameraPlane);
 

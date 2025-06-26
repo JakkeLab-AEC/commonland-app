@@ -12,16 +12,6 @@ const TEST_POINT_COUNT = 50;
 export const TestPage = () => {
     const textBoxRef = useRef<HTMLInputElement>(null);
 
-    const testPosts = async () => {
-        const testApi = new TestAPI();
-        testApi.createTestBorings(1);
-    }
-
-    const testOnSelectColor = (index: number) => {
-        console.log(index);
-        const teststring = 'hello';
-    }
-
     const testSendingText = async () => {
         const message: PipeMessageSendRenderer = {
             action: "Test",
@@ -31,17 +21,9 @@ export const TestPage = () => {
         }
         await window.electronIPCPythonBridge.send(message);
     }
-
-    const testPython = async () => {
-        await window.electronIPCPythonBridge.test();
-    }
     
     return (
         <div className="flex flex-col gap-2">
-            {/* <ButtonPositive text={"Create Test Borings"} isEnabled={true} onClickHandler={testPosts}/> */}
-            {/* <ModalLoadingProject /> */}
-            {/* <ButtonPositive text={"Test Python"} isEnabled={true} onClickHandler={testPython} />  */}
-            {/* <hr/> */}
             <div>
                 Embedded Python Bridge Test
             </div>

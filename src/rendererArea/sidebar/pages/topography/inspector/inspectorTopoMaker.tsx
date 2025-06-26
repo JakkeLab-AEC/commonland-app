@@ -22,7 +22,7 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
     const resolutionRef = useRef<HTMLInputElement>(null);
     const [isPlatteOpened, setPaletteState] = useState<boolean>(false);
     const [topoColorIndex, setTopoColorIndex] = useState<number>(1);
-    const [topoCreationMode, setTopoCreationMode] = useState<TopoType>(TopoType.NotDefined)
+    const [topoCreationMode, setTopoCreationMode] = useState<TopoType>(TopoType.DelaunayMesh)
     const [offset, setOffset] = useState<number>(0);
     const [selectedBoundaryId, setBoundaryId] = useState<string>();
 
@@ -62,7 +62,6 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                     z: level
                 });
             });
-            console.log(pts);
 
             const option: TopoCreationOptions = {
                 name: topoName,
@@ -72,7 +71,7 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                 basePoints: pts,
                 offset: offset,
                 boundary: selectedBoundaryId === "none" ? undefined : fetchedBoundaries.get(selectedBoundaryId),
-                resolution: parseFloat(resolutionRef.current.value),
+                resolution: topoCreationMode === TopoType.OrdinaryKriging ? parseFloat(resolutionRef.current.value) : undefined,
             }
 
             if(onSubmitTopo) {
@@ -169,7 +168,7 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                     지형 이름
                 </div>
                 <div>
-                    <input ref={nameRef} className="border"/>
+                    <input ref={nameRef} className="flex border w-[120px]"/>
                 </div>
                 <div>
                     지형 색상
@@ -189,9 +188,9 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                         생성 방식
                     </div>
                     <div>
-                        <select className="border w-[180px]" onChange={onChangeCreationMode}>
+                        <select className="border w-[240px]" onChange={onChangeCreationMode} defaultValue={TopoType.DelaunayMesh}>
                             <option value={TopoType.DelaunayMesh}>Delaunay Mesh</option>
-                            <option value={TopoType.OrdinaryKriging}>Ordinary Krige</option>
+                            <option value={TopoType.OrdinaryKriging}>PyKrige - Universal Kriging</option>
                         </select>
                     </div>
                 </div>
@@ -200,9 +199,14 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                     <div>
                         해상도 (m)
                     </div>
-                    <div className="border">
-                        <input type="number" step={0.25} min={0.25} max={20} ref={resolutionRef} defaultValue={1}/>
-                    </div>
+                    <input 
+                        className="border w-[60px]"
+                        type="number" 
+                        step={0.25} 
+                        min={0.25} 
+                        max={20}
+                        defaultValue={1}
+                        ref={resolutionRef}/>
                 </div>}
                 {(topoCreationMode !== TopoType.DelaunayMesh && topoCreationMode !== TopoType.NotDefined) &&
                 <div className="flex flex-row gap-2">
@@ -227,7 +231,7 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                     <div>
                         오프셋 (m)
                     </div>
-                    <input className="border w-[80px]" type="number" min={0} step={1} defaultValue={0} onChange={onChangeOffset}/>
+                    <input className="border w-[60px]" type="number" min={0} step={1} defaultValue={0} onChange={onChangeOffset}/>
                 </div>}
             </div>
             <hr/>

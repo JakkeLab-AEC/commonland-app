@@ -57,7 +57,7 @@ export class ViewportDataManageService {
         const threeOldObjUUIDs: string[] = [];
         
         const topoFetch = await window.electronTopoLayerAPI.fetchAllTopos();
-        console.log(topoFetch);
+        console.error(topoFetch);
         if(!topoFetch || !topoFetch.result) return;
         
         const meshes: THREE.Object3D[] = [];

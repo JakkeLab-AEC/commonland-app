@@ -3,6 +3,12 @@
 
 Tool for create topography, manage land based on borehole report.
 
+![image](https://github.com/user-attachments/assets/c6425a4a-88c2-455a-af97-f308a50fc835)
+
+IMPORTANT : 25-06-13 Currently some embedded local libraries are in progress to distribute on npm. <br/>
+So please wait a little bit and I will notice when it finished. <br/>
+- Local Libraries : Computational Geometry Library - https://github.com/JakkeLab-AEC/jakke-graphics-ts
+
 ---
 
 ## Introduction
@@ -16,7 +22,7 @@ Tool for create topography, manage land based on borehole report.
 
 ---
 
-### Current Version (0.0.1)
+### Current Version (0.0.2)
 - The simple guide to use for this application is posted at : <br/>
   https://cheddar-napkin-4cc.notion.site/CommonLand-25-03-24-0-0-1-KR-1bfa42ff6f228083b612d4644b16003d?pvs=74
 - Now it's written in Korean. Soon, I'll translate it as other languages (ENG, JPN)

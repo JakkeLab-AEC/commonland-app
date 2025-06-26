@@ -137,12 +137,13 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
                 name: option.name,
                 topoType: option.topoType,
             });
+            topo.setColorIndex(option.colorIndex);
             topo.setThreeObjId(new ElementId().getValue());
             
             option.basePoints.forEach(p => topo.registerPoint(p));            
             mesh = createDelaunatedMesh(topo, topo.getThreeObjId());
-            
-            topo.setThreeObjId(mesh.uuid);
+            mesh.uuid = topo.getThreeObjId();
+
             insertJob = await window.electronTopoLayerAPI.insertTopo(topo.serialize());
         } else {
             const boundaryPts: Vector2d[] = [];
@@ -162,6 +163,7 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
                 topoType: option.topoType,
                 resolution: option.resolution,
             });
+            topo.setColorIndex(option.colorIndex);
             topo.setThreeObjId(new ElementId().getValue());
 
             option.basePoints.forEach(p => topo.registerPoint(p));
@@ -249,13 +251,10 @@ export const useTopoMakerStore = create<TopoMakerProp>((set, get) => ({
             });
 
             const fetchJob = await window.electronTopoLayerAPI.fetchAllTopoMetadatas();
-            console.log(fetchJob);
             if(fetchJob.result) {
                 fetchJob.metadatas.forEach(topo => {
                     updatedTopos.set(topo.id, topo);
                 });
-
-                console.log(updatedDisplayItems);
 
                 set(() => {return {
                     topoDisplayItems: updatedDisplayItems,

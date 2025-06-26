@@ -197,7 +197,7 @@ export class BoundaryRepository {
 
             return {result: true}
         } catch (error) {
-            console.log(error);
+            console.error(error);
             await this.db.exec('ROLLBACK');
             return {result: false, message: error ? error.toString() : null }
         }

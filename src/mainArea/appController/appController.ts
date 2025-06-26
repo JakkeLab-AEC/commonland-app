@@ -49,7 +49,6 @@ export class AppController {
             appRuntimePath: app.getPath('userData')
         });
         this.pythonBridge.ready();
-        console.log(`Python Directory : ${pythonPath}`);
     }
 
     public static InitiateAppController(osInfo: "win"|"mac" = "win", pythonPath: string, appRootPath: string){

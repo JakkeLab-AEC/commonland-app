@@ -89,7 +89,7 @@ export class TopoRepository implements TopoCRUDMethods {
 
             return {result: true}
         } catch (error) {
-            console.log(error);
+            console.error(error);
             await this.db.exec('ROLLBACK');
             return {result: false, message: error ? error.toString() : null }
         }
@@ -145,7 +145,7 @@ export class TopoRepository implements TopoCRUDMethods {
             await this.db.exec('COMMIT');
             return {result: true, topoDataSet: triangleSet}
         } catch (error) {
-            console.log(error);
+            console.error(error);
             await this.db.exec('ROLLBACK');
             return {result: false, message: error ? error.toString() : null }
         }
@@ -157,7 +157,7 @@ export class TopoRepository implements TopoCRUDMethods {
             const topoMap: Map<string, TopoDTO> = await this.buildTopoMap(topos);
             return {result: true, topoDatas: Array.from(topoMap.values())}
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return {result: false, message: error ? error.toString() : null }
         }
     }
@@ -168,7 +168,7 @@ export class TopoRepository implements TopoCRUDMethods {
             const topoMap: Map<string, TopoDTO> = await this.buildTopoMap(topos);
             return {result: true, topoData: Array.from(topoMap.values())[0]}
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return {result: false, message: error ? error.toString() : null }
         }
     }
@@ -224,7 +224,7 @@ export class TopoRepository implements TopoCRUDMethods {
 
             return {result: true}
         } catch (error) {
-            console.log(error);
+            console.error(error);
             await this.db.exec('ROLLBACK');
             return {result: false, message: error ? error.toString() : null }
         }
@@ -250,7 +250,7 @@ export class TopoRepository implements TopoCRUDMethods {
 
             return {result: true}
         } catch (error) {
-            console.log(error);
+            console.error(error);
             await this.db.exec('ROLLBACK');
             return {result: false, message: error ? error.toString() : null }
         }
@@ -275,7 +275,7 @@ export class TopoRepository implements TopoCRUDMethods {
 
             return {result: true}
         } catch (error) {
-            console.log(error);
+            console.error(error);
             await this.db.exec('ROLLBACK');
             return {result: false, message: error ? error.toString() : null }
         }
