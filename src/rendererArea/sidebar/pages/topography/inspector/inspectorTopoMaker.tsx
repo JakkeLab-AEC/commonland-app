@@ -50,6 +50,7 @@ export const InspectorTopoMaker:React.FC<InspectorTopoMakerProp> = ({onSubmitTop
                 const targetBoring = allDepths.find(depth => depth.boringId === key);
                 let level:number;
                 if(typeof value === "number") {
+                    console.log("Custom level");
                     level = value;
                 } else {
                     level = targetBoring.layers.find(layer => layer.layerId === value).layerDepth;
