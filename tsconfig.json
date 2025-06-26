@@ -1,21 +1,20 @@
 {
   "compilerOptions": {
     "jsx": "react-jsx",
-    "target": "ES6",
+    "target": "es2017",
     "module": "commonjs",
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
     "noImplicitAny": false,
     "outDir": "./dist",
-    "baseUrl": ".",
+    "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"],
-      "mainArea/*": ["src/mainArea/*"],
     },
     "esModuleInterop": true,
     "strictNullChecks": false
   },
-  "include": ["src/**/*.ts", "src/main.ts", "src/renderer.ts", "src/rendererArea/components/status/statusLabel.tsx"],
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules"]
 }

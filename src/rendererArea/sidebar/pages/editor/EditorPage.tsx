@@ -1,18 +1,18 @@
 import { useHomeStore } from "../../../commonStatus/homeStatusModel";
-import { ListBox } from "../../../../rendererArea/components/listbox/listBox"
+import { ListBox } from "../../../components/forms/listbox/listBox"
 import React, { ChangeEvent, useEffect, useRef, useState } from "react"
 import { InspectorBoringEdit } from "./inspectors/inspectorBoringEdit";
 import { useLanguageStore } from "../../../../rendererArea/language/languageStore";
-import {ButtonPositive} from "../../../../rendererArea/components/buttons/buttonPositive";
-import {ButtonNegative} from "../../../../rendererArea/components/buttons/buttonNegative";
+import {ButtonPositive} from "../../../components/forms/buttons/buttonPositive";
+import {ButtonNegative} from "../../../components/forms/buttons/buttonNegative";
 import { useEditorPageStore } from "./EditorPageStore";
 import { Boring } from "../../../../mainArea/models/serviceModels/boring/boring";
 import { Layer } from "../../../../mainArea/models/serviceModels/boring/layer";
-import { FoldableControl } from "@/rendererArea/components/foldableControl/foldableControl";
-import { ListInputBox } from "@/rendererArea/components/listbox/listInputBox";
-import { ColorIndexPalette } from "@/rendererArea/components/palette/colorIndexPalette";
 import { useModalOveralyStore } from "@/rendererArea/homescreenitems/modalOverlayStore";
 import {ModalSwapXY} from './modals/modalswapxy';
+import { ColorIndexPalette } from "../../../components/forms/palette/colorIndexPalette";
+import { FoldableControl} from "../../../components/forms/foldableControl/foldableControl"
+import { ListInputBox } from "../../../components/forms/listbox/listInputBox";
 
 interface InspectorContent {
     boring: Boring,
@@ -103,12 +103,12 @@ export const BoringManager = () => {
         let boringName: string;
         if(namingMode == 'autoincrement') {
             if(!prefixRef.current.value || prefixRef.current.value.length == 0) {
-                alert('접두어를 입력해 주세요');
+                await window.electronSystemAPI.callDialogError('시추공 추가 오류', '접두어를 입력해 주세요');
                 return;
             }
     
             if(!indexRef.current.value || parseInt(indexRef.current.value) == 0) {
-                alert('시작번호를 1보다 큰 정수로 입력해 주세요');
+                await window.electronSystemAPI.callDialogError('시추공 번호 오류', '시작번호를 1보다 큰 정수로 입력해 주세요');
                 return;
             }
     
@@ -135,12 +135,12 @@ export const BoringManager = () => {
             const searchJob = await searchBoringName(inputName);
             
             if(searchJob == 'found') {
-                alert('이미 사용중인 이름입니다.');
+                await window.electronSystemAPI.callDialogError('시추공 중복 오류', '이미 사용중인 이름입니다.');
                 return;
             }
 
             if(searchJob == 'internalError') {
-                alert('시스템 내부 오류.');
+                await window.electronSystemAPI.callDialogError('시스템 오류', '시스템 내부 오류.');
                 return;
             }
 

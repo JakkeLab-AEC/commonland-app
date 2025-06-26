@@ -1,8 +1,7 @@
 import { useLanguageStore } from "../../../../language/languageStore";
-import { ButtonNegative } from "../../../../components/buttons/buttonNegative";
-import {ButtonPositive} from "../../../../components/buttons/buttonPositive";
+import { ButtonNegative } from "../../../../components/forms/buttons/buttonNegative";
+import {ButtonPositive} from "../../../../components/forms/buttons/buttonPositive";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
-import { FoldableControl } from "../../../../components/foldableControl/foldableControl";
 import React from "react";
 import { LayerSet } from "./detailItems/layers";
 import { SPTSheet } from "./detailItems/sptSheet";
@@ -11,8 +10,6 @@ import { useHomeStore } from "../../../../commonStatus/homeStatusModel";
 import { Layer } from "../../../../../mainArea/models/serviceModels/boring/layer";
 import { SPTResult, SPTResultSet } from "../../../../../mainArea/models/serviceModels/boring/sptResult";
 import { useEditorPageStore } from "../EditorPageStore";
-import { ThreeBoringPost } from "@/rendererArea/api/three/predefinedCreations/boringPost";
-import { SceneController } from "@/rendererArea/api/three/SceneController";
 
 interface BoringEditorProps {
     boring: Boring
@@ -58,25 +55,25 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring, isNewC
     const onClickSave = async () => {
         // Layer check
         if(boring.getLayers().length == 0) {
-            alert('레이어는 1개이상 배치해야 합니다.');
+            await window.electronSystemAPI.callDialogError('시추공 레이어 오류', '레이어는 1개이상 배치해야 합니다.');
             return;
         }
 
         // Name Check
         const newName = boring.getName();
         if(newName.length == 0 || newName.trim().length == 0) {
-            alert('이름은 공란이나 여백으로 만들 수 없습니다.')
+            await window.electronSystemAPI.callDialogError('시추공 이름 오류', '이름은 공란이나 여백으로 만들 수 없습니다.')
             return;
         }
         
         const searchNameJob = await searchBoringName(boring.getName(), boring.getId().getValue());
         if(searchNameJob == 'found') {
-            alert('이미 사용중인 시추공 이름입니다.');
+            await window.electronSystemAPI.callDialogError('시추공 이름 오류', '이미 사용중인 시추공 이름입니다.');
             return;
         }
 
         if(searchNameJob == 'internalError') {
-            alert('시스템 내부 오류.');
+            await window.electronSystemAPI.callDialogError('Commonland 시스템 오류', '시스템 내부 오류.');
             return;
         }
             
@@ -109,7 +106,7 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring, isNewC
             }
         
             alertMessage += '해당 항목을 확인해 주세요.';
-            alert(alertMessage);
+            await window.electronSystemAPI.callDialogError('레이어 입력 오류', alertMessage);
         
             return;
         }
@@ -125,7 +122,7 @@ export const InspectorBoringEdit: React.FC<BoringEditorProps> = ({boring, isNewC
         }
 
         if(!toleranceCheckResult) {
-            alert('인접한 시추공과 0.5m 이상 떨어져있어야 합니다.');
+            await window.electronSystemAPI.callDialogError('시추공 위치 오류', '인접한 시추공과 0.5m 이상 떨어져있어야 합니다.');
             return;
         }
 

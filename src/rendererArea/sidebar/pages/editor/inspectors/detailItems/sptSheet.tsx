@@ -1,10 +1,10 @@
 import React, { ChangeEvent, useCallback, useRef, useState } from "react"
-import {ButtonPositive} from "../../../../../components/buttons/buttonPositive";
-import { ContextMenu, ContextMenuItemProp } from "../../../../../components/contextmenu/contextMenu";
-import { SPTResult, SPTResultSet } from "../../../../../../mainArea/models/serviceModels/boring/sptResult";
-import { Inspector } from "../../../../../../rendererArea/components/inspector/inspector";
-import { ButtonNegative } from "../../../../../../rendererArea/components/buttons/buttonNegative";
-import { MultilineTextbox, MultilineTextboxHandle } from "@/rendererArea/components/multilineTextbox/multilineTextBox";
+import {ButtonPositive} from "../../../../../components/forms/buttons/buttonPositive";
+import { ContextMenu, ContextMenuItemProp } from "../../../../../components/forms/contextmenu/contextMenu";
+import { SPTResultSet } from "../../../../../../mainArea/models/serviceModels/boring/sptResult";
+import { Inspector } from "../../../../../../rendererArea/components/forms/inspector/inspector";
+import { ButtonNegative } from "../../../../../../rendererArea/components/forms/buttons/buttonNegative";
+import { MultilineTextbox, MultilineTextboxHandle } from "@/rendererArea/components/forms/multilineTextbox/multilineTextBox";
 
 interface SPTResultUnitProp {
     id: string,
@@ -189,7 +189,7 @@ export const SPTSheet:React.FC<SPTSheetProps> = ({SPTResultSet, onClickSetDepth,
                 }
             });
             const alertValueJoined = alertValue.join();
-            alert(`일부 값의 형식이 잘못되었습니다.\n0 이상의 정수/정수 형태로 입력해주세요\n${alertValueJoined}`);
+            window.electronSystemAPI.callDialogError('SPT 값 입력 오류', `일부 값의 형식이 잘못되었습니다.\n0 이상의 정수/정수 형태로 입력해주세요\n${alertValueJoined}`);
             return;
         }
         const result: Map<number, {hitCount: number, distance: number}> = new Map()

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { DefaultDimensions } from './defaultConfigs/DefaultDimensionConfigs';
 import { ViewportControlService } from './services/viewportControlService';
+import { ViewportDataManageService } from './services/dataManageService';
 
 export class SceneController {
 
@@ -23,9 +24,14 @@ export class SceneController {
     
     /* Services */
     private viewportControl: ViewportControlService;
+    private dataManageService: ViewportDataManageService;
 
     public getViewportControl() {
         return this.viewportControl;
+    }
+
+    public getDataMangeService() {
+        return this.dataManageService
     }
 
     /* Default Configs */
@@ -40,6 +46,7 @@ export class SceneController {
         this.controls.update();
         this.drawingPlaneXZ = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
         this.viewportControl = new ViewportControlService(this);
+        this.dataManageService = new ViewportDataManageService(this);
     }
 
     public static getInstance(): SceneController {
@@ -52,38 +59,6 @@ export class SceneController {
     public static setInstance(config: { renderer: THREE.Renderer, scene: THREE.Scene, camera: THREE.Camera, control: OrbitControls }): void {
         const sceneController = new SceneController(config);
         sceneController.addGridHelper();
-
-        // // Define updateCameraPlane function
-        // function updateCameraPlane() {
-        //     const boundingBox = new THREE.Box3();
-
-        //      // Calculate bounding box for the scene
-        //     boundingBox.setFromObject(sceneController.getScene());
-
-        //     const min = boundingBox.min;
-        //     const max = boundingBox.max;
-
-        //     // Calculate the direction vector from min to max
-        //     const directionMinToMax = max.clone().sub(min).normalize();
-
-        //     // Load scene, camera, renderer
-        //     const scene = sceneController.getScene();
-        //     const camera = sceneController.getCamera() as THREE.OrthographicCamera;
-        //     const renderer = sceneController.getRenderer();
-            
-        //     const cameraCenter = camera.position.clone(); // Keep the current camera position
-        //     const cameraLookAt = max.clone().sub(directionMinToMax.clone().multiplyScalar(10));
-
-        //     console.log(cameraCenter);
-
-        //     camera.near = 0.1;
-        //     camera.far = cameraCenter.distanceTo(cameraLookAt)+2000;
-        //     camera.updateProjectionMatrix();
-
-        //     renderer.render(scene, camera);
-        //     sceneController.setCamera(camera);
-        //     console.log(camera.position);
-        // }
     
         // Add event listener to update near/far planes on control change
         sceneController.controls.addEventListener('change', sceneController.viewportControl.updateCameraPlane);
@@ -97,7 +72,20 @@ export class SceneController {
         this.render();
     }
 
-    public addObjects(objects: THREE.Object3D[]): void {
+    public addObjects(objects: THREE.Object3D[], onRendered?: () => void): void {
+        if(!objects || objects.length === 0) return;
+        
+        if(onRendered) {
+            const once = () => {
+                onRendered();
+            };
+
+            this.scene.onAfterRender = () => {
+                once();
+                this.scene.onAfterRender = () => { }
+            }
+        }
+        
         this.scene.add(...objects);
         this.render();
     }
@@ -159,60 +147,6 @@ export class SceneController {
         return SceneController.registeredInstances.get(id);
     }
 
-    // public static serializeCamera(currentCamera: THREE.Camera): ThreeViewJSON | undefined {
-    //     const cameraCommonProps = {
-    //         id: uuidv4(),
-    //         viewName: "New View",
-    //         viewType: currentCamera.type,
-    //         cameraPosition: {
-    //             x: currentCamera.position.x,
-    //             y: currentCamera.position.y,
-    //             z: currentCamera.position.z,
-    //         },
-    //         cameraRotation: {
-    //             x: currentCamera.quaternion.x,
-    //             y: currentCamera.quaternion.y,
-    //             z: currentCamera.quaternion.z,
-    //             w: currentCamera.quaternion.w,
-    //         },
-    //         up: {
-    //             x: currentCamera.up.x,
-    //             y: currentCamera.up.y,
-    //             z: currentCamera.up.z,
-    //         },
-    //     };
-    
-    //     if (currentCamera.type === 'PerspectiveCamera') {
-    //         const camera = currentCamera as THREE.PerspectiveCamera;
-    //         const cameraProps = {
-    //             fov: camera.fov,
-    //             near: camera.near,
-    //             far: camera.far,
-    //         };
-    //         return {
-    //             ...cameraCommonProps,
-    //             viewType: 'PerspectiveCamera',
-    //             PerspectiveViewProps: cameraProps,
-    //         } as ThreePerspectiveViewJSON;
-    //     } else if (currentCamera.type === 'OrthographicCamera') {
-    //         const camera = currentCamera as THREE.OrthographicCamera;
-    //         const cameraProps = {
-    //             zoom: camera.zoom,
-    //             left: camera.left,
-    //             right: camera.right,
-    //             top: camera.top,
-    //             bottom: camera.bottom,
-    //         };
-    //         return {
-    //             ...cameraCommonProps,
-    //             viewType: 'OrthographicCamera',
-    //             OrthographicViewProps: cameraProps,
-    //         } as ThreeOrthographicViewJSON;
-    //     } else {
-    //         return undefined;
-    //     }
-    // }
-
     /**
      * Set size of Viewport.
      * The type of camera has two values : PerspectiveCamera, OrthographicCamera
@@ -243,78 +177,9 @@ export class SceneController {
         this.render();
     }
 
-    // public updateCameraFromView(view: ThreeView): void {
-    //     if (view instanceof ThreePerspectiveView) {
-    //         const camera = this.camera as THREE.PerspectiveCamera;
-    //         camera.position.set(view.cameraPosition.x, view.cameraPosition.y, view.cameraPosition.z);
-    //         camera.quaternion.set(view.cameraRotation.x, view.cameraRotation.y, view.cameraRotation.z, view.cameraRotation.w);
-    //         camera.fov = view.fov;
-    //         camera.near = view.near;
-    //         camera.far = view.far;
-    //         camera.updateProjectionMatrix();
-    //     } else if (view instanceof ThreeOrthographicView) {
-    //         const camera = this.camera as THREE.OrthographicCamera;
-    //         camera.position.set(view.cameraPosition.x, view.cameraPosition.y, view.cameraPosition.z);
-    //         camera.setRotationFromQuaternion(new THREE.Quaternion(view.cameraRotation.x, view.cameraRotation.y, view.cameraRotation.z, view.cameraRotation.w));
-    //         camera.zoom = view.zoom;
-    //         camera.left = view.left;
-    //         camera.right = view.right;
-    //         camera.top = view.top;
-    //         camera.bottom = view.bottom;
-    //         camera.updateProjectionMatrix();
-    //     }
-
-    //     this.controls.update();
-    //     this.render();
-    // }
-
-    
-    // public setTopView(): void {
-    //     const boundingBox = this.getBoundingBoxOfObjects();
-    //     const boundingCenter = new THREE.Vector3();
-    //     boundingBox.getCenter(boundingCenter);
-    
-    //     if (this.camera.type === 'PerspectiveCamera') {
-    //         const perspectiveCamera = this.camera as THREE.PerspectiveCamera;
-    //         const cameraY = boundingBox.max.y + 10; // Adding some offset for better visibility
-    //         perspectiveCamera.position.set(boundingCenter.x, cameraY, boundingCenter.z);
-    //         perspectiveCamera.lookAt(boundingCenter.x, boundingCenter.y, boundingCenter.z);
-    //     } else if (this.camera.type === 'OrthographicCamera') {
-    //         const orthographicCamera = this.camera as THREE.OrthographicCamera;
-    //         const canvasWidth = this.renderer.domElement.clientWidth;
-    //         const canvasHeight = this.renderer.domElement.clientHeight;
-    //         const aspect = canvasWidth / canvasHeight;
-    //         const frustumSize = 100; // Adjust frustum size as needed
-
-    //         orthographicCamera.left = -frustumSize * aspect / 2;
-    //         orthographicCamera.right = frustumSize * aspect / 2;
-    //         orthographicCamera.top = frustumSize / 2;
-    //         orthographicCamera.bottom = -frustumSize / 2;
-
-    //         orthographicCamera.quaternion.set(0, 0, 0, 0);
-    //         orthographicCamera.position.set(0, 100, 0); // Adding offset for visibility
-            
-    //         orthographicCamera.lookAt(0, 0, 0);
-    //         orthographicCamera.near = 0.1;
-    //         orthographicCamera.far = 1000;
-    //         orthographicCamera.zoom = 1; // Adjust zoom as needed
-    //         orthographicCamera.updateProjectionMatrix();
-
-    //         console.log(orthographicCamera);
-
-    //         // Update the camera instance in SceneController
-    //         this.camera = orthographicCamera;
-    //         this.controls.object = orthographicCamera;
-    //         this.controls.update();
-    //     }
-    
-    //     // Ensure the controls are updated
-    //     this.controls.update();
-    //     this.render();
-    // }
-
     public addGridHelper() {
         const gridHelper = new THREE.GridHelper();
+        gridHelper.rotation.x = Math.PI/2;
         this.gridHelper = gridHelper;
         this.scene.add(gridHelper);
         this.render();
@@ -362,11 +227,13 @@ export class SceneController {
         const targetCamera = camera ? camera : new THREE.OrthographicCamera(
             -frustumSize * aspect / 2, frustumSize * aspect / 2,
             frustumSize / 2, -frustumSize / 2,
-            0.1, 10000
+            -100000, 100000
         );
+
+        targetCamera.up.set(0, 0, 1);
         
         targetCamera.position.set(50, 50, 50);
-        targetCamera.zoom = 100;
+        targetCamera.zoom = 10;
         targetCamera.updateProjectionMatrix();
         targetCamera.lookAt(new THREE.Vector3(0, 0, 0));
         targetScene.add(new THREE.AxesHelper());

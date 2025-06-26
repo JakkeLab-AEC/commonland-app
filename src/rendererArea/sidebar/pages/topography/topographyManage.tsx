@@ -1,37 +1,49 @@
-import React, { useEffect, useState } from "react"
-import { ButtonPositive } from "@/rendererArea/components/buttons/buttonPositive";
-import { ButtonNegative } from "@/rendererArea/components/buttons/buttonNegative";
+import React, { useEffect, useRef, useState } from "react"
+import { ButtonPositive } from "@/rendererArea/components/forms/buttons/buttonPositive";
+import { ButtonNegative } from "@/rendererArea/components/forms/buttons/buttonNegative";
 import { useModalOveralyStore } from "@/rendererArea/homescreenitems/modalOverlayStore";
-import { InspectorFixed } from "@/rendererArea/components/inspector/inspectorFixed";
+import { InspectorFixed } from "@/rendererArea/components/forms/inspector/inspectorFixed";
 import { InspectorTopoMaker } from './inspector/inspectorTopoMaker';
-import { Topo } from "@/mainArea/models/serviceModels/topo/Topo";
-import {ListBoxColorPicker} from "@/rendererArea/components/listbox/listBoxColorPicker"
+import {ListBoxColorPicker} from "@/rendererArea/components/forms/listbox/listBoxColorPicker"
 import { useTopoMakerStore } from "./inspector/inspectorTopoMakerStore";
 import { SceneController } from "@/rendererArea/api/three/SceneController";
+import { TopoCreationOptions } from "./options";
+import { ModalLoading } from "@/rendererArea/components/forms/loadings/modalLoading";
 
 export const TopographyManage = () => {
     const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
-    
+    const [checkedBoundary, setCheckedBoundaries] = useState<Set<string>>(new Set());
+    const boundaryNameRef = useRef<HTMLInputElement>(null);
+
     const {
         toggleMode,
         updateModalContent,
-        resetProps
     } = useModalOveralyStore();
 
     const {
-        insertTopo,
-        fetchAllTopos,
         topoDisplayItems,
         fetchedTopos,
+        boundaryDisplayItems,
+        fetchedBoundaries,
         updateDisplayItemCheck,
         updateDisplayItemColor,
-        removeTopos
+        updateBoundaryDisplayItemCheck,
+        updateBoundaryDisplayItemColor,
+        removeTopos,
+        insertTopo,
+        fetchAllTopos,
+        fetchAllBoundaries,
+        insertBoundary,
+        removeBoundaries
     } = useTopoMakerStore();
 
-    const onSubmitTopo = async (topo: Topo) => {
-        await insertTopo(topo);
-        
+    const onSubmitTopo = async (options: TopoCreationOptions) => {
+        updateModalContent(<ModalLoading message="지형 생성중..." />)
+        console.log(options);
+        await insertTopo(options);
         await fetchAllTopos();
+
+        toggleMode(false);
     }
 
     const onClickCloseMaker = async () => {
@@ -71,17 +83,17 @@ export const TopographyManage = () => {
             SceneController.getInstance()
                 .getViewportControl()
                 .updateTopoColor([{
-                    threeObjId: updatedTopo.getThreeObjId(),
+                    threeObjId: updatedTopo.threeObjId,
                     colorIndex: index,
             }]);
         }
     }
 
-    const TopographyEditor:React.FC<{}> = () => {
+    const TopographyEditor:React.FC = () => {
         return (
-        <InspectorFixed title={"지형 생성"} width={1280} height={720} onClickCloseHandler={onClickCloseMaker}>
-            <InspectorTopoMaker onSubmitTopo={onSubmitTopo} onClickClose={onClickCloseMaker}/>
-        </InspectorFixed>
+            <InspectorFixed title={"지형 생성"} width={1280} height={720} onClickCloseHandler={onClickCloseMaker}>
+                <InspectorTopoMaker onSubmitTopo={onSubmitTopo} onClickClose={onClickCloseMaker}/>
+            </InspectorFixed>
         )
     }
 
@@ -93,20 +105,76 @@ export const TopographyManage = () => {
     const onClickDeleteTopos = async () => {
         const newSet = new Set(checkedItems);
         const deleteJobResult = await removeTopos(Array.from(newSet.values()));
-
+        
         if(deleteJobResult.result) {
             setCheckedItems(new Set());
-            const targetThreeIds = deleteJobResult.deletedTopos.map(topo => topo.getThreeObjId());
+            const targetThreeIds = deleteJobResult.deletedTopos.map(topo => topo.threeObjId);
             SceneController.getInstance().removeObjectByUUIDs(targetThreeIds);
+        }
+    }
+
+    const addBoundary = async () => {
+        const name = boundaryNameRef.current.value;
+        if(!name || name.length === 0) {
+            await window.electronSystemAPI.callDialogError("경계선 추가 오류", "이름을 입력 후 실행해 주세요.");
+            boundaryNameRef.current.focus();
+            return;
+        }
+        
+        insertBoundary(name);
+    }
+
+    const removeBoundary = async () => {
+        const newSet = new Set(checkedBoundary);
+        const deleteJobResult = await removeBoundaries(Array.from(newSet.values()));
+        
+        if(deleteJobResult.result) {
+            setCheckedItems(new Set());
+            const targetThreeIds = deleteJobResult.deletedBoundaries.map(boundary => boundary.threeObjId);
+            SceneController.getInstance().removeObjectByUUIDs(targetThreeIds);
+        }
+    }
+
+    const onChangeColorBoundary = async (id: string, index: number) => {
+        const updateJob = await updateBoundaryDisplayItemColor(id, index);
+        if(updateJob && updateJob.result) {
+            const updatedBoundary = updateJob.updatedBoundary;
+
+            SceneController.getInstance()
+                .getViewportControl()
+                .updateBoundaryColor([{
+                    threeObjId: updatedBoundary.threeObjId,
+                    colorIndex: index,
+            }]);
+        }
+    }
+
+    const onCheckedBoundary = (id: string, checked: boolean, all?: boolean | null) => {
+        if(all != null) {
+            if(all) {
+                const ids = new Set(fetchedBoundaries.keys());
+                ids.forEach(id => updateBoundaryDisplayItemCheck(id, true));
+                setCheckedBoundaries(ids);
+            } else {
+                const ids = new Set(fetchedBoundaries.keys());
+                ids.forEach(id => updateBoundaryDisplayItemCheck(id, false));
+                setCheckedBoundaries(new Set());
+            }
+        } else {
+            const newSet = new Set(checkedBoundary);
+            if(checked) {
+                newSet.add(id);
+            } else {
+                newSet.delete(id);
+            }
+            setCheckedBoundaries(newSet);
+            updateBoundaryDisplayItemCheck(id, checked);
         }
     }
 
     useEffect(() => {
         fetchAllTopos();
-
-        return () => {
-            resetProps();
-        }
+        fetchAllBoundaries();
     }, []);
 
     return (
@@ -128,7 +196,20 @@ export const TopographyManage = () => {
             </div>
             <hr/>
             <div>
-                {/* <ButtonPositive text={"지형면 새로고침"} isEnabled={true} width={'100%'} onClickHandler={refreshTopoOnView}/> */}
+                <span>대지경계선 리스트</span>
+            </div>
+            <div>
+                <ListBoxColorPicker 
+                    height={240} 
+                    items={boundaryDisplayItems} 
+                    header={"폴리라인"}
+                    onChangeColorHandler={onChangeColorBoundary}
+                    onCheckedHandler={onCheckedBoundary}/>
+            </div>
+            <div className="flex flex-row place-content-between gap-2">
+                <input className="border rounded-md w-full" maxLength={22} ref={boundaryNameRef}/>
+                <ButtonPositive text={"추가"} isEnabled={true} width={60} onClickHandler={addBoundary} />
+                <ButtonNegative text={"삭제"} isEnabled={true} width={60} onClickHandler={removeBoundary}/>
             </div>
         </div>
     )

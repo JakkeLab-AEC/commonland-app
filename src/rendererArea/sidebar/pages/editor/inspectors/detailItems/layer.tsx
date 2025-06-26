@@ -1,6 +1,6 @@
 import React, { useRef } from "react"
 import { HamburgerIcon } from "../../../../../assets/icons/hamburgerIcon";
-import { ButtonDelete } from "../../../../../components/buttons/buttonDelete";
+import { ButtonDelete } from "../../../../../components/forms/buttons/buttonDelete";
 
 export interface LayerProps {
     index: number,

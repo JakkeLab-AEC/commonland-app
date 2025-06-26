@@ -1,5 +1,8 @@
 import { app, dialog, FileFilter, IpcMain } from "electron"
 import { ProjectRead, ProjectWrite } from "../appController/projectIO";
+import { AppController } from "../appController/appController";
+import { DEFAULT_VALUES } from "@/public/defaultValues";
+import { ElementId } from "../models/id";
 
 export const setIpcProjectIOHandler = (ipcMain: IpcMain) => {
     ipcMain.handle('project-file-save', async (_) => {
@@ -62,9 +65,39 @@ export const setIpcProjectIOHandler = (ipcMain: IpcMain) => {
                 throw new Error('Failed to load project file.');
             }
 
-            return {result: true}
+            const info = await AppController.getInstance()
+                .repositories.landInfo
+                .fetchInfo();
+
+            if(!info.landInfo) {
+                return {result: false, message: "Land info does not exist."};
+            }
+
+            return {result: true, landInfo: info.landInfo}
         } catch (error) {
             return {result: false, message: error}
+        }
+    });
+
+    ipcMain.handle('project-file-new', async (_)=> {
+        try {
+            await AppController.getInstance().truncateDatas();
+
+            await AppController.getInstance()
+                .repositories.landInfo
+                .registerInfo(DEFAULT_VALUES.DEFAULT_LANDINFO, new ElementId().getValue());
+            
+            const info = await AppController.getInstance()
+                .repositories.landInfo
+                .fetchInfo();
+
+            if(!info.landInfo) {
+                return {result: false, message: "Land info does not exist."};
+            }
+            
+            return {result: true, landInfo: info.landInfo};
+        } catch (error) {
+            return {result: false, message: error};
         }
     });
 }

@@ -1,7 +1,7 @@
 import React, { useEffect } from "react"
-import {InspectorFixed} from '../../../../components/inspector/inspectorFixed';
-import {ButtonPositive} from '../../../../components/buttons/buttonPositive';
-import {ButtonNegative} from '../../../../components/buttons/buttonNegative';
+import {InspectorFixed} from '../../../../components/forms/inspector/inspectorFixed';
+import {ButtonPositive} from '../../../../components/forms/buttons/buttonPositive';
+import {ButtonNegative} from '../../../../components/forms/buttons/buttonNegative';
 import {useModalOveralyStore} from '../../../../homescreenitems/modalOverlayStore';
 
 interface ModalSwapXYProps {

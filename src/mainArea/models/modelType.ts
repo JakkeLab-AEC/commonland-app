@@ -3,5 +3,6 @@ export enum ModelType {
     Service = 'Service',
     LayerConfig = 'LayerConfig',
     Topo = 'Topo',
-    PostSegment = 'PostSegment'
+    PostSegment = 'PostSegment',
+    Boundary = 'Boundary',
 }

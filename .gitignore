@@ -229,3 +229,9 @@ $RECYCLE.BIN/
 
 # electron-forge build folder
 /out
+
+# python embedding
+/envs
+
+# python cache
+*.pyc
