@@ -1,0 +1,7 @@
+## Bundled Python Packages
+
+This application includes the following Python packages, redistributed under their respective licenses:
+
+- numpy 2.2.5 (BSD License)
+- scipy 1.15.2 (BSD License)
+- PyKrige 1.7.2 (BSD License)

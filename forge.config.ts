@@ -14,22 +14,27 @@ const config: ForgeConfig = {
       "^/.run",
       "^/.idea",
       "^/static",
+      "^/doc",
       ".gitignore",
       "forge.config.ts",
+      "jest.config.ts",
+      "miniconda_environment.yaml",
       "postcss.config.js",
       "README.md",
       "style.css",
       "tailwind.config.js",
       "tsconfig.json",
       "vite.config.ts",
-      "viteplugin.ts",
-      "vite.plugins.own.ts"
+      "vite.plugin.copy.ts",
+      "vite.plugin.truncate.ts",
+      
     ],
+    icon: './assets/icons/appicon'
   },
   makers: [
-    new MakerSquirrel({authors: 'jakkelab', description: 'IFC File creation app, wrapping IfcOpenShell.'}), 
+    new MakerSquirrel({authors: 'jakkelab', description: 'An editor app for managing topography.'}), 
     new MakerZIP({}, ['darwin'])
-  ]
+  ],
 }
 
 export default config;

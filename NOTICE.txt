@@ -1,0 +1,2 @@
+This application bundles Miniconda, which is distributed under the BSD 3-Clause License.
+Copyright (c) Anaconda, Inc.
