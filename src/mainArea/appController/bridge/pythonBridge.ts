@@ -5,9 +5,9 @@ import { UIController } from "../uicontroller/uicontroller";
 import { PipeMessageSendRenderer } from "@/dto/pipeMessage";
 
 export class PythonBridge {
-    private embeddedPath: string | null;
-    private pyProcess: ChildProcessWithoutNullStreams;
-    private pythonExecutable: string | null;
+    private embeddedPath: string;
+    private pyProcess?: ChildProcessWithoutNullStreams;
+    private pythonExecutable?: string;
     private readonly platform: string
     private readonly appRootPath: string;
     private readonly appRuntimePath: string;
@@ -47,21 +47,21 @@ export class PythonBridge {
         }
 
         try {
-            this.pyProcess = spawn(this.pythonExecutable, [checkedPath], {
+            this.pyProcess = this.pythonExecutable ? spawn(this.pythonExecutable, [checkedPath], {
                 stdio: 'pipe'
-            });
+            }) : undefined;
 
-            this.pyProcess.stderr.on('data', (data) => {
+            this.pyProcess?.stderr.on('data', (data) => {
                 console.error(`Python stderr: ${data}`);
             });
 
-            this.pyProcess.stdout.on('data', (data) => {
+            this.pyProcess?.stdout.on('data', (data) => {
                 console.log(data);
             });
 
-            this.pyProcess.on('close', (code) => {
+            this.pyProcess?.on('close', (code) => {
                 console.log(`Python process exited with code ${code}`);
-                this.pyProcess = null;
+                this.pyProcess = undefined;
             });
         } catch (error) {
             console.error(error);
@@ -78,7 +78,7 @@ export class PythonBridge {
         if (this.pyProcess) {
             this.pyProcess.kill();
             console.log('Python process terminated.');
-            this.pyProcess = null;
+            this.pyProcess = undefined;
         } else {
             console.warn('Python process is not running.');
         }
@@ -87,11 +87,7 @@ export class PythonBridge {
     async send(message: PipeMessageSendRenderer): Promise<any> {        
         const mainWindow = UIController.instance.getWindow('main-window');
         if (!mainWindow) {
-            dialog.showMessageBoxSync(mainWindow, {
-                title: "System Error",
-                message: "Main window is not found.",
-                buttons: ["Ok"]
-            });
+            dialog.showErrorBox("System Error", "Main window is not found.");
             return;
         }
     
@@ -110,7 +106,7 @@ export class PythonBridge {
     
             const data = JSON.stringify(convertedMessage) + '\n';
 
-            const [stdin, stdout] = [this.pyProcess.stdin, this.pyProcess.stdout];
+            const [stdin, stdout] = [this.pyProcess?.stdin, this.pyProcess?.stdout];
     
             if (!stdin || !stdout) {
                 return reject('Python process stdin or stdout is not available.');
@@ -136,7 +132,7 @@ export class PythonBridge {
             stdout.on('data', onData);
     
             stdin.write(data);
-            stdin.end();  // 데이터 입력을 완료했음을 알림
+            stdin.end();
         });
     }    
 }
